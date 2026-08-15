@@ -11,6 +11,7 @@ import './eval.js';
 import './sup.js';
 import './nets.js';
 import './deep.js';
+import './unsup.js';
 
 /* ------------------------------------------------------------
    Landing-page hero: an ambient linear transformation that

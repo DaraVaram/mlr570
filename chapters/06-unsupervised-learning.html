@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6 · Unsupervised Learning — MLR 570</title>
+<meta name="description" content="Clustering and autoencoders — k-means and Lloyd's algorithm, k-means++, k-medoids, kernel k-means, DBSCAN, Gaussian mixtures and EM, then autoencoders from PCA to VAEs, with interactive figures throughout.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="../index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="../index.html">Home</a>
+      <a class="nav__link" href="../notes.html" aria-current="page">Notes</a>
+      <a class="nav__link" href="../syllabus.html">Syllabus</a>
+      <a class="nav__link" href="../about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar__mobile-toggle" id="sidebar-toggle" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      On this page
+    </button>
+    <div class="sidebar__body">
+      <div class="sidebar__group">
+        <div class="sidebar__title">6.1 · Clustering as Optimisation</div>
+        <ul class="toc">
+          <li><a href="#motivation">Learning without labels</a></li>
+          <li><a href="#objective">The objective</a></li>
+          <li><a href="#anova">The variance decomposition</a></li>
+          <li><a href="#kmeans">k-means and Lloyd's algorithm</a></li>
+          <li><a href="#worked">The worked example</a></li>
+          <li><a href="#limits">Where k-means fails</a></li>
+          <li><a href="#kmeanspp">k-means++</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">6.2 · Beyond the Mean</div>
+        <ul class="toc">
+          <li><a href="#kmedoids">k-medoids</a></li>
+          <li><a href="#kernel">Kernel k-means</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">6.3 · Density-Based Clustering</div>
+        <ul class="toc">
+          <li><a href="#density">Clusters as dense regions</a></li>
+          <li><a href="#dbscan">DBSCAN</a></li>
+          <li><a href="#reachability">Density-reachability</a></li>
+          <li><a href="#dbscan-example">The toy example</a></li>
+          <li><a href="#params">Choosing ε and minPts</a></li>
+          <li><a href="#hdbscan">HDBSCAN</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">6.4 · Soft Clustering</div>
+        <ul class="toc">
+          <li><a href="#mixtures">Mixture models</a></li>
+          <li><a href="#gmm">Gaussian mixtures</a></li>
+          <li><a href="#em">EM</a></li>
+          <li><a href="#gmm-kmeans">GMMs and k-means</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">6.5 · Autoencoders</div>
+        <ul class="toc">
+          <li><a href="#ae-motivation">Why autoencoders</a></li>
+          <li><a href="#ae-basic">Architecture and objective</a></li>
+          <li><a href="#ae-linear">Linear autoencoders and PCA</a></li>
+          <li><a href="#ae-nonlin">What nonlinearity buys</a></li>
+          <li><a href="#dae">Denoising autoencoders</a></li>
+          <li><a href="#sae">Sparse autoencoders</a></li>
+          <li><a href="#vae">Variational autoencoders</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">Reference</div>
+        <ul class="toc">
+          <li><a href="#errata">Errata &amp; verification</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content" id="main">
+
+    <div class="chapter-head">
+      <div class="chapter-head__crumb">
+        <a href="../index.html">Home</a> › <a href="../notes.html">Notes</a> › Chapter 6
+      </div>
+      <h1>Unsupervised Learning</h1>
+      <p class="chapter-head__lede">
+        Every method so far has been handed the answers. Here there are none — only data, and the hope that
+        its structure is worth something. Two families follow from that: <strong>clustering</strong>, which
+        looks for groups, and <strong>autoencoders</strong>, which look for a shorter description. Both come
+        down to the same question: what can you throw away and still have the data back?
+      </p>
+      <div class="chapter-head__stats">
+        <span class="pill pill--live">Verified</span>
+        <span class="pill pill--play">13 interactive figures</span>
+        <span class="pill pill--brand">5 parts</span>
+      </div>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="motivation">Part 6.1 · Clustering as Optimisation</h2>
+
+    <p>
+      Unsupervised learning seeks structure in unlabelled data. For any given point we have no ground-truth
+      label to check against, so we have to rely on the <em>nature</em> of the data itself. The usual tasks
+      are clustering, dimensionality reduction, density estimation and anomaly detection, and the aim in each
+      case is to discover <strong>latent regularities</strong> that explain what we observe.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition · Hard and soft clustering</div>
+      <p>
+        Given \(n\) points \(\mathbf{X} = \{\mathbf{x}_i\}_{i=1}^n\) with \(\mathbf{x}_i \in \mathbb{R}^d\), a
+        clustering algorithm returns either
+      </p>
+      <ul>
+        <li>
+          a <strong>hard partition</strong> \(\{C_1,\dots,C_k\}\) with \(C_j \cap C_\ell = \varnothing\) for
+          \(j \neq \ell\) and \(\bigcup_j C_j = \{1,\dots,n\}\) — every point belongs to exactly one cluster; or
+        </li>
+        <li>
+          a <strong>soft assignment</strong> \(\gamma_{ij} \in [0,1]\) with \(\sum_{j=1}^k \gamma_{ij} = 1\) —
+          every point belongs to every cluster, to some degree.
+        </li>
+      </ul>
+    </div>
+
+    <p>
+      Soft assignment matters whenever points genuinely sit between groups: a document about two topics, a
+      customer who fits two profiles, a point in the overlap of two blobs. Forcing such a point to pick a
+      side discards real information about how ambiguous it was.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">Everything rests on a choice of distance</div>
+      <p>
+        Clustering is meaningless without a notion of (dis)similarity, and the choice determines what
+        structure is recoverable at all. Euclidean distance, Manhattan distance, cosine distance and
+        domain-specific dissimilarities like dynamic time warping all give different answers on the same
+        data. This is the same point made in
+        <a href="02-data-fundamentals.html#similarity">Chapter 2's similarity measures</a> — it just matters
+        more here, because there are no labels to tell you when the choice was wrong.
+      </p>
+    </div>
+
+    <h3 id="objective">The objective</h3>
+
+    <p>
+      There are three equivalent ways to look at what clustering is doing, and it helps to keep all three in
+      mind.
+    </p>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>Compression</h4>
+        <p>
+          Represent \(n\) points using only \(k\) prototypes. The loss is the total squared
+          <em>quantisation error</em>: each point pays the squared distance to its prototype.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Variance decomposition</h4>
+        <p>
+          Split the total scatter of the data into a within-cluster part and a between-cluster part.
+          Minimising the first automatically maximises the second.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Geometry</h4>
+        <p>
+          Centroids carve the space into cells, each collecting the points closest to one prototype. The
+          objective is the total squared distance from points to their cell's generator.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      Writing \(C_1,\dots,C_k\) for the partition and \(Z = \{z_j\}_{j=1}^k\) for the centroids, all three
+      views give the same optimisation problem:
+    </p>
+
+    <p>
+      \[
+        \min_{C_1,\dots,C_k,\; Z}\; \sum_{j=1}^{k} \sum_{i \in C_j} d^2(\mathbf{x}_i, \mathbf{z}_j).
+      \]
+    </p>
+
+    <p>
+      With \(d(\mathbf{x},\mathbf{z}) = \|\mathbf{x}-\mathbf{z}\|_2\) this is the
+      <strong>within-cluster sum of squares</strong> (WCSS). In matrix form, with
+      \(\mathbf{Y} \in \{0,1\}^{n \times k}\) the assignment matrix whose rows sum to 1,
+    </p>
+
+    <p>
+      \[
+        \mathrm{WCSS}(\mathbf{Y},\mathbf{Z}) = \|\mathbf{X} - \mathbf{Y}\mathbf{Z}\|_F^2
+        \quad\text{subject to}\quad \mathbf{Y}\mathbf{1} = \mathbf{1},\;\; \mathbf{Y}\in\{0,1\}^{n\times k}.
+      \]
+    </p>
+
+    <p>
+      That form makes two things obvious. The problem is <strong>nonconvex</strong> — the binary constraint on
+      \(\mathbf{Y}\) sees to that — and it is naturally attacked by alternating minimisation, since fixing
+      either \(\mathbf{Y}\) or \(\mathbf{Z}\) makes the other easy.
+    </p>
+
+    <h3 id="anova">The variance decomposition</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition · The ANOVA identity</div>
+      <p>
+        With \(\bar{\mathbf{x}}\) the grand mean and \(\mathbf{z}_j\) the cluster means, define
+      </p>
+      <p>
+        \[
+          \mathrm{TSS} = \sum_{i=1}^n \|\mathbf{x}_i - \bar{\mathbf{x}}\|^2, \qquad
+          \mathrm{WCSS} = \sum_{j=1}^k \sum_{i \in C_j} \|\mathbf{x}_i - \mathbf{z}_j\|^2, \qquad
+          \mathrm{BCSS} = \sum_{j=1}^k |C_j|\, \|\mathbf{z}_j - \bar{\mathbf{x}}\|^2 .
+        \]
+      </p>
+      <p>Then</p>
+      <p>\[ \mathrm{TSS} = \mathrm{WCSS} + \mathrm{BCSS}. \]</p>
+    </div>
+
+    <p>
+      The proof is one line of algebra. Inside cluster \(j\), write
+      \(\mathbf{x}_i - \bar{\mathbf{x}} = (\mathbf{x}_i - \mathbf{z}_j) + (\mathbf{z}_j - \bar{\mathbf{x}})\)
+      and expand the square. The cross-terms carry a factor
+      \(\sum_{i \in C_j}(\mathbf{x}_i - \mathbf{z}_j)\), which is <strong>exactly zero</strong> when
+      \(\mathbf{z}_j\) is the mean of the cluster. Summing over clusters gives the identity.
+    </p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">Why this identity is the point of the whole section</div>
+      <p>
+        TSS depends only on the data — no clustering appears in it. So it is a <em>constant</em>. Every unit
+        of WCSS you remove has to reappear as BCSS. Minimising within-cluster scatter and maximising
+        between-cluster separation are therefore not two goals to be balanced: they are literally the same
+        objective, viewed from either end.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">TSS = WCSS + BCSS</div>
+          <div class="playground__sub">Every bar is the same height, whatever k you choose</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="kmeans-anova"></div>
+    </div>
+
+    <h3 id="kmeans">k-means and Lloyd's algorithm</h3>
+
+    <p>
+      k-means is the special case of the general objective with squared Euclidean distance:
+    </p>
+
+    <p>
+      \[ J(C,Z) = \sum_{j=1}^k \sum_{i \in C_j} \|\mathbf{x}_i - \mathbf{z}_j\|_2^2 = \|\mathbf{X}-\mathbf{Y}\mathbf{Z}\|_F^2 . \]
+    </p>
+
+    <p>
+      Lloyd's algorithm minimises it by alternating two steps, each of which solves its own subproblem
+      exactly.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>1 · Assignment — optimise \(C\) with \(Z\) fixed</h4>
+        <p>
+          \[ i \in C_j \iff j = \arg\min_{\ell} \|\mathbf{x}_i - \mathbf{z}_\ell\|_2^2 \]
+        </p>
+        <p>
+          Each point independently picks its nearest centroid. The boundary between two centroids is the set
+          of equidistant points — a <strong>perpendicular bisector</strong>, hence an affine hyperplane, so
+          the result is a polyhedral partition.
+        </p>
+      </div>
+      <div class="card">
+        <h4>2 · Update — optimise \(Z\) with \(C\) fixed</h4>
+        <p>
+          \[ \frac{\partial}{\partial \mathbf{z}_j}\sum_{i\in C_j}\|\mathbf{x}_i-\mathbf{z}_j\|^2 = -2\sum_{i \in C_j}(\mathbf{x}_i - \mathbf{z}_j) = 0 \]
+        </p>
+        <p>
+          which gives \(\mathbf{z}_j = \frac{1}{|C_j|}\sum_{i \in C_j}\mathbf{x}_i\), the arithmetic mean.
+          Note that this derivation used the Euclidean norm — k-means is <em>not</em> metric-agnostic.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">Why the loop terminates</div>
+      <p>
+        The assignment step minimises \(J\) over \(C\) with \(Z\) fixed; the update step minimises \(J\) over
+        \(Z\) with \(C\) fixed. So \(J\) is non-increasing, and strictly decreases unless neither step changes
+        anything. Since there are only finitely many assignments — at most \(k^n\) — the algorithm must reach
+        a fixed point in finitely many iterations. It says nothing about <em>which</em> fixed point.
+      </p>
+    </div>
+
+    <div class="callout callout--tip">
+      <div class="callout__title">Cost and practicalities</div>
+      <p>
+        One iteration costs \(\mathcal{O}(nkd)\) for the distances and \(\mathcal{O}(nd)\) for the means.
+        Elkan's algorithm uses the triangle inequality to skip most distance evaluations; mini-batch k-means
+        cuts the per-iteration cost on very large \(n\). Stop when the assignments stabilise or when the
+        relative decrease \(\frac{J^{(t-1)}-J^{(t)}}{\max(1, J^{(t-1)})}\) falls below a tolerance. And
+        standardise your features first — otherwise whichever feature happens to have the largest units will
+        dominate the Euclidean distance.
+      </p>
+    </div>
+
+    <h3 id="worked">The worked example</h3>
+
+    <p>
+      The notes work through two full iterations on ten points in \(\mathbb{R}^2\) with \(k = 2\), starting
+      from \(\mathbf{z}_1^{(0)} = (1,1)\) and \(\mathbf{z}_2^{(0)} = (5,7)\). The figure below recomputes
+      every distance, assignment and centroid live, so you can check any number in the table by hand.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Lloyd's algorithm, step by step</div>
+          <div class="playground__sub">The notes' ten points, with the full distance table at every iteration</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="kmeans-lab"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__label">What to notice</div>
+      <ul>
+        <li>
+          At iteration 1, \(\mathbf{x}_3 = (3,4)\) is at squared distance <strong>13.00 from both</strong>
+          centroids. The tie is broken toward the lower index, which is a convention, not mathematics — a
+          different tie-break gives a different run.
+        </li>
+        <li>
+          WCSS falls from \(77.25\) to \(63.821181\), and exactly one point — \(\mathbf{x}_7 = (3.5, 4.5)\) —
+          changes cluster in the second iteration.
+        </li>
+        <li>
+          The notes stop here, but the algorithm has not converged. Keep stepping and WCSS falls to
+          \(43.119048\), which happens to be the <em>globally</em> optimal 2-clustering of these ten points
+          (verified by brute force over all \(2^{10}\) partitions). That is luck, not a guarantee.
+        </li>
+      </ul>
+    </div>
+
+    <h3 id="limits">Where k-means fails</h3>
+
+    <p>
+      The assignment step gives every pair of clusters a straight boundary. That single fact generates most
+      of k-means' failure modes.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Limitation</th><th>Why it happens</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Initialisation sensitivity</strong></td>
+            <td>The objective is nonconvex in \((C,Z)\), so different seeds land in different local minima.
+              This is what k-means++ addresses.</td>
+          </tr>
+          <tr>
+            <td><strong>Shape bias</strong></td>
+            <td>Squared Euclidean distance plus the mean implies a preference for spherical, convex clusters.
+              Elongated or curved manifolds get sliced by straight boundaries.</td>
+          </tr>
+          <tr>
+            <td><strong>Unequal sizes and spreads</strong></td>
+            <td>A compact cluster next to a diffuse one tends to get split, while the diffuse one absorbs
+              strays. k-means implicitly wants similarly sized, similarly dense groups.</td>
+          </tr>
+          <tr>
+            <td><strong>Metric mismatch</strong></td>
+            <td>When similarity is not Euclidean, the mean may be meaningless or undefined. Use medoids or a
+              kernel instead.</td>
+          </tr>
+          <tr>
+            <td><strong>Outliers</strong></td>
+            <td>The mean is not robust — one extreme point drags a centroid away from the bulk and inflates
+              WCSS.</td>
+          </tr>
+          <tr>
+            <td><strong>High dimension</strong></td>
+            <td>Distances concentrate as \(d\) grows, so standardisation and a PCA step usually help before
+              clustering at all.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Four datasets k-means gets wrong</div>
+          <div class="playground__sub">And the proof that it is the objective's fault, not the optimiser's</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="kmeans-limits"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">The most useful diagnostic in clustering</div>
+      <p>
+        When a clustering looks wrong, ask whether the algorithm found a <em>worse</em> objective value than
+        the answer you wanted, or a <em>better</em> one. If worse, you have an optimisation problem — restart,
+        reseed, run longer. If better — as on the moons and rings above — the optimiser did its job perfectly
+        and your objective simply does not encode the structure you had in mind. No amount of restarting will
+        fix that; you need a different method.
+      </p>
+    </div>
+
+    <h3 id="kmeanspp">k-means++</h3>
+
+    <p>
+      Vanilla k-means picks its initial centroids uniformly at random, which has no mechanism to avoid
+      putting several seeds inside the same natural group. k-means++ replaces that with distance-aware
+      sampling:
+    </p>
+
+    <ol>
+      <li>Choose \(\mathbf{z}_1\) uniformly at random from the data.</li>
+      <li>For each point compute \(D(\mathbf{x}_i) = \min_{j} \|\mathbf{x}_i - \mathbf{z}_j\|_2\), the
+        distance to the nearest centre chosen so far.</li>
+      <li>Choose the next centre from the data with probability
+        \[ \Pr(\mathbf{x}_i \text{ chosen}) = \frac{D(\mathbf{x}_i)^2}{\sum_{l=1}^n D(\mathbf{x}_l)^2}. \]</li>
+      <li>Repeat until \(k\) centres are chosen, then run Lloyd's algorithm from them.</li>
+    </ol>
+
+    <p>
+      The squaring is what gives the method its bite: it makes far-away points dramatically more likely to be
+      picked, so seeds spread across the data instead of clumping. Once a region has a centre, its points
+      have small \(D\) and are unlikely to be chosen again.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Seeding decides the answer</div>
+          <div class="playground__sub">Compare the best and worst outcome over 40 draws, with and without k-means++</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="kmeans-init"></div>
+    </div>
+
+
+    <!-- ==================================================== -->
+    <h2 id="kmedoids">Part 6.2 · Beyond the Mean</h2>
+
+    <p>
+      Both of k-means' structural weaknesses trace back to specific choices. It uses the <em>mean</em> as the
+      representative, which requires coordinates you can average and is not robust. And it measures distance
+      in the <em>input space</em>, which forces linear boundaries. Relaxing each choice gives one method.
+    </p>
+
+    <h3>k-medoids: robust prototypes for general dissimilarities</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition · k-medoids</div>
+      <p>
+        For a general dissimilarity \(\delta(\cdot,\cdot)\), choose \(k\) actual data points
+        \(\mathbf{x}_{m_1},\dots,\mathbf{x}_{m_k}\) — the <strong>medoids</strong> — to minimise
+      </p>
+      <p>
+        \[
+          \min_{C_1,\dots,C_k,\; m_1,\dots,m_k \in \{1,\dots,n\}}
+          \sum_{j=1}^k \sum_{i \in C_j} \delta(\mathbf{x}_i, \mathbf{x}_{m_j}).
+        \]
+      </p>
+      <p>
+        The medoid of a cluster is its most centrally located <em>member</em>: the point minimising total
+        dissimilarity to the rest.
+      </p>
+    </div>
+
+    <p>
+      The classical algorithm is <strong>PAM</strong> (Partitioning Around Medoids), which mirrors Lloyd's
+      but with a different update: assign every point to its nearest medoid, then try swapping each medoid
+      with each non-medoid and keep any swap that lowers the total cost. Because the representatives must be
+      actual observations, the search space is discrete — there is no gradient, only combinatorial
+      improvement. CLARA and CLARANS scale this up by sampling and randomised search respectively.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Drag an outlier and watch the mean chase it</div>
+          <div class="playground__sub">The medoid cannot follow — it has to stay a real data point</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="kmedoids-demo"></div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>Robustness</h4>
+        <p>
+          A single extreme observation cannot drag a medoid away from the cluster's core, because the medoid
+          must be one of the points. The mean has no such protection.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Any dissimilarity</h4>
+        <p>
+          \(\delta\) can be edit distance on strings, dynamic time warping on time series, or graph edit
+          distance — anything at all. There is no requirement that you be able to average.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Interpretability</h4>
+        <p>
+          Each representative is a real example you can inspect as a prototypical member. A mean vector often
+          corresponds to nothing that exists.
+        </p>
+      </div>
+    </div>
+
+    <h3 id="kernel">Kernel k-means</h3>
+
+    <p>
+      The other relaxation keeps the mean but changes the space. Map the data through
+      \(\phi: \mathbb{R}^d \to \mathcal{H}\) and run ordinary k-means on the images, minimising
+    </p>
+
+    <p>
+      \[
+        \sum_{j=1}^k \sum_{i \in C_j} \|\phi(\mathbf{x}_i) - \boldsymbol{\mu}_j\|_{\mathcal{H}}^2,
+        \qquad
+        \boldsymbol{\mu}_j = \frac{1}{|C_j|}\sum_{i \in C_j}\phi(\mathbf{x}_i).
+      \]
+    </p>
+
+    <p>
+      For useful kernels \(\phi\) is impossible to compute — the Gaussian RBF maps into an
+      infinite-dimensional space. But expanding the squared distance leaves only inner products, and every
+      inner product is a kernel evaluation:
+    </p>
+
+    <p>
+      \[
+        \|\phi(\mathbf{x}) - \boldsymbol{\mu}_j\|_{\mathcal{H}}^2
+        = K(\mathbf{x},\mathbf{x})
+        - \frac{2}{|C_j|}\sum_{i \in C_j} K(\mathbf{x},\mathbf{x}_i)
+        + \frac{1}{|C_j|^2}\sum_{i,i' \in C_j} K(\mathbf{x}_i,\mathbf{x}_{i'}).
+      \]
+    </p>
+
+    <p>
+      So the assignment step runs entirely on the \(n \times n\) kernel matrix, and \(\phi(\mathbf{x})\) is
+      never formed. This is the same trick as the
+      <a href="03-supervised-linear-kernel.html#kernels">kernel SVM in Chapter 3</a>, applied to a different
+      objective.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Kernel k-means against spectral clustering</div>
+          <div class="playground__sub">Watch the success rate, not just the picture</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="kernel-kmeans"></div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">Kernel k-means on concentric circles is much less reliable than it looks</div>
+      <p>
+        The notes present nested rings as a case where kernel k-means succeeds. It <em>can</em> — but rarely.
+        Measuring over 24 restarts at each of several \(\gamma\), kernel k-means recovers the two rings in
+        about <strong>8% of runs at its single best \(\gamma\)</strong>, and in none at all elsewhere. The
+        reason is structural: kernel k-means still wants clusters that are <em>compact</em> in feature space,
+        and a ring is a curve. Under an RBF kernel two points on opposite sides of the same ring have
+        \(K \approx 0\), so they are nearly orthogonal — further apart in feature space than points on
+        different rings that happen to be radially adjacent.
+      </p>
+      <p>
+        <strong>Spectral clustering</strong> — which the notes correctly describe as a relaxation of kernel
+        k-means — solves the same problem on <strong>100% of runs for any \(\gamma \gtrsim 20\)</strong>. It
+        embeds using the smallest eigenvectors of the normalised Laplacian and then runs plain k-means there,
+        so it keys on <em>connectivity</em> rather than compactness. A ring only has to be connected, which
+        it is. Switch between the two methods in the figure and compare the success-rate readout.
+      </p>
+      <p>
+        Two moons is the fairer advertisement for kernel k-means: there it reaches 96% at \(\gamma \approx 8\).
+      </p>
+    </div>
+
+    <div class="callout callout--tip">
+      <div class="callout__title">Practical notes</div>
+      <p>
+        The Gaussian kernel \(K(\mathbf{x},\mathbf{y}) = \exp(-\|\mathbf{x}-\mathbf{y}\|^2 / 2\sigma^2)\) is
+        the usual choice, since it permits arbitrarily curved boundaries; polynomial kernels
+        \((\langle \mathbf{x},\mathbf{y}\rangle + c)^p\) are used when feature interactions matter. The cost
+        is the \(n \times n\) kernel matrix, which is \(\mathcal{O}(n^2)\) memory — so kernel k-means suits
+        moderate \(n\), or needs kernel approximations.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="density">Part 6.3 · Density-Based Clustering</h2>
+
+    <p>
+      Every method so far optimises a <em>global</em> criterion built from distances to prototypes. Density-based
+      clustering starts somewhere else entirely: a cluster is a region where points are packed closely
+      together, and clusters are separated by regions where they are not. Instead of choosing \(k\) up front,
+      we ask how many neighbours each point has within a small radius, and grow connected regions outward
+      from the crowded ones.
+    </p>
+
+    <p>
+      This buys three things at once: clusters can have <strong>any shape</strong>, the number of clusters is
+      <strong>discovered</strong> rather than specified, and points in no dense region are labelled
+      <strong>noise</strong> instead of being forced into a cluster they do not belong to.
+    </p>
+
+    <h3 id="dbscan">DBSCAN</h3>
+
+    <p>
+      DBSCAN takes two parameters: a radius \(\varepsilon\) and a count \(\texttt{minPts}\). For a metric
+      \(d\), the \(\varepsilon\)-neighbourhood of \(p\) is
+      \(\mathcal{N}_\varepsilon(p) = \{q : d(p,q) \le \varepsilon\}\), and the local density around \(p\) is
+      approximated by how many points that set contains.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition · Core, border and noise</div>
+      <ul>
+        <li><strong>Core point:</strong> \(|\mathcal{N}_\varepsilon(p)| \ge \texttt{minPts}\) — \(p\) sits in
+          a dense region.</li>
+        <li><strong>Border point:</strong> not core, but lying inside the \(\varepsilon\)-neighbourhood of
+          some core point.</li>
+        <li><strong>Noise:</strong> neither core nor border.</li>
+      </ul>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">A convention worth pinning down</div>
+      <p>
+        These notes count the neighbourhood <strong>excluding the point itself</strong>, so
+        \(\texttt{minPts}\) is "the minimum number of <em>other</em> points within \(\varepsilon\)". Many
+        textbooks and scikit-learn include the point, which shifts every threshold by one. Neither is wrong,
+        but mixing them will silently change your answers — the figures on this page follow the notes'
+        convention throughout.
+      </p>
+    </div>
+
+    <h3 id="reachability">Density-reachability</h3>
+
+    <p>
+      Three relations turn dense points into clusters.
+    </p>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>Directly density-reachable</h4>
+        <p>
+          \(q\) is directly density-reachable from \(p\) if \(p\) is <strong>core</strong> and
+          \(q \in \mathcal{N}_\varepsilon(p)\). This relation is <em>asymmetric</em>: it only runs from a core
+          point outward.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Density-reachable</h4>
+        <p>
+          \(p\) is density-reachable from \(q\) if there is a chain
+          \(q = p_0, p_1, \dots, p_\ell = p\) with each step directly density-reachable. Every intermediate
+          point must be core.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Density-connected</h4>
+        <p>
+          \(p\) and \(q\) are density-connected if some \(o\) reaches both. This <em>is</em> symmetric, and it
+          is the relation clusters are built from.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      A <strong>cluster</strong> is then a maximal set of density-connected points — maximal meaning you
+      cannot add anything else without breaking the property. The algorithm follows directly: label every
+      point core or not, then from each unvisited core point run a breadth-first search, absorbing
+      neighbours. Core neighbours are added <em>and expanded</em>; border neighbours are added but
+      <strong>not</strong> expanded. Whatever is never reached is noise.
+    </p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">Why border points do not propagate</div>
+      <p>
+        This asymmetry is the crux of DBSCAN and the part students most often get wrong. A border point is
+        close enough to a dense region to belong to it, but is not itself in a dense region. If borders could
+        expand, a chain of sparse points could bridge two genuinely separate clusters and merge them. By
+        stopping expansion at borders, DBSCAN guarantees that every cluster is held together by a connected
+        backbone of genuinely dense points.
+      </p>
+      <p>
+        One consequence: a border point in reach of two clusters is assigned to whichever is processed first.
+        DBSCAN is not fully deterministic at the boundaries.
+      </p>
+    </div>
+
+    <h3 id="dbscan-example">The toy example</h3>
+
+    <p>
+      Six points, three parameter settings, three completely different answers. The notes use
+      \(A(1,2)\), \(B(2,2)\), \(C(2,3)\) as a tight group, \(D(8,7)\), \(E(8,8)\) as a second pair, and
+      \(F(25,80)\) as a far outlier.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">DBSCAN on six points</div>
+          <div class="playground__sub">The three cases from the notes, plus everything in between</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="dbscan-toy"></div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Setting</th><th>Core points</th><th>Result</th><th>What it shows</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>\(\varepsilon = 2\), \(\texttt{minPts} = 3\)</td>
+            <td>none</td>
+            <td>every point is noise</td>
+            <td>No point has three neighbours within radius 2, so nothing can seed a cluster. Demanding too
+              much density returns nothing at all.</td>
+          </tr>
+          <tr>
+            <td>\(\varepsilon = 2\), \(\texttt{minPts} = 2\)</td>
+            <td>\(A, B, C\)</td>
+            <td>\(C_1 = \{A,B,C\}\); \(D,E,F\) noise</td>
+            <td>Relaxing the count alone promotes the tight triple to core. \(D\) and \(E\) have only one
+              neighbour each and remain noise.</td>
+          </tr>
+          <tr>
+            <td>\(\varepsilon = 8\), \(\texttt{minPts} = 3\)</td>
+            <td>\(B, C, D\)</td>
+            <td>\(C_1 = \{A,B,C,D,E\}\); \(F\) noise</td>
+            <td>A wider radius bridges the two groups. \(A\) and \(E\) are not core but sit inside core
+              neighbourhoods, so they join as border points.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="example">
+      <div class="example__label">Reading case 3 carefully</div>
+      <p>
+        At \(\varepsilon = 8\) the neighbourhoods are \(\mathcal{N}(A) = \{B,C\}\),
+        \(\mathcal{N}(B) = \{A,C,D\}\), \(\mathcal{N}(C) = \{A,B,D,E\}\), \(\mathcal{N}(D) = \{B,C,E\}\),
+        \(\mathcal{N}(E) = \{C,D\}\), \(\mathcal{N}(F) = \varnothing\). So \(B, C, D\) clear the threshold of
+        3 and \(A, E, F\) do not. \(A\) appears in \(\mathcal{N}(B)\) and \(\mathcal{N}(C)\), and \(E\) in
+        \(\mathcal{N}(C)\) and \(\mathcal{N}(D)\) — both are borders. \(F\) appears in nothing, so it stays
+        noise no matter how the search runs.
+      </p>
+      <p>
+        The near-misses are worth checking: \(d(B,E) = \sqrt{72} \approx 8.49\) and
+        \(d(A,D) = \sqrt{74} \approx 8.60\) both just exceed \(\varepsilon = 8\). Nudge \(\varepsilon\) up in
+        the figure and the labels change.
+      </p>
+    </div>
+
+    <h3 id="params">Choosing ε and minPts</h3>
+
+    <p>
+      For \(\texttt{minPts}\), the usual rules of thumb are 3–5 for low-dimensional data, rising to
+      roughly \(d+1\) or \(2d\) in higher dimensions to compensate for sparser neighbourhoods. Larger
+      \(\texttt{minPts}\) gives more robustness to noise and fewer, denser clusters.
+    </p>
+
+    <p>
+      For \(\varepsilon\), use the <strong>\(k\)-distance plot</strong>: fix \(k = \texttt{minPts}\), compute
+      each point's distance to its \(k\)-th nearest neighbour, sort those distances and plot them. The curve
+      rises slowly across the dense points and then turns sharply upward as it reaches the outliers. Choose
+      \(\varepsilon\) near that knee — it is the same elbow heuristic used for choosing \(k\) earlier.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">DBSCAN on a real scene</div>
+          <div class="playground__sub">Two blobs of different density, a curved arm, and scattered noise</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="dbscan-lab"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Strengths</h4>
+        <ul>
+          <li>Recovers clusters of arbitrary shape.</li>
+          <li>Labels outliers as noise instead of absorbing them.</li>
+          <li>The number of clusters emerges from the data.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Limitations</h4>
+        <ul>
+          <li>A <strong>single global scale</strong>: one \((\varepsilon, \texttt{minPts})\) pair for the
+            whole dataset, which assumes all clusters have similar density.</li>
+          <li>Sensitive to those two parameters — poor choices merge, split, or discard everything.</li>
+          <li>Distances become uninformative in high dimensions.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 id="hdbscan">Beyond DBSCAN: HDBSCAN</h3>
+
+    <p>
+      The single-global-scale problem is real and easy to hit: tune \(\varepsilon\) to the dense clusters and
+      the sparse ones fragment into noise; raise it to capture the sparse ones and the dense ones merge.
+      HDBSCAN removes the choice by building a hierarchy across <em>all</em> density scales at once.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition · Core distance and mutual reachability</div>
+      <p>
+        For a fixed \(\texttt{minPts} = k\), the <strong>core distance</strong> \(\text{core}_k(p)\) is the
+        distance from \(p\) to its \(k\)-th nearest neighbour — small in dense regions, large in sparse ones.
+        The <strong>mutual reachability distance</strong> is then
+      </p>
+      <p>
+        \[ d_{\text{mr}}(p,q) = \max\{\text{core}_k(p),\; \text{core}_k(q),\; d(p,q)\}. \]
+      </p>
+    </div>
+
+    <p>
+      This inflates distances in sparse regions while leaving them untouched in dense ones, so low-density
+      bridges between clusters become expensive to cross. HDBSCAN then builds the minimum spanning tree under
+      \(d_{\text{mr}}\), which is exactly the order in which groups would merge as \(\varepsilon\) grows —
+      equivalent to running DBSCAN at every \(\varepsilon\) simultaneously. Finally it condenses that
+      hierarchy and extracts the clusters that persist over the widest range of density levels, on the
+      grounds that a cluster which survives many scales is more likely to be real than one that appears at
+      exactly one threshold.
+    </p>
+
+    <!-- ==================================================== -->
+    <h2 id="mixtures">Part 6.4 · Soft Clustering</h2>
+
+    <p>
+      Every method so far produces a crisp partition. Often that is too rigid: documents span topics,
+      customers fit several profiles, and a point sitting exactly between two groups is genuinely ambiguous.
+      Soft clustering replaces the hard label with weights \(\gamma_{ij} \in [0,1]\) summing to 1 across
+      clusters — instead of "\(\mathbf{x}_i\) is in cluster 2" we say it is 70% cluster 2, 25% cluster 1,
+      5% cluster 3.
+    </p>
+
+    <p>
+      The principled route to such weights is to treat clustering as a <strong>generative</strong> process:
+      first draw a latent cluster label \(z\), then draw \(\mathbf{x}\) from that cluster's distribution.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">The template: MLE for a categorical distribution</div>
+      <p>
+        Roll a \(k\)-sided die \(n\) times with probabilities \(\theta = (p_1,\dots,p_k)\). Grouping the
+        outcomes by category with counts \(n_j\), the likelihood and log-likelihood are
+        \[ P(S_n \mid \theta) = \prod_{j=1}^k p_j^{\,n_j}, \qquad \log P(S_n\mid\theta) = \sum_{j=1}^k n_j \log p_j . \]
+        Maximising subject to \(\sum_j p_j = 1\) with a Lagrange multiplier gives
+        \(\hat{p}_j = n_j / n\) — each probability is just the relative frequency. This "counts over \(n\)"
+        pattern reappears for mixture weights and, later, for responsibilities.
+      </p>
+    </div>
+
+    <h3 id="gmm">Gaussian mixtures</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition · Gaussian mixture model</div>
+      <p>
+        Model each cluster as a Gaussian, \(p(\mathbf{x} \mid z = j) = \mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}_j, \Sigma_j)\),
+        with a categorical latent label \(\Pr(z = j) = \pi_j\). Marginalising out \(z\),
+      </p>
+      <p>
+        \[ p(\mathbf{x} \mid \Theta) = \sum_{j=1}^k \pi_j\, \mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}_j, \Sigma_j), \]
+      </p>
+      <p>
+        where \(\Theta = \{\pi_j, \boldsymbol{\mu}_j, \Sigma_j\}_{j=1}^k\).
+      </p>
+    </div>
+
+    <p>
+      The likelihood of a dataset is then a product over points of a sum over components:
+    </p>
+
+    <p>
+      \[
+        P(X \mid \Theta) = \prod_{i=1}^n \left( \sum_{j=1}^k \pi_j\, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_j, \Sigma_j) \right).
+      \]
+    </p>
+
+    <p>
+      That \(\prod\)–\(\sum\) structure is what makes direct maximisation unpleasant: the logarithm cannot
+      get past the sum, so the parameters never separate.
+    </p>
+
+    <h4>The easy case first: known labels</h4>
+
+    <p>
+      Suppose we did know which cluster each point came from, encoded as hard indicators
+      \(s_{ij} \in \{0,1\}\) with \(\sum_j s_{ij} = 1\). Then the complete-data log-likelihood is
+    </p>
+
+    <p>
+      \[
+        \log P(X, S \mid \Theta) = \sum_{i=1}^n \sum_{j=1}^k s_{ij}
+        \Bigl( \log \pi_j + \log \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_j, \Sigma_j) \Bigr),
+      \]
+    </p>
+
+    <p>
+      and the logarithm now reaches everything. Writing \(N_j = \sum_i s_{ij}\), the \(\pi\) terms are exactly
+      the categorical problem above, so \(\hat{\pi}_j = N_j / n\). Differentiating the Gaussian terms
+      (in 1-D, for clarity) gives
+    </p>
+
+    <p>
+      \[
+        \hat{\mu}_j = \frac{1}{N_j}\sum_{i:\,s_{ij}=1} x_i,
+        \qquad
+        \hat{\sigma}_j^2 = \frac{1}{N_j}\sum_{i:\,s_{ij}=1} (x_i - \hat{\mu}_j)^2 .
+      \]
+    </p>
+
+    <p>
+      In words: with known labels, maximum likelihood is nothing more than <em>fit one Gaussian per cluster
+      and use the observed frequencies as mixing weights</em>.
+    </p>
+
+    <h3 id="em">Expectation–Maximisation</h3>
+
+    <p>
+      We do not know the labels. EM's move is to replace the hard indicators \(s_{ij}\) with soft
+      <strong>responsibilities</strong> \(\gamma_{ij}\), then reuse the formulas above verbatim.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>E-step — soft assignment</h4>
+        <p>
+          \[
+            \gamma_{ij} = \Pr(z_i = j \mid \mathbf{x}_i, \Theta^{\text{old}})
+            = \frac{\pi_j\, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_j, \Sigma_j)}
+                   {\sum_{\ell=1}^k \pi_\ell\, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_\ell, \Sigma_\ell)}
+          \]
+        </p>
+        <p>How much component \(j\) "claims" point \(i\). Compare with k-means' "assign to the nearest centroid".</p>
+      </div>
+      <div class="card">
+        <h4>M-step — weighted refit</h4>
+        <p>
+          With \(N_j = \sum_i \gamma_{ij}\),
+          \[
+            \pi_j = \frac{N_j}{n}, \qquad
+            \boldsymbol{\mu}_j = \frac{1}{N_j}\sum_i \gamma_{ij}\mathbf{x}_i,
+          \]
+          \[
+            \Sigma_j = \frac{1}{N_j}\sum_i \gamma_{ij}(\mathbf{x}_i - \boldsymbol{\mu}_j)(\mathbf{x}_i - \boldsymbol{\mu}_j)^\top .
+          \]
+        </p>
+        <p>Identical to the known-label case, with \(\gamma_{ij}\) in place of \(s_{ij}\).</p>
+      </div>
+    </div>
+
+    <p>
+      Iterate until the log-likelihood stops improving. EM is guaranteed never to <em>decrease</em> the
+      log-likelihood, which is why it converges — to a local maximum, with all the initialisation sensitivity
+      that implies. It is common to initialise the means from a k-means run.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">EM on a Gaussian mixture</div>
+          <div class="playground__sub">Point colours are blends of the responsibilities — ambiguity is visible</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="gmm-em"></div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">The likelihood is unbounded</div>
+      <p>
+        Nothing stops a component from collapsing onto a single point: as \(\Sigma_j \to 0\) with
+        \(\boldsymbol{\mu}_j\) sitting exactly on a data point, that point's density — and the whole
+        log-likelihood — diverges to \(+\infty\). This is not a bug in EM but a genuine defect of the
+        objective. In practice the fix is regularisation: add \(\lambda I\) to each covariance, or constrain
+        the covariances to be diagonal, spherical, or shared across components.
+      </p>
+    </div>
+
+    <h3 id="gmm-kmeans">GMMs and k-means</h3>
+
+    <p>
+      The two are more closely related than they look. Constrain every covariance to be spherical and equal,
+      \(\Sigma_j = \sigma^2 I\), and let \(\sigma^2 \to 0\). The responsibilities
+    </p>
+
+    <p>
+      \[
+        \gamma_{ij} = \frac{\pi_j \exp\!\left(-\|\mathbf{x}_i - \boldsymbol{\mu}_j\|^2 / 2\sigma^2\right)}
+                            {\sum_\ell \pi_\ell \exp\!\left(-\|\mathbf{x}_i - \boldsymbol{\mu}_\ell\|^2 / 2\sigma^2\right)}
+      \]
+    </p>
+
+    <p>
+      become a softmax over squared distances with temperature \(\sigma^2\). As \(\sigma^2 \to 0\) the softmax
+      saturates onto its largest term, so \(\gamma_{ij} \to 1\) for the nearest mean and 0 elsewhere. The
+      E-step becomes nearest-centroid assignment and the M-step becomes the arithmetic mean:
+      <strong>EM degenerates exactly into Lloyd's algorithm</strong>.
+    </p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">So what do GMMs add?</div>
+      <p>
+        Three things. <strong>Soft assignments</strong>, which keep the ambiguity instead of discarding it.
+        <strong>Elliptical clusters</strong>, since a full covariance can stretch and rotate where k-means only
+        has spheres — this alone fixes the elongated-blob failure from Part 6.1. And a
+        <strong>probabilistic model</strong> of \(p(\mathbf{x})\), which gives likelihood-based tools that
+        k-means simply does not have: AIC and BIC for choosing \(k\), held-out log-likelihood for validation,
+        and a density you can use directly for anomaly detection.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="ae-motivation">Part 6.5 · Autoencoders</h2>
+
+    <p>
+      Clustering compresses a dataset to \(k\) prototypes. Autoencoders compress each point individually, to
+      a short code. The motivation is the same observation in both cases: high-dimensional data is usually
+      not <em>really</em> high-dimensional.
+    </p>
+
+    <p>
+      A \(224 \times 224\) colour image lives in \(\mathbb{R}^{150528}\), but the set of images that look like
+      anything is a vanishingly small, highly structured subset of that space. The standard picture is a Swiss
+      roll: data sitting in \(\mathbb{R}^{10}\) but controlled by only two underlying degrees of freedom, so
+      the meaningful structure is a 2-dimensional <strong>manifold</strong> embedded in a 10-dimensional
+      space.
+    </p>
+
+    <p>
+      PCA and SVD already exploit this by projecting onto a linear subspace of maximal variance. Their limit
+      is in the word <em>linear</em>: a curved manifold cannot be captured by a flat subspace, no matter how
+      the axes are chosen. Autoencoders learn the mapping instead.
+    </p>
+
+    <h3 id="ae-basic">Architecture and objective</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition · Autoencoder</div>
+      <p>
+        An <strong>encoder</strong> \(E\) maps \(\mathbf{x} \in \mathbb{R}^d\) to a latent code
+        \(\mathbf{z} = E(\mathbf{x}; \theta_E) \in \mathbb{R}^k\); a <strong>decoder</strong> \(G\) maps back,
+        \(\hat{\mathbf{x}} = G(\mathbf{z}; \theta_G)\). Training minimises reconstruction error, usually
+      </p>
+      <p>
+        \[
+          \mathcal{L}(\theta_E,\theta_G) = \frac{1}{n}\sum_{i=1}^n \bigl\| \mathbf{x}_i - G(E(\mathbf{x}_i)) \bigr\|_2^2 .
+        \]
+      </p>
+    </div>
+
+    <p>
+      Nothing about that objective is interesting on its own — the identity function achieves zero loss. What
+      makes an autoencoder useful is the constraint you place between the two halves.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Undercomplete: \(k &lt; d\)</h4>
+        <p>
+          The bottleneck forces compression. Since the code cannot hold everything, the network must decide
+          what is worth keeping — which is precisely the representation we want. This is the usual setup.
+        </p>
+      </div>
+      <div class="card">
+        <h4>Overcomplete: \(k \ge d\)</h4>
+        <p>
+          The code is at least as large as the input, so the network can learn the identity and learn nothing.
+          Overcomplete autoencoders are useful only when some <em>other</em> constraint — sparsity, noise —
+          does the work the bottleneck would have done.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      As the latent dimension \(k\) grows you see the expected pattern: very small \(k\) loses too much and
+      reconstructs badly; moderate \(k\) trades off well; large \(k\) shows diminishing returns. Some classes
+      need more capacity than others — a handwritten "2" is easily confused with an "8", and a "4" with a
+      "9", so those digits stay blurry at low \(k\) longer than more distinctive ones do.
+    </p>
+
+    <h3 id="ae-linear">Linear autoencoders and PCA</h3>
+
+    <p>
+      Take the encoder and decoder to be single linear layers with no activation:
+      \(\mathbf{z} = W_E\mathbf{x}\) and \(\hat{\mathbf{x}} = W_D W_E \mathbf{x}\), with
+      \(W_E \in \mathbb{R}^{k\times d}\) and \(W_D \in \mathbb{R}^{d\times k}\). Then \(W_D W_E\) is a matrix
+      of rank at most \(k\), and minimising
+      \(\frac{1}{n}\sum_i \|\mathbf{x}_i - W_D W_E \mathbf{x}_i\|^2\) is exactly the problem of finding the
+      best rank-\(k\) linear approximation to the data.
+    </p>
+
+    <p>
+      That problem has a known answer — PCA. Writing \(U_k\) for the top \(k\) left singular vectors of the
+      centred data, PCA encodes and decodes as
+      \(\mathbf{z}_i = U_k^\top \mathbf{x}_i\), \(\hat{\mathbf{x}}_i = U_k U_k^\top \mathbf{x}_i\), and no
+      linear autoencoder can beat it.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">A linear autoencoder converging to PCA</div>
+          <div class="playground__sub">Trained live by gradient descent — watch the subspace rotate into place</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="ae-pca"></div>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">Same subspace, not the same axes</div>
+      <p>
+        A linear autoencoder recovers the principal <em>subspace</em>, but not the principal components
+        individually. For any invertible \(A \in \mathbb{R}^{k \times k}\), replacing \((W_E, W_D)\) by
+        \((AW_E,\, W_D A^{-1})\) leaves \(W_D W_E\) unchanged, so the loss cannot distinguish them. The
+        bottleneck coordinates are arbitrary up to that mixing — you get no ordering by variance and no
+        orthogonality unless you impose them.
+      </p>
+    </div>
+
+    <h3 id="ae-nonlin">What nonlinearity buys</h3>
+
+    <p>
+      Reinstate the activations and the picture changes completely. A nonlinear encoder and decoder can trace
+      a <em>curved</em> \(k\)-dimensional manifold through the data, which is what the Swiss-roll motivation
+      demanded in the first place.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Linear versus nonlinear, same bottleneck</div>
+          <div class="playground__sub">One latent number each — but only one of them can bend</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="ae-nonlinear"></div>
+    </div>
+
+    <h3 id="dae">Denoising autoencoders</h3>
+
+    <p>
+      A sufficiently powerful autoencoder can learn something close to the identity, reproducing noise as
+      faithfully as signal. Denoising autoencoders make that impossible by corrupting the input and asking
+      for the <em>clean</em> version back:
+    </p>
+
+    <p>
+      \[
+        \tilde{\mathbf{x}} \sim q_D(\tilde{\mathbf{x}} \mid \mathbf{x}), \qquad
+        \mathcal{L}_{\text{DAE}} = \frac{1}{n}\sum_{i=1}^n \bigl\| \mathbf{x}_i - G(E(\tilde{\mathbf{x}}_i)) \bigr\|_2^2 .
+      \]
+    </p>
+
+    <p>
+      Note which term is corrupted: the network sees \(\tilde{\mathbf{x}}\) but is scored against
+      \(\mathbf{x}\). Common corruptions are additive Gaussian noise, salt-and-pepper flips, and masking
+      noise that zeroes a random subset of inputs. The identity map is now actively <em>wrong</em>, so the
+      network has to learn what the data is supposed to look like — which is to say, the structure of the
+      manifold it lies on.
+    </p>
+
+    <h3 id="sae">Sparse autoencoders</h3>
+
+    <p>
+      A different constraint: rather than limiting how many latent units there are, limit how many are
+      <em>active at once</em>. Let \(\hat{\rho}_j = \frac{1}{N}\sum_{i=1}^N h_j(\mathbf{x}_i)\) be the average
+      activation of latent unit \(j\), and pick a small target \(\rho\) — say 0.05, meaning each unit should
+      fire about 5% of the time. Treat both as Bernoulli rates and penalise the divergence:
+    </p>
+
+    <p>
+      \[
+        \mathrm{KL}(\rho \,\|\, \hat{\rho}_j) = \rho \log\frac{\rho}{\hat{\rho}_j} + (1-\rho)\log\frac{1-\rho}{1-\hat{\rho}_j},
+        \qquad
+        \mathcal{L}_{\text{SAE}} = \frac{1}{n}\sum_i \|\mathbf{x}_i - \hat{\mathbf{x}}_i\|_2^2 + \beta \sum_{j=1}^m \mathrm{KL}(\rho \,\|\, \hat{\rho}_j).
+      \]
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">The sparsity penalty</div>
+          <div class="playground__sub">Zero at the target, and steeper on the "too active" side</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="sparse-kl"></div>
+    </div>
+
+    <p>
+      Lower \(\rho\) gives stricter sparsity: most units sit near zero and a few respond strongly, each
+      specialising in one pattern. That buys interpretability — individual units come to mean something — and
+      is loosely analogous to the sparse firing of biological neurons. Because sparsity, not dimension, is
+      doing the constraining, this is one of the few settings where an <em>overcomplete</em> latent layer is
+      useful.
+    </p>
+
+    <h3 id="vae">Variational autoencoders</h3>
+
+    <p>
+      Everything so far optimises reconstruction. None of it gives a way to <em>generate</em>: you can decode
+      a code you got from real data, but the encoder's output distribution is whatever it happens to be, with
+      no guarantee that a code you invent decodes to anything sensible. VAEs fix this by making the latent
+      space a probability distribution you can actually sample from.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition · The generative story</div>
+      <p>
+        Fix a prior \(p_\theta(\mathbf{z}) = \mathcal{N}(\mathbf{0}, I)\) and let the decoder define
+        \(p_\theta(\mathbf{x} \mid \mathbf{z})\). To generate: draw
+        \(\mathbf{z} \sim \mathcal{N}(\mathbf{0}, I)\), then draw
+        \(\mathbf{x} \sim p_\theta(\mathbf{x} \mid \mathbf{z})\). Since the true posterior
+        \(p_\theta(\mathbf{z}\mid\mathbf{x})\) is intractable, an encoder network supplies an approximation
+        \(q_\phi(\mathbf{z}\mid\mathbf{x}) = \mathcal{N}\bigl(\boldsymbol{\mu}_\phi(\mathbf{x}), \operatorname{diag}(\boldsymbol{\sigma}^2_\phi(\mathbf{x}))\bigr)\).
+      </p>
+    </div>
+
+    <p>
+      Maximising \(\log p_\theta(\mathbf{x}) = \log \int p_\theta(\mathbf{x},\mathbf{z})\,d\mathbf{z}\)
+      directly is intractable too, so we maximise a lower bound instead — the
+      <strong>evidence lower bound</strong>:
+    </p>
+
+    <p>
+      \[
+        \log p_\theta(\mathbf{x}) \;\ge\;
+        \mathbb{E}_{\mathbf{z}\sim q_\phi}\bigl[\log p_\theta(\mathbf{x}\mid\mathbf{z})\bigr]
+        - \mathrm{KL}\bigl(q_\phi(\mathbf{z}\mid\mathbf{x}) \,\|\, p_\theta(\mathbf{z})\bigr),
+      \]
+    </p>
+
+    <p>
+      so the training loss is the negative of that: a <strong>reconstruction</strong> term plus a
+      <strong>regularisation</strong> term pulling each posterior toward the prior. For a Gaussian prior and
+      encoder the KL has a closed form,
+    </p>
+
+    <p>
+      \[
+        \mathrm{KL}\bigl(q_\phi \,\|\, p_\theta\bigr) = \frac{1}{2}\sum_{j=1}^k \bigl( \mu_j^2 + \sigma_j^2 - \log \sigma_j^2 - 1 \bigr),
+      \]
+    </p>
+
+    <p>
+      which is zero exactly when \(\mu_j = 0\) and \(\sigma_j = 1\) for every \(j\) — that is, when the
+      posterior <em>is</em> the prior.
+    </p>
+
+    <div class="callout callout--tip">
+      <div class="callout__title">The reparameterisation trick</div>
+      <p>
+        Gradients cannot flow through a sampling operation. The fix is to move the randomness outside the
+        network: instead of sampling \(\mathbf{z} \sim \mathcal{N}(\boldsymbol{\mu}_\phi, \boldsymbol{\sigma}^2_\phi)\),
+        write
+        \[ \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, I), \qquad \mathbf{z} = \boldsymbol{\mu}_\phi(\mathbf{x}) + \boldsymbol{\sigma}_\phi(\mathbf{x}) \odot \boldsymbol{\epsilon}. \]
+        Now \(\mathbf{z}\) is a deterministic, differentiable function of the network outputs and an
+        independent noise draw, so backpropagation works normally.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Why a VAE can generate and a plain autoencoder cannot</div>
+          <div class="playground__sub">Two failure modes, both reachable with the presets</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="vae-latent"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">The two terms are in genuine tension</div>
+      <p>
+        Reconstruction wants the posteriors far apart and tight, so that different inputs get distinguishable
+        codes. The KL term wants them all to be \(\mathcal{N}(\mathbf{0}, I)\), which would make them
+        identical. Push too far toward reconstruction and you get a plain autoencoder: isolated code points
+        with dead space between them, so sampling the prior decodes to nothing. Push too far toward the KL
+        term and you get <strong>posterior collapse</strong> — every input encodes to the same distribution,
+        the KL is near zero, and the latent code carries no information about \(\mathbf{x}\) at all. The
+        useful regime is in between, where the posteriors <em>tile</em> the prior.
+      </p>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th></th><th>Vanilla autoencoder</th><th>Variational autoencoder</th></tr></thead>
+        <tbody>
+          <tr><td>Encoder output</td><td>a single point \(\mathbf{z}\)</td><td>a distribution \(q_\phi(\mathbf{z}\mid\mathbf{x})\)</td></tr>
+          <tr><td>Latent structure</td><td>whatever training produces</td><td>pulled toward a chosen prior</td></tr>
+          <tr><td>Loss</td><td>reconstruction only</td><td>reconstruction + KL</td></tr>
+          <tr><td>Sampling new data</td><td>no principled way</td><td>draw \(\mathbf{z}\sim\mathcal{N}(\mathbf{0},I)\), decode</td></tr>
+          <tr><td>Typical use</td><td>compression, denoising, features</td><td>generation, interpolation, density modelling</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="errata">Errata and verification</h2>
+
+    <p>
+      Every numerical claim in both source chapters was recomputed independently in Python and then
+      cross-checked against the JavaScript that drives the figures on this page. This chapter came through
+      <strong>almost completely clean</strong> — the k-means worked example and all three DBSCAN cases are
+      correct in every particular. Two things are worth recording.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Section</th><th>Issue</th><th>Correction</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a href="#dbscan-example">DBSCAN distance matrix</a></td>
+            <td>
+              Four entries are truncated rather than rounded, although the table is labelled "rounded to two
+              decimals": \(d(A,E)\) given as 9.21, \(d(A,F)\) as 81.60, \(d(B,E)\) as 8.48, \(d(E,F)\) as 73.97.
+            </td>
+            <td>
+              \(\sqrt{85} = 9.2195 \to \mathbf{9.22}\), \(\sqrt{6660} = 81.6088 \to \mathbf{81.61}\),
+              \(\sqrt{72} = 8.4853 \to \mathbf{8.49}\), \(\sqrt{5473} = 73.9797 \to \mathbf{73.98}\).
+              Cosmetic — no core, border or noise label changes, since the thresholds in play are 2 and 8.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#kernel">Kernel k-means on concentric circles</a></td>
+            <td>
+              Presented as a case where kernel k-means succeeds. Measured over 24 restarts at each of several
+              \(\gamma\), it recovers the rings in about <strong>8% of runs at its best \(\gamma\)</strong>
+              and none elsewhere — even keeping the lowest-objective run out of several feature-space
+              k-means++ restarts each time.
+            </td>
+            <td>
+              Kept, but qualified. Kernel k-means seeks clusters that are compact <em>in feature space</em>,
+              and a ring is a curve, so points on opposite sides of one ring are nearly orthogonal under an
+              RBF kernel. <strong>Spectral clustering</strong> — described in the notes as a relaxation of
+              kernel k-means — recovers the rings on 100% of runs for any \(\gamma \gtrsim 20\), because it
+              keys on connectivity. Both are available in
+              <a href="#kernel">the figure</a>. Two moons is the better showcase for kernel k-means: 96% at
+              \(\gamma \approx 8\).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>Verified correct</strong>, for the record: all 20 squared distances in k-means iteration 0 and
+      all 20 in iteration 1; the tie at \(\mathbf{x}_3\) (13.00 to both centroids); both cluster assignments;
+      \(\mathrm{WCSS}^{(0)} = 77.25\) and \(\mathrm{WCSS}^{(1)} = 63.821181\); all four centroid updates
+      — \((1.8750, 2.2500)\), \((5.5833, 6.7500)\), \((2.2000, 2.7000)\), \((6.0000, 7.2000)\); the claim that
+      exactly one point (\(\mathbf{x}_7\)) changes cluster in the second iteration; the ANOVA identity; the
+      k-means++ sampling rule; the k-medoids and PAM description; the kernel k-means expansion; the DBSCAN
+      core/border/noise definitions and the neighbourhood convention; all three toy cases including every
+      neighbourhood set, every label, and all three \(k\)-distance readings; the HDBSCAN core-distance and
+      mutual-reachability definitions; the categorical MLE; the complete-data log-likelihood; every E-step and
+      M-step formula; the GMM-to-k-means limit; the MLE/least-squares derivation; the linear-autoencoder–PCA
+      equivalence; the denoising and sparse objectives; the Bernoulli KL; the ELBO; the reparameterisation
+      trick; and the closed-form Gaussian KL.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">Method</div>
+      <p>
+        Each claim was recomputed from scratch in Python, then again by the JavaScript in the figures above,
+        which compute their results live rather than displaying stored answers. Two independent
+        implementations agreeing is a much stronger check than either alone; the k-means example was
+        additionally checked against a brute-force search over all \(2^{10}\) possible 2-clusterings. Found
+        something we missed? Please write to <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a>.
+      </p>
+    </div>
+
+    <nav class="pagenav" aria-label="Chapter navigation">
+      <a href="05-cnns-rnns-transformers.html">
+        <small>Previous</small>
+        <b>5 · CNNs, RNNs &amp; Transformers</b>
+      </a>
+      <a href="../notes.html" class="is-next">
+        <small>Back to</small>
+        <b>All chapters</b>
+      </a>
+    </nav>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="02-data-fundamentals.html">2 · Data Fundamentals</a></li>
+        <li><a href="03-supervised-linear-kernel.html">3 · Supervised Learning I</a></li>
+        <li><a href="04-trees-neural-networks.html">4 · Trees &amp; Neural Networks</a></li>
+        <li><a href="05-cnns-rnns-transformers.html">5 · CNNs, RNNs &amp; Transformers</a></li>
+        <li><a href="06-unsupervised-learning.html">6 · Unsupervised Learning</a></li>
+        <li><a href="../notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="../syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="../about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script type="module" src="../assets/js/widgets/index.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -18,7 +18,7 @@ as things students can pick up and move.
 | 3 · Supervised Learning I (linear & kernel) | Live — 10 interactive figures |
 | 4 · Trees & Neural Networks | Live — 10 interactive figures |
 | 5 · CNNs, RNNs & Transformers | Live — 10 interactive figures |
-| 6 · Unsupervised Learning | In conversion |
+| 6 · Unsupervised Learning | Live — 13 interactive figures |
 
 ## Running it locally
 
@@ -53,6 +53,7 @@ assets/
     viz.js              Canvas plotting + interaction library
     linalg.js           SVD, eigendecomposition, RREF, rank, projections
     ml.js               Scalers, k-means, PCA, binning, metrics, datasets
+    cluster.js          Lloyd's, k-medoids, kernel k-means, spectral, DBSCAN, EM, autoencoders
     widgets/
       index.js          Registration and lazy mounting
       la.js             Linear algebra figures
@@ -61,6 +62,7 @@ assets/
       sup.js            Supervised learning: linear models and kernels
       nets.js           Decision trees and feedforward neural networks
       deep.js           Convolutional, recurrent and attention figures
+      unsup.js          Clustering and autoencoder figures
       prep.js           Data preprocessing figures
       sim.js            Similarity measure figures
       eval.js           Model evaluation figures
