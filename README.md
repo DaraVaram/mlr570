@@ -16,8 +16,9 @@ as things students can pick up and move.
 | 1 · Mathematical Background | Live — 26 interactive figures |
 | 2 · Data Fundamentals | Live — 21 interactive figures |
 | 3 · Supervised Learning I (linear & kernel) | Live — 10 interactive figures |
-| 4 · Trees & Neural Networks | In conversion |
-| 5 · Unsupervised Learning | In conversion |
+| 4 · Trees & Neural Networks | Live — 10 interactive figures |
+| 5 · CNNs, RNNs & Transformers | In conversion |
+| 6 · Unsupervised Learning | In conversion |
 
 ## Running it locally
 
@@ -58,6 +59,7 @@ assets/
       prob.js           Probability and statistics figures
       calc.js           Calculus, optimisation and complexity figures
       sup.js            Supervised learning: linear models and kernels
+      nets.js           Decision trees and feedforward neural networks
       prep.js           Data preprocessing figures
       sim.js            Similarity measure figures
       eval.js           Model evaluation figures

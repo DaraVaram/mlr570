@@ -1,0 +1,1245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4 · Trees &amp; Neural Networks — MLR 570</title>
+<meta name="description" content="Decision trees, entropy and information gain, pruning, and feedforward neural networks with backpropagation — for MLR 570, with interactive figures throughout.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="../index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="../index.html">Home</a>
+      <a class="nav__link" href="../notes.html" aria-current="page">Notes</a>
+      <a class="nav__link" href="../syllabus.html">Syllabus</a>
+      <a class="nav__link" href="../about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar__mobile-toggle" id="sidebar-toggle" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      On this page
+    </button>
+    <div class="sidebar__body">
+      <div class="sidebar__group">
+        <div class="sidebar__title">4.1 · Decision Trees</div>
+        <ul class="toc">
+          <li><a href="#dt-intro">Intuition and structure</a></li>
+          <li><a href="#id3">Building a tree (ID3)</a></li>
+          <li><a href="#base-cases">Stopping conditions</a></li>
+          <li><a href="#entropy">Entropy</a></li>
+          <li><a href="#gain">Information gain</a></li>
+          <li><a href="#worked">The Play Tennis example</a></li>
+          <li><a href="#recursive">Recursive splits</a></li>
+          <li><a href="#continuous">Real-valued features</a></li>
+          <li><a href="#gini">Gini and Tsallis</a></li>
+          <li><a href="#pruning">Overfitting and pruning</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">4.2 · Neural Networks</div>
+        <ul class="toc">
+          <li><a href="#fnn-intro">Why neural networks</a></li>
+          <li><a href="#architecture">Architecture and notation</a></li>
+          <li><a href="#forward">The forward pass</a></li>
+          <li><a href="#outputs">Output layers and losses</a></li>
+          <li><a href="#activations">Activation functions</a></li>
+          <li><a href="#backprop">Backpropagation</a></li>
+          <li><a href="#training">Training in practice</a></li>
+          <li><a href="#universal">Universal approximation</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">Reference</div>
+        <ul class="toc">
+          <li><a href="#errata">Errata &amp; verification</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content" id="main">
+
+    <div class="chapter-head">
+      <div class="chapter-head__crumb">
+        <a href="../index.html">Home</a> › <a href="../notes.html">Notes</a> › Chapter 4
+      </div>
+      <h1>Trees &amp; Neural Networks</h1>
+      <p class="chapter-head__lede">
+        Two models that could hardly be more different. Decision trees are transparent, discrete and
+        greedy — you can read one aloud. Neural networks are opaque, continuous and trained by gradient
+        descent. Between them they cover most of what people mean by "machine learning".
+      </p>
+      <div class="chapter-head__stats">
+        <span class="pill pill--live">Verified</span>
+        <span class="pill pill--play">10 interactive figures</span>
+        <span class="pill pill--brand">2 parts</span>
+      </div>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="dt-intro">Part 4.1 · Decision Trees</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      A decision tree asks a sequence of questions about a sample's features and follows the answers down to
+      a prediction. That is genuinely the whole model — which is why a trained tree can be printed on a page
+      and handed to someone who has never heard of machine learning.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>A decision tree is a rooted tree in which</p>
+      <ul style="margin-bottom:.6em">
+        <li>each <strong>internal node</strong> tests a single feature,</li>
+        <li>each <strong>branch</strong> corresponds to one outcome of that test,</li>
+        <li>each <strong>leaf</strong> carries a class label (or, for regression, a value).</li>
+      </ul>
+      <p style="margin-bottom:0">
+        To classify an example, start at the root, evaluate the test, follow the matching branch, and repeat
+        until you reach a leaf. The leaf's label is the prediction.
+      </p>
+    </div>
+
+    <h3 id="id3">Building a tree: the ID3 algorithm</h3>
+
+    <p>
+      The obvious question is which feature to test first. Ideally we would find the ordering that produces
+      the smallest possible tree — but searching over all orderings is computationally hopeless. Instead ID3
+      uses a <strong>greedy</strong> strategy: at each node, pick whichever single feature looks best
+      <em>right now</em>, with no lookahead at all.
+    </p>
+    <ol>
+      <li>If a stopping condition applies, make a leaf.</li>
+      <li>Otherwise, score every remaining feature and pick the one that reduces uncertainty the most.</li>
+      <li>Split the samples by that feature's values and recurse on each subset.</li>
+    </ol>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Greedy is not optimal
+      </div>
+      <p style="margin-bottom:0">
+        Greedy means the tree can be permanently worse than necessary: a feature that looks mediocre alone
+        might be excellent in combination with another, and ID3 will never discover that. XOR is the standard
+        example — neither input predicts the output on its own, so a greedy criterion sees nothing worth
+        splitting on, even though the pair determines the label exactly. Finding the smallest consistent tree
+        is NP-hard, which is why every practical algorithm is greedy.
+      </p>
+    </div>
+
+    <h3 id="base-cases">Stopping conditions</h3>
+    <p>Recursion halts under one of three base cases:</p>
+    <ol>
+      <li><strong>All samples belong to the same class</strong> → create a leaf with that label.</li>
+      <li><strong>No features left</strong> → return the majority class among the remaining samples.</li>
+      <li><strong>No samples left</strong> → return the majority class of the <em>parent</em> node.</li>
+    </ol>
+    <p>
+      Cases 2 and 3 both force a decision under genuine uncertainty. Case 2 arises when two samples share
+      every feature value but differ in label — the data simply cannot distinguish them. Case 3 arises when a
+      feature value appears in the branch but no training sample reaches it, so the node has nothing local to
+      go on and must borrow from its parent.
+    </p>
+
+    <h3 id="entropy">Entropy: measuring uncertainty</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>The <strong>entropy</strong> of a distribution over classes \(c_1, \dots, c_k\) is</p>
+      \[ I\big(P(c_1), \dots, P(c_k)\big) = -\sum_{i=1}^{k} P(c_i)\log_2 P(c_i). \]
+      <p style="margin-bottom:0">For binary classification with proportions \((p, 1-p)\),</p>
+      \[ H(p) = -p\log_2 p - (1-p)\log_2(1-p), \]
+      <p style="margin-bottom:0">
+        which is maximal at \(p = 0.5\) (\(H = 1\) bit, complete uncertainty) and zero at \(p = 0\) or
+        \(p = 1\) (full certainty).
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 18c4 0 4-12 8-12s4 12 8 12"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Entropy, Gini and misclassification</p>
+          <p class="playground__sub">All three impurity measures on one axis. Note where they peak, and by how much they differ.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="entropy-gini"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Two extremes
+      </div>
+      <div class="example__body">
+        <p><strong>Maximum uncertainty.</strong> Two equally likely outcomes, \(p = 0.5\):</p>
+        \[ H = -0.5\log_2 0.5 - 0.5\log_2 0.5 = -2 \times 0.5 \times (-1) = 1 \text{ bit.} \]
+        <p>
+          A fair coin. Each observation carries exactly one bit, because you genuinely could not have guessed
+          it.
+        </p>
+        <p><strong>Low uncertainty.</strong> One class occurs 99% of the time:</p>
+        \[ H = -0.01\log_2 0.01 - 0.99\log_2 0.99 \approx 0.0664 + 0.0144 \approx 0.081 \text{ bits.} \]
+        <p style="margin-bottom:1em">
+          A coin that lands heads 99% of the time tells you almost nothing when you flip it. Predicting
+          "heads" every time is right 99% of the time — so there is very little information left to gain.
+        </p>
+      </div>
+    </div>
+
+    <h3 id="gain">Expected information gain</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        The <strong>information gain</strong> of a feature is the uncertainty before splitting minus the
+        expected uncertainty after:
+      </p>
+      \[ \text{InfoGain} = I_{\text{before}} - I_{\text{after}}. \]
+      <p>For \(p\) positive and \(n\) negative examples,</p>
+      \[
+      I_{\text{before}} = I\!\left(\frac{p}{p+n}, \frac{n}{p+n}\right),
+      \qquad
+      I_{\text{after}} = \sum_{i=1}^{k} \frac{p_i + n_i}{p+n}\, I\!\left(\frac{p_i}{p_i+n_i}, \frac{n_i}{p_i+n_i}\right).
+      \]
+      <p style="margin-bottom:0">
+        The second term is a <em>weighted</em> average: each child contributes in proportion to how many
+        samples land in it. At each node we select the feature with the highest gain.
+      </p>
+    </div>
+
+    <h3 id="worked">The Play Tennis example</h3>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Day</th><th>Outlook</th><th>Temp</th><th>Humidity</th><th>Wind</th><th>Tennis?</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Sunny</td><td>Hot</td><td>High</td><td>Weak</td><td>No</td></tr>
+          <tr><td>2</td><td>Sunny</td><td>Hot</td><td>High</td><td>Strong</td><td>No</td></tr>
+          <tr><td>3</td><td>Overcast</td><td>Hot</td><td>High</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>4</td><td>Rain</td><td>Mild</td><td>High</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>5</td><td>Rain</td><td>Cool</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>6</td><td>Rain</td><td>Cool</td><td>Normal</td><td>Strong</td><td>No</td></tr>
+          <tr><td>7</td><td>Overcast</td><td>Cool</td><td>Normal</td><td>Strong</td><td>Yes</td></tr>
+          <tr><td>8</td><td>Sunny</td><td>Mild</td><td>High</td><td>Weak</td><td>No</td></tr>
+          <tr><td>9</td><td>Sunny</td><td>Cool</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>10</td><td>Rain</td><td>Mild</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>11</td><td>Sunny</td><td>Mild</td><td>Normal</td><td>Strong</td><td>Yes</td></tr>
+          <tr><td>12</td><td>Overcast</td><td>Mild</td><td>High</td><td>Strong</td><td>Yes</td></tr>
+          <tr><td>13</td><td>Overcast</td><td>Hot</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>14</td><td>Rain</td><td>Mild</td><td>High</td><td>Strong</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Nine Yes and five No, so the entropy before any split is</p>
+    \[ H_{\text{before}} = -\frac{9}{14}\log_2\frac{9}{14} - \frac{5}{14}\log_2\frac{5}{14} \approx 0.940. \]
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M6 21V9M18 21V9M4 9h16"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Information gain, computed live</p>
+          <p class="playground__sub">Pick any node and any feature. Every count, entropy and weight comes straight from the 14-row table above, so you can check it by hand.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="info-gain"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Choosing the root
+      </div>
+      <div class="example__body">
+        <p><strong>Outlook.</strong> Sunny gives 2 Yes / 3 No, Overcast 4 Yes / 0 No, Rain 3 Yes / 2 No.</p>
+        \[ I_{\text{Sunny}} = I\!\left(\tfrac{2}{5}, \tfrac{3}{5}\right) = 0.971, \quad I_{\text{Overcast}} = 0, \quad I_{\text{Rain}} = 0.971 \]
+        \[ I_{\text{after}} = \tfrac{5}{14}(0.971) + \tfrac{4}{14}(0) + \tfrac{5}{14}(0.971) = 0.694 \]
+        \[ \text{Gain(Outlook)} = 0.940 - 0.694 = 0.247 \]
+
+        <p><strong>Humidity.</strong> High gives 3 Yes / 4 No, Normal 6 Yes / 1 No.</p>
+        \[ I_{\text{after}} = \tfrac{7}{14}(0.985) + \tfrac{7}{14}(0.592) = 0.788 \quad\Rightarrow\quad \text{Gain} = 0.152 \]
+
+        <p><strong>Wind.</strong> Weak gives 6 Yes / 2 No, Strong 3 Yes / 3 No.</p>
+        \[ I_{\text{after}} = \tfrac{8}{14}(0.811) + \tfrac{6}{14}(1.000) = 0.892 \quad\Rightarrow\quad \text{Gain} = 0.048 \]
+
+        <p><strong>Temperature.</strong> Hot gives 2 Yes / 2 No, Mild 4 Yes / 2 No, Cool 3 Yes / 1 No.</p>
+        \[ I_{\text{after}} = \tfrac{4}{14}(1.000) + \tfrac{6}{14}(0.918) + \tfrac{4}{14}(0.811) = 0.911 \quad\Rightarrow\quad \text{Gain} = 0.029 \]
+
+        <div class="table-scroll" style="margin-top:1em">
+          <table>
+            <thead><tr><th>Feature</th><th>\(I_{\text{after}}\)</th><th>Gain</th></tr></thead>
+            <tbody>
+              <tr style="background:var(--ok-soft)"><td><strong>Outlook</strong></td><td class="u-mono">0.6935</td><td class="u-mono"><strong>0.2468</strong></td></tr>
+              <tr><td>Humidity</td><td class="u-mono">0.7885</td><td class="u-mono">0.1518</td></tr>
+              <tr><td>Wind</td><td class="u-mono">0.8922</td><td class="u-mono">0.0481</td></tr>
+              <tr><td>Temperature</td><td class="u-mono">0.9111</td><td class="u-mono">0.0292</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:1em">
+          <strong>Outlook</strong> wins and becomes the root. It is the only feature that produces a
+          completely pure child — every Overcast day is a Yes — and purity is exactly what the criterion
+          rewards.
+        </p>
+      </div>
+    </div>
+
+    <h3 id="recursive">Recursive splits</h3>
+
+    <p>
+      Each branch is now treated as a smaller dataset, and the process repeats with the remaining features.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Case 1 · Outlook = Sunny
+      </div>
+      <div class="example__body">
+        <p>Five samples (days 1, 2, 8, 9, 11): 2 Yes, 3 No, so \(I_{\text{before}} = 0.971\).</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Feature</th><th>Split</th><th>\(I_{\text{after}}\)</th><th>Gain</th></tr></thead>
+            <tbody>
+              <tr style="background:var(--ok-soft)">
+                <td><strong>Humidity</strong></td>
+                <td>High: 0 Yes / 3 No &nbsp;·&nbsp; Normal: 2 Yes / 0 No</td>
+                <td class="u-mono">0.000</td><td class="u-mono"><strong>0.971</strong></td>
+              </tr>
+              <tr>
+                <td>Temperature</td>
+                <td>Hot: 0/2 &nbsp;·&nbsp; Mild: 1/1 &nbsp;·&nbsp; Cool: 1/0</td>
+                <td class="u-mono">0.400</td><td class="u-mono">0.571</td>
+              </tr>
+              <tr>
+                <td>Wind</td>
+                <td>Weak: 1 Yes / 2 No &nbsp;·&nbsp; Strong: 1 Yes / 1 No</td>
+                <td class="u-mono">0.951</td><td class="u-mono">0.020</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:1em">
+          <strong>Humidity</strong> separates this branch perfectly: every Sunny day with High humidity is a
+          No, every Sunny day with Normal humidity is a Yes. Both children are pure, so the gain equals the
+          full parent entropy and the branch is finished.
+        </p>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Case 2 · Outlook = Overcast
+      </div>
+      <div class="example__body">
+        <p style="margin-bottom:1em">
+          Four samples, all Yes. Entropy is 0, base case 1 applies, and we make a leaf immediately:
+          <strong>whenever it is overcast, we play</strong>. No further splitting is possible or needed.
+        </p>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Case 3 · Outlook = Rain
+      </div>
+      <div class="example__body">
+        <p>Five samples (days 4, 5, 6, 10, 14): 3 Yes, 2 No, so \(I_{\text{before}} = 0.971\).</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Feature</th><th>Split</th><th>\(I_{\text{after}}\)</th><th>Gain</th></tr></thead>
+            <tbody>
+              <tr style="background:var(--ok-soft)">
+                <td><strong>Wind</strong></td>
+                <td>Weak: 3 Yes / 0 No &nbsp;·&nbsp; Strong: 0 Yes / 2 No</td>
+                <td class="u-mono">0.000</td><td class="u-mono"><strong>0.971</strong></td>
+              </tr>
+              <tr>
+                <td>Humidity</td>
+                <td>High: 1 Yes / 1 No &nbsp;·&nbsp; Normal: 2 Yes / 1 No</td>
+                <td class="u-mono">0.951</td><td class="u-mono">0.020</td>
+              </tr>
+              <tr>
+                <td>Temperature</td>
+                <td>Mild: 2 Yes / 1 No &nbsp;·&nbsp; Cool: 1 Yes / 1 No</td>
+                <td class="u-mono">0.951</td><td class="u-mono">0.020</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:1em">
+          <strong>Wind</strong> splits it perfectly. Note that Humidity and Temperature score identically
+          here (0.020) — a genuine tie, broken arbitrarily in practice.
+        </p>
+      </div>
+    </div>
+
+    <p>The finished tree reads as three rules:</p>
+    <ul>
+      <li><strong>Overcast</strong> → Yes.</li>
+      <li><strong>Sunny</strong> → Yes if Humidity is Normal, No if High.</li>
+      <li><strong>Rain</strong> → Yes if Wind is Weak, No if Strong.</li>
+    </ul>
+    <p>
+      Temperature never appears. It had a positive gain at the root, but by the time Outlook, Humidity and
+      Wind have done their work there is nothing left for it to explain.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v4M12 8 6 12M12 8l6 4M6 12v4M18 12v4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Grow the tree, one level at a time</p>
+          <p class="playground__sub">Watch the greedy algorithm choose. By depth 2 it is exact on all 14 rows — and Temperature is never used.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="tree-builder"></div>
+    </div>
+
+    <h3 id="continuous">Real-valued features</h3>
+
+    <p>
+      Continuous features cannot be enumerated — there are infinitely many possible values. The standard
+      solution is a <strong>binary split</strong> at a threshold \(\theta\): everything with
+      \(x_j \le \theta\) goes left, everything above goes right.
+    </p>
+    <p>The threshold is chosen during training:</p>
+    <ol>
+      <li><strong>Sort</strong> the samples by the feature's value.</li>
+      <li>
+        <strong>Take candidate thresholds</strong> at midpoints between adjacent distinct values,
+        \(\theta_i = \frac{x_i + x_{i+1}}{2}\) — but only where the labels \(y_i\) and \(y_{i+1}\)
+        <em>differ</em>, since a threshold between two identically-labelled neighbours cannot improve purity.
+      </li>
+      <li><strong>Evaluate</strong> each candidate's weighted impurity \(I_{\text{after}}(\theta)\).</li>
+      <li><strong>Keep</strong> the \(\theta\) with the highest gain.</li>
+    </ol>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M12 6v12"/><circle cx="6" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Where to cut a continuous feature</p>
+          <p class="playground__sub">Slide the threshold and watch the gain. Only midpoints between differently-labelled neighbours are ever worth evaluating.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="continuous-split"></div>
+    </div>
+
+    <p>
+      Because every test is of the form \(x_j \le \theta\), each split is a cut <strong>perpendicular to one
+      axis</strong>. A tree therefore carves the feature space into axis-aligned rectangles — which is
+      wonderfully interpretable, and badly inefficient whenever the true boundary happens to be diagonal.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 11h10M13 3v18M13 15h8"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Axis-aligned boundaries, and where they fail</p>
+          <p class="playground__sub">Try the diagonal dataset and watch the staircase. Then push the depth to 12 and watch the tree carve slivers around noise.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="tree-boundary"></div>
+    </div>
+
+    <h3 id="gini">Alternative criteria: Gini and Tsallis</h3>
+
+    <p>
+      ID3 uses Shannon entropy. <strong>CART</strong> uses the <strong>Gini impurity</strong>, the probability
+      that a randomly chosen sample would be misclassified if labelled at random from the node's distribution:
+    </p>
+    \[ \text{Gini}(t) = 1 - \sum_{i=1}^{C} p_i^2, \qquad \text{and for two classes} \qquad \text{Gini}(t) = 2p(1-p). \]
+    <p>
+      Like entropy it is 0 at a pure node and maximal when classes are balanced. The practical attraction is
+      that it needs no logarithm, which is why CART and random forests use it by default.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Getting the relationship the right way round
+      </div>
+      <p style="margin-bottom:.6em">
+        Entropy measures the expected number of <em>bits</em> needed to encode a label; Gini measures the
+        expected <em>probability of misclassification</em>. They have the same shape, but not the same size:
+      </p>
+      \[ H(0.5) = 1, \qquad \text{Gini}(0.5) = 0.5. \]
+      <p style="margin-bottom:0">
+        So <strong>entropy is roughly twice Gini</strong> near the centre — equivalently
+        \(\text{Gini}(p) \approx \tfrac12 H(p)\). Entropy is the larger of the two at every interior \(p\),
+        never the smaller. The overlay in the figure above makes this concrete.
+      </p>
+    </div>
+
+    <h4>Further reading · Tsallis entropy</h4>
+    <p>Both measures are special cases of the <strong>Tsallis entropy</strong>:</p>
+    \[ S_q(X) = \frac{1}{1-q}\left(\sum_{i=1}^{C} p_i^q - 1\right), \qquad q \in \mathbb{R}. \]
+    <ul>
+      <li>As \(q \to 1\) it converges to Shannon entropy, \(-\sum_i p_i \ln p_i\) (in nats — multiply by \(1/\ln 2\) for bits).</li>
+      <li>At \(q = 2\) it is exactly \(1 - \sum_i p_i^2\), the Gini impurity.</li>
+    </ul>
+    <p>
+      Varying \(q\) interpolates smoothly between criteria: \(q < 1\) emphasises rare classes and produces
+      more balanced trees, while \(q > 1\) lets the majority dominate and gives more conservative splits. This
+      was formalised by Wang, Song and Xia in <em>Unifying the Split Criteria of Decision Trees Using Tsallis
+      Entropy</em> (2016), which shows that information gain (ID3), gain ratio (C4.5) and Gini (CART) all
+      belong to one family. Choosing \(q\) optimally for a given dataset remains an open problem.
+    </p>
+
+    <h3 id="pruning">Overfitting and pruning</h3>
+
+    <p>
+      Grown without restraint, a tree keeps splitting until every leaf is pure. That guarantees
+      <strong>zero training error</strong> and is almost always overfitting: the tree has memorised
+      idiosyncrasies rather than learned patterns. The symptoms are a large tree with many tiny branches, high
+      sensitivity to individual samples, and a wide gap between training and test accuracy.
+    </p>
+
+    <h4>Pre-pruning (early stopping)</h4>
+    <p>Stop growing before the tree gets too complex. Typical criteria:</p>
+    <ul>
+      <li><strong>Maximum depth</strong> — cap the number of successive splits.</li>
+      <li><strong>Minimum samples per node</strong> — refuse to split a node with too few examples.</li>
+      <li><strong>Minimum information gain</strong> — stop when the best available gain falls below \(\varepsilon\).</li>
+      <li><strong>Minimum error reduction</strong> — stop when further splits do not help on a validation set.</li>
+    </ul>
+    <p>
+      Cheap and needs no validation set, but it risks <strong>underfitting</strong>: a split that looks
+      worthless on its own may be essential in combination with the next one. XOR is again the example — a
+      minimum-gain rule halts immediately, because neither feature helps alone.
+    </p>
+
+    <h4>Post-pruning (reduced-error pruning)</h4>
+    <p>Grow the full tree first, then simplify:</p>
+    <ol>
+      <li>Grow the tree to minimise training error.</li>
+      <li>Hold out a <strong>validation set</strong>.</li>
+      <li>For each internal node, try replacing its whole subtree with a single leaf labelled by the majority class.</li>
+      <li>If validation accuracy does not get worse, keep the pruned version.</li>
+      <li>Repeat bottom-up until nothing more can be removed.</li>
+    </ol>
+    <p>
+      More expensive — the full tree must be built first — but it avoids pre-pruning's blind spot, because
+      the useful combination has already been discovered before anything is cut. It usually generalises better.
+    </p>
+
+    <h4>Cost–complexity pruning (CART)</h4>
+    <p>CART formalises the trade-off with a regularised objective:</p>
+    \[ R_\alpha(T) = R(T) + \alpha|T|, \]
+    <p>
+      where \(R(T)\) is the misclassification rate (or MSE for regression), \(|T|\) is the number of leaves,
+      and \(\alpha \ge 0\) penalises size. Large \(\alpha\) forces smaller trees; small \(\alpha\) permits
+      complexity. This is the same bias–variance dial as \(\ell_1\)/\(\ell_2\) regularisation in
+      <a href="03-supervised-linear-kernel.html#ridge">linear models</a> — a fit term plus a complexity
+      penalty, with a hyperparameter deciding the balance.
+    </p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Why trees are usually used in ensembles
+      </div>
+      <p style="margin-bottom:0">
+        A single deep tree is high-variance: change a handful of training samples and the whole structure can
+        rearrange. That instability is precisely what makes trees ideal <em>base learners</em> for ensembles —
+        random forests average many decorrelated trees to cancel the variance, and gradient boosting stacks
+        shallow trees to reduce bias. The individual weakness becomes the collective strength.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="fnn-intro">Part 4.2 · Feedforward Neural Networks</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      A decision tree carves space into boxes. A neural network does something quite different: it
+      <strong>bends the space</strong> until the problem becomes easy, then solves the easy problem with a
+      straight line.
+    </p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        The one thing to hold on to
+      </div>
+      <p style="margin-bottom:0">
+        This is the same idea as the <a href="03-supervised-linear-kernel.html#feature-maps">feature map</a>
+        from the last chapter. There, <em>you</em> chose \(\phi\) — a circle, a polynomial, an RBF. Here the
+        network <strong>learns \(\phi\) from the data</strong>. The hidden layers are the feature map; the
+        output layer is the linear classifier sitting on top of it.
+      </p>
+    </div>
+
+    <p>Why bother, given kernels already give nonlinearity?</p>
+    <ul>
+      <li><strong>Learned rather than chosen.</strong> A kernel commits you to a fixed notion of similarity in advance. A network discovers a representation suited to the actual task.</li>
+      <li><strong>Scale.</strong> Kernel methods need the \(n \times n\) kernel matrix — \(\mathcal{O}(n^2)\) memory, \(\mathcal{O}(n^3)\) to solve. Networks train by minibatch gradient descent, whose cost per step is independent of dataset size.</li>
+      <li><strong>Composition.</strong> Depth lets features build on features, which is far more parameter-efficient than widening a single layer.</li>
+    </ul>
+
+    <h3 id="architecture">Architecture and notation</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        A feedforward network is a chain of layers. Writing \(\mathbf{a}^{(0)} \equiv \mathbf{x}\), each layer
+        \(\ell\) computes a <strong>pre-activation</strong> and then an <strong>activation</strong>:
+      </p>
+      \[
+      \mathbf{z}^{(\ell)} = \mathbf{W}^{(\ell)}\mathbf{a}^{(\ell-1)} + \mathbf{b}^{(\ell)},
+      \qquad
+      \mathbf{a}^{(\ell)} = f\big(\mathbf{z}^{(\ell)}\big),
+      \]
+      <p style="margin-bottom:0">
+        with \(f\) applied element-wise. For a network with layer sizes \(n_{\ell-1} \to n_\ell\),
+        \(\mathbf{W}^{(\ell)} \in \mathbb{R}^{n_\ell \times n_{\ell-1}}\) and
+        \(\mathbf{b}^{(\ell)} \in \mathbb{R}^{n_\ell}\).
+      </p>
+    </div>
+
+    <h3 id="forward">The forward pass</h3>
+
+    <p>Take the concrete \(3 \to 4 \to 2\) network used throughout this section. The hidden layer computes</p>
+    \[
+    \mathbf{z}^{(1)} = \mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)} \in \mathbb{R}^4,
+    \qquad
+    \mathbf{a}^{(1)} = f\big(\mathbf{z}^{(1)}\big) \in \mathbb{R}^4,
+    \]
+    <p>and the output layer</p>
+    \[
+    \mathbf{z}^{(2)} = \mathbf{W}^{(2)}\mathbf{a}^{(1)} + \mathbf{b}^{(2)} \in \mathbb{R}^2,
+    \qquad
+    \mathbf{o} = g\big(\mathbf{z}^{(2)}\big) \in \mathbb{R}^2.
+    \]
+    <p>End to end, the whole network is the single composite map</p>
+    \[ \mathbf{o} = g\Big(\mathbf{W}^{(2)}f\big(\mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}\big) + \mathbf{b}^{(2)}\Big). \]
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="7" r="2"/><circle cx="12" cy="17" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12 10 8M7 12l3 4M14 8l3 3M14 16l3-3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Values flowing through a 3 → 4 → 2 network</p>
+          <p class="playground__sub">Edit the input, switch the activation, randomise the weights. Edge thickness is |weight|; note how often ReLU leaves a unit at exactly zero.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="fnn-forward"></div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Without a nonlinearity, depth buys nothing
+      </div>
+      <p style="margin-bottom:0">
+        If \(f\) were the identity, the network would be
+        \(\mathbf{W}^{(2)}(\mathbf{W}^{(1)}\mathbf{x} + \mathbf{b}^{(1)}) + \mathbf{b}^{(2)}
+        = (\mathbf{W}^{(2)}\mathbf{W}^{(1)})\mathbf{x} + (\mathbf{W}^{(2)}\mathbf{b}^{(1)} + \mathbf{b}^{(2)})\)
+        — a single linear map with a single weight matrix. Stack a hundred layers and it is <em>still</em> one
+        linear map. <strong>The activation function is the entire reason depth means anything.</strong>
+      </p>
+    </div>
+
+    <h3 id="outputs">Output layers and loss functions</h3>
+
+    <p>
+      The output activation and the loss are chosen together, and they follow from the type of prediction.
+    </p>
+
+    <h4>Classification: softmax and cross-entropy</h4>
+    <p>For \(k\) classes, softmax turns raw scores (logits) into a probability distribution:</p>
+    \[ o_i = \frac{e^{z^{(2)}_i}}{\sum_{j=1}^{k} e^{z^{(2)}_j}}, \qquad \sum_i o_i = 1, \quad o_i \in [0,1]. \]
+    <p>and the cross-entropy loss against a target \(\mathbf{p}\) is</p>
+    \[ \mathcal{L}_{\mathrm{CE}}(\mathbf{o}, \mathbf{p}) = -\sum_{i=1}^{k} p_i \log o_i. \]
+    <p>
+      With one-hot labels only a single term survives, so \(\mathcal{L} = -\log o_{\text{true}}\) — the loss
+      is simply how surprised the model was by the right answer.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        The cancellation that makes it all work
+      </div>
+      <p style="margin-bottom:.6em">
+        Softmax and cross-entropy are almost always used together, because their derivative collapses to
+        something extraordinarily simple:
+      </p>
+      \[
+      \frac{\partial \mathcal{L}_{\mathrm{CE}}}{\partial z^{(2)}_i}
+      = \sum_{k}\Big(-\frac{p_k}{o_k}\Big)o_k(\delta_{ik} - o_i)
+      = o_i - p_i.
+      \]
+      <p style="margin-bottom:0">
+        The messy softmax Jacobian and the \(1/o_k\) from the logarithm cancel exactly. All the output layer
+        ever needs is <strong>prediction minus target</strong>.
+      </p>
+    </div>
+
+    <h4>Regression: linear output and MSE</h4>
+    <p>
+      For continuous targets we want unbounded outputs, so the output activation is the identity,
+      \(\mathbf{o} = \mathbf{z}^{(2)}\), and the usual loss is
+    </p>
+    \[ \mathcal{L}_{\mathrm{MSE}}(\mathbf{o}, \mathbf{y}) = \tfrac12\|\mathbf{o} - \mathbf{y}\|_2^2. \]
+    <p>The \(\tfrac12\) is conventional — it cancels the 2 when differentiating.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Problem</th><th>Output activation</th><th>Loss</th></tr></thead>
+        <tbody>
+          <tr><td>Binary classification</td><td>Softmax (2-way) or sigmoid</td><td>(Binary) cross-entropy</td></tr>
+          <tr><td>Multiclass classification</td><td>Softmax (\(k\)-way)</td><td>Cross-entropy</td></tr>
+          <tr><td>Regression</td><td>Linear (identity)</td><td>Mean squared error</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 id="activations">Activation functions</h3>
+
+    <p>
+      Hidden-layer activations are applied element-wise, \(a_i^{(\ell)} = f(z_i^{(\ell)})\). The choice
+      matters enormously, and the reason is visible entirely in the <em>derivative</em> — because that is
+      what backpropagation multiplies by.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c5 0 4-12 9-12s4 6 9 6"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Every activation and its derivative</p>
+          <p class="playground__sub">The shaded band marks where the gradient is effectively dead. Sigmoid's derivative never exceeds 0.25 — the vanishing-gradient problem in one number.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="activations"></div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Activation</th><th>\(f(x)\)</th><th>Range</th><th>\(f'(x)\)</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Sigmoid</strong></td>
+            <td>\(\dfrac{1}{1+e^{-x}}\)</td><td>\((0,1)\)</td>
+            <td>\(\sigma(x)(1-\sigma(x))\)</td>
+            <td>Smooth; saturates badly; not zero-centred; derivative caps at 0.25</td>
+          </tr>
+          <tr>
+            <td><strong>tanh</strong></td>
+            <td>\(\dfrac{e^x - e^{-x}}{e^x + e^{-x}}\)</td><td>\((-1,1)\)</td>
+            <td>\(1 - \tanh^2(x)\)</td>
+            <td>Zero-centred, derivative up to 1, but still saturates</td>
+          </tr>
+          <tr>
+            <td><strong>ReLU</strong></td>
+            <td>\(\max(0,x)\)</td><td>\([0,\infty)\)</td>
+            <td>\(\mathbb{1}_{x>0}\)</td>
+            <td>Cheap, sparse, no saturation for \(x>0\); units can "die"</td>
+          </tr>
+          <tr>
+            <td><strong>Leaky ReLU</strong></td>
+            <td>\(\max(\alpha x, x)\)</td><td>\((-\infty,\infty)\)</td>
+            <td>\(\mathbb{1}_{x>0} + \alpha\mathbb{1}_{x\le0}\)</td>
+            <td>Keeps a small slope so dead units can recover; \(\alpha\) typically 0.01–0.2</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>The dying ReLU problem.</strong> If a unit's pre-activation lands below zero for every training
+      example, its gradient is zero everywhere, its weights never update, and it is permanently dead. Leaky
+      ReLU fixes this with a small negative slope; <strong>PReLU</strong> goes further and learns \(\alpha\)
+      as a parameter.
+    </p>
+    <p>
+      Activations need not be uniform across a network — it is a tuning choice — but in practice the same
+      function is used for every hidden layer, with only the output layer differing.
+    </p>
+
+    <h3 id="backprop">Backpropagation</h3>
+
+    <p>
+      We now have a network that produces predictions and a loss that scores them. Backpropagation is how we
+      get the gradient of that loss with respect to every weight — efficiently, by reusing the forward pass.
+    </p>
+    <p>
+      Take \(f = \text{ReLU}\) for the hidden layer, \(g = \text{softmax}\) for the output, and cross-entropy
+      loss on the \(3 \to 4 \to 2\) network.
+    </p>
+
+    <h4>Output layer</h4>
+    <p>From the cancellation above, define the <strong>output error signal</strong></p>
+    \[ \boldsymbol{\delta}^{(2)} = \frac{\partial\mathcal{L}}{\partial\mathbf{z}^{(2)}} = \mathbf{o} - \mathbf{p} \in \mathbb{R}^{2\times1}. \]
+    <p>Since \(\mathbf{z}^{(2)} = \mathbf{W}^{(2)}\mathbf{a}^{(1)} + \mathbf{b}^{(2)}\),</p>
+    \[
+    \nabla_{\mathbf{W}^{(2)}}\mathcal{L} = \boldsymbol{\delta}^{(2)}\big(\mathbf{a}^{(1)}\big)^\top \in \mathbb{R}^{2\times4},
+    \qquad
+    \nabla_{\mathbf{b}^{(2)}}\mathcal{L} = \boldsymbol{\delta}^{(2)},
+    \]
+    <p>or component-wise, \(\partial\mathcal{L}/\partial w^{(2)}_{ij} = \delta^{(2)}_i a^{(1)}_j\).</p>
+
+    <h4>Hidden layer</h4>
+    <p>The chain rule pushes the error back through \(\mathbf{W}^{(2)}\) and then through the activation:</p>
+    \[
+    \boldsymbol{\delta}^{(1)} = \frac{\partial\mathcal{L}}{\partial\mathbf{z}^{(1)}}
+    = \Big(\mathbf{W}^{(2)}\Big)^\top\boldsymbol{\delta}^{(2)} \odot f'\big(\mathbf{z}^{(1)}\big) \in \mathbb{R}^{4\times1},
+    \]
+    <p>where \(\odot\) is the element-wise product and, for ReLU, \(f'(z) = 1\) if \(z > 0\) and 0 otherwise. Then</p>
+    \[
+    \nabla_{\mathbf{W}^{(1)}}\mathcal{L} = \boldsymbol{\delta}^{(1)}\mathbf{x}^\top \in \mathbb{R}^{4\times3},
+    \qquad
+    \nabla_{\mathbf{b}^{(1)}}\mathcal{L} = \boldsymbol{\delta}^{(1)}.
+    \]
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        The pattern, in one sentence
+      </div>
+      <p style="margin-bottom:0">
+        Every weight gradient is an <strong>outer product</strong>: the error signal arriving from above,
+        times the activation coming from below. Every error signal is the one above it, pulled back through
+        the weight matrix and gated by the local derivative. That is the whole algorithm, and it is why the
+        forward activations must be kept in memory — they are half of every gradient.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14M19 8l-3-3M19 8l-3 3"/><path d="M19 16H5M5 16l3-3M5 16l3 3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Backpropagation with real numbers</p>
+          <p class="playground__sub">Eight steps through the same 3 → 4 → 2 network. Watch the ReLU gate zero out the gradient of a unit that was switched off.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="backprop"></div>
+    </div>
+
+    <h4>Shape checks</h4>
+    <p>
+      A good habit, and the fastest way to catch a transpose bug:
+      \(\boldsymbol{\delta}^{(2)} \in \mathbb{R}^{2\times1}\) and \(\mathbf{a}^{(1)} \in \mathbb{R}^{4\times1}\)
+      give \(\nabla_{\mathbf{W}^{(2)}} \in \mathbb{R}^{2\times4}\), matching \(\mathbf{W}^{(2)}\);
+      \(\boldsymbol{\delta}^{(1)} \in \mathbb{R}^{4\times1}\) and \(\mathbf{x} \in \mathbb{R}^{3\times1}\)
+      give \(\nabla_{\mathbf{W}^{(1)}} \in \mathbb{R}^{4\times3}\), matching \(\mathbf{W}^{(1)}\).
+    </p>
+
+    <h4>Minibatches</h4>
+    <p>
+      For a batch of \(B\) examples, stack the forward quantities column-wise into
+      \(\mathbf{X} \in \mathbb{R}^{3\times B}\), \(\mathbf{A}^{(1)} \in \mathbb{R}^{4\times B}\),
+      \(\mathbf{O}, \mathbf{P} \in \mathbb{R}^{2\times B}\). Then
+    </p>
+    \[
+    \boldsymbol{\Delta}^{(2)} = \mathbf{O} - \mathbf{P},
+    \qquad
+    \boldsymbol{\Delta}^{(1)} = \big(\mathbf{W}^{(2)}\big)^\top\boldsymbol{\Delta}^{(2)} \odot f'\big(\mathbf{Z}^{(1)}\big),
+    \]
+    <p>and, averaging the loss over the batch,</p>
+    \[
+    \nabla_{\mathbf{W}^{(2)}} = \tfrac1B \boldsymbol{\Delta}^{(2)}\big(\mathbf{A}^{(1)}\big)^\top,
+    \quad
+    \nabla_{\mathbf{b}^{(2)}} = \tfrac1B \boldsymbol{\Delta}^{(2)}\mathbf{1}_B,
+    \quad
+    \nabla_{\mathbf{W}^{(1)}} = \tfrac1B \boldsymbol{\Delta}^{(1)}\mathbf{X}^\top,
+    \quad
+    \nabla_{\mathbf{b}^{(1)}} = \tfrac1B \boldsymbol{\Delta}^{(1)}\mathbf{1}_B,
+    \]
+    <p>
+      where \(\mathbf{1}_B\) sums across the batch. Note that the per-example loops have become single matrix
+      products — which is exactly why GPUs help so much.
+    </p>
+
+    <h4>The update</h4>
+    <p>With learning rate \(\eta > 0\), one step of gradient descent is</p>
+    \[
+    \mathbf{W}^{(\ell)} \leftarrow \mathbf{W}^{(\ell)} - \eta\nabla_{\mathbf{W}^{(\ell)}}\mathcal{L},
+    \qquad
+    \mathbf{b}^{(\ell)} \leftarrow \mathbf{b}^{(\ell)} - \eta\nabla_{\mathbf{b}^{(\ell)}}\mathcal{L}.
+    \]
+    <p>
+      This is the same gradient descent from
+      <a href="01-mathematical-background.html#convexity">Chapter 1</a> — with the same failure modes. Too
+      large an \(\eta\) diverges; too small and nothing happens. The difference is that a network's loss
+      surface is emphatically <strong>not convex</strong>, so there are no guarantees about where you land.
+    </p>
+
+    <h3 id="training">Training in practice</h3>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 17c3-9 6 3 9-4s3 2 6-1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Train a network and watch the boundary form</p>
+          <p class="playground__sub">Four datasets, adjustable width, depth, activation and learning rate. Try the spiral with 4 units, then with 20.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="fnn-playground"></div>
+    </div>
+
+    <p>Three things the figure makes concrete:</p>
+    <ul>
+      <li>
+        <strong>Capacity is real.</strong> A spiral needs enough hidden units to bend that far. With four,
+        the network does not merely train slowly — it <em>cannot</em> represent the answer.
+      </li>
+      <li>
+        <strong>Activation choice changes training speed dramatically.</strong> Switch three layers to
+        sigmoid and watch progress crawl. That is the 0.25 derivative cap compounding across depth.
+      </li>
+      <li>
+        <strong>The loss curve is not monotone.</strong> Non-convexity means plateaus, sudden drops, and
+        sensitivity to initialisation — run the same configuration twice and you will not get identical paths.
+      </li>
+    </ul>
+
+    <h3 id="universal">Universal approximation</h3>
+
+    <p>
+      A single hidden layer with enough units can approximate any continuous function on a bounded domain to
+      arbitrary accuracy. With ReLU units this is easy to see rather than merely believe: each unit
+      contributes one <strong>kink</strong>, and a sum of kinks is a piecewise-linear function.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h4l4-8 4 6 3-4h3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Building a curve out of ReLU kinks</p>
+          <p class="playground__sub">Add hidden units one at a time and watch the approximation tighten. Switch on the individual units to see the hinges being summed.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="universal-approx"></div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        What the theorem does not say
+      </div>
+      <p style="margin-bottom:0">
+        It guarantees that a suitable network <em>exists</em>. It does not say that gradient descent will
+        find it, how many units are needed (possibly exponentially many), or that the result will generalise
+        beyond the training data. Universal approximation is a statement about representational capacity
+        only — and capacity was never the hard part.
+      </p>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Then why go deep?
+      </div>
+      <p style="margin-bottom:0">
+        Because width is an expensive way to buy expressiveness. One hidden layer can represent anything, but
+        for many functions it needs exponentially more units than a deep network would. Depth lets features
+        <em>compose</em> — edges into shapes, shapes into objects — and that compositional structure is what
+        the next chapter's convolutional and recurrent architectures exploit deliberately.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import numpy as np
+
+def forward(X, W1, b1, W2, b2):
+    Z1 = W1 @ X + b1                       # (4, B)
+    A1 = np.maximum(0, Z1)                 # ReLU
+    Z2 = W2 @ A1 + b2                      # (2, B)
+    Z2 = Z2 - Z2.max(axis=0, keepdims=True)   # stabilise before exp
+    E  = np.exp(Z2)
+    O  = E / E.sum(axis=0, keepdims=True)  # softmax
+    return Z1, A1, O
+
+def backward(X, P, Z1, A1, O, W2):
+    B = X.shape[1]
+    D2 = O - P                             # the softmax + CE cancellation
+    gW2, gb2 = D2 @ A1.T / B, D2.sum(axis=1, keepdims=True) / B
+    D1 = (W2.T @ D2) * (Z1 &gt; 0)            # backprop through the ReLU gate
+    gW1, gb1 = D1 @ X.T / B, D1.sum(axis=1, keepdims=True) / B
+    return gW1, gb1, gW2, gb2
+
+# Always check gradients numerically the first time you write this:
+#   (L(w + eps) - L(w - eps)) / (2 * eps)  should match your analytic gradient</code></pre>
+    </div>
+
+    <!-- ---------- Errata ---------- -->
+    <h3 id="errata">Errata and verification</h3>
+
+    <p>
+      Every information-gain computation in this chapter was recomputed directly from the 14-row table, and
+      the backpropagation derivation was checked line by line. The root-level gains, both base-case worked
+      examples, the entropy calculations and the <em>entire</em> backpropagation section were correct as
+      written. Three things were not.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Section</th><th>Original notes</th><th>Corrected to</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a href="#recursive">Sunny branch, Wind split</a></td>
+            <td>Weak: 2 Yes, 1 No &nbsp;·&nbsp; Strong: 0 Yes, 2 No &nbsp;→&nbsp; Gain = 0.420</td>
+            <td>Weak: 1 Yes, 2 No &nbsp;·&nbsp; Strong: 1 Yes, 1 No &nbsp;→&nbsp; <strong>Gain = 0.020</strong></td>
+            <td>
+              The Sunny days are 1, 2, 8, 9, 11. Weak wind covers days 1, 8, 9 — that is No, No, Yes, so
+              1 Yes and 2 No. Strong covers days 2 and 11 — No and Yes, so 1 each. The published counts give
+              a pure Strong child, which would make Wind look far better than it is. Humidity still wins the
+              branch either way, so the conclusion is unaffected.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#recursive">Rain branch, Humidity split</a></td>
+            <td>High: 2 Yes, 2 No &nbsp;·&nbsp; Normal: 1 Yes, 0 No &nbsp;→&nbsp; Gain = 0.171</td>
+            <td>High: 1 Yes, 1 No &nbsp;·&nbsp; Normal: 2 Yes, 1 No &nbsp;→&nbsp; <strong>Gain = 0.020</strong></td>
+            <td>
+              The Rain days are 4, 5, 6, 10, 14. High humidity covers days 4 and 14 — Yes and No. Normal
+              covers 5, 6, 10 — Yes, No, Yes. The published split puts four samples in the High child when
+              only two belong there. Wind still wins the branch, so again the tree is unchanged — but the
+              runner-up's score was wrong by a factor of eight.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#gini">Gini versus entropy</a></td>
+            <td>"\(\text{Gini}(p) \approx 2H(p)\) for small deviations around \(p = 0.5\)"</td>
+            <td>\(\text{Gini}(p) \approx \tfrac12 H(p)\), i.e. \(H \approx 2\,\text{Gini}\)</td>
+            <td>
+              The relationship is inverted. At \(p = 0.5\), \(H = 1\) while Gini \(= 0.5\), so entropy is the
+              <em>larger</em> quantity. As printed the claim is wrong by a factor of four. Expanding both
+              around \(p = 0.5\) gives \(\text{Gini} \approx 0.5 - 2\varepsilon^2\) and
+              \(H \approx 1 - 2.885\varepsilon^2\).
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#worked">Wind at the root</a></td>
+            <td>\(I_{\text{after}} = 0.891\), Gain \(= 0.0485\)</td>
+            <td>\(I_{\text{after}} = 0.8922\), Gain \(= 0.0481\)</td>
+            <td>
+              Rounding only, but internally inconsistent as printed: \(0.94 - 0.891 = 0.049\), not 0.0485.
+              The exact values are given here.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#gini">Tsallis citation</a></td>
+            <td>"Y. Wang, S. Chaobing, and X. Shu-Tao"</td>
+            <td>Wang, Song and Xia</td>
+            <td>
+              Given names and surnames are transposed for two of the three authors. The paper is by
+              <em>Yisen Wang, Chaobing Song and Shu-Tao Xia</em>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Verified correct</strong>, for the record: the root information gains for all four features; both
+      "no features left" and "no samples left" worked examples (I re-derived the sample sets and majority
+      votes); the entropy examples at \(p = 0.5\) and \(p = 0.01\); the Gini formula and its binary form
+      \(2p(1-p)\); both Tsallis special cases; the softmax cross-entropy derivative; and every gradient,
+      transpose and shape in the backpropagation section.</p>
+
+    <p><strong>Additions</strong> made during conversion:</p>
+    <ul>
+      <li>
+        A note that <strong>greedy is not optimal</strong>, with XOR as the standard counterexample — the
+        notes describe the greedy strategy but do not say what it costs.
+      </li>
+      <li>
+        The observation that a tree's cuts are <strong>axis-aligned</strong>, and the diagonal dataset that
+        shows why that matters, since it explains both trees' interpretability and their inefficiency.
+      </li>
+      <li>
+        <strong>Why trees are used in ensembles</strong>: their high variance is exactly what makes them good
+        base learners, which connects to the ensemble methods on the syllabus.
+      </li>
+      <li>
+        An explicit statement that <strong>stacked linear layers collapse to one linear layer</strong>. The
+        notes assert that depth needs nonlinearity; the one-line algebra makes it undeniable.
+      </li>
+      <li>
+        The link back to <a href="03-supervised-linear-kernel.html#feature-maps">kernel feature maps</a>:
+        hidden layers are a <em>learned</em> \(\phi\), which is the cleanest way to see what a network is
+        actually doing.
+      </li>
+      <li>
+        <strong>What universal approximation does not promise</strong>, and why depth is preferred to width
+        despite the theorem.
+      </li>
+      <li>A reminder to <strong>check gradients numerically</strong> the first time backpropagation is implemented by hand.</li>
+    </ul>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Worth your confirmation
+      </div>
+      <p style="margin-bottom:0">
+        The two miscounted splits appear in the text, and the corresponding tree diagrams
+        (<span class="u-mono">DT-Final.png</span> and the surrounding figures) were presumably drawn from the
+        same working. The final tree is unaffected, since Humidity and Wind still win their branches — but if
+        any figure displays the intermediate gains, those numbers will need updating too. Also worth a glance:
+        the source has a stray <span class="u-mono">\\</span> before an <span class="u-mono">\item</span> in
+        the ReLU disadvantages list, and "Cold" appears where "Cool" is meant in the base-case walkthrough.
+      </p>
+    </div>
+
+    <p>
+      Found something else? Please report it — email
+      <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a> or raise it in class.
+    </p>
+
+    <nav class="pagenav" aria-label="Chapter navigation">
+      <a href="03-supervised-linear-kernel.html">
+        <small>Previous</small>
+        <b>3 · Supervised Learning I</b>
+      </a>
+      <a href="../notes.html" class="is-next">
+        <small>Next up</small>
+        <b>5 · CNNs, RNNs &amp; Transformers — in conversion</b>
+      </a>
+    </nav>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="02-data-fundamentals.html">2 · Data Fundamentals</a></li>
+        <li><a href="03-supervised-linear-kernel.html">3 · Supervised Learning I</a></li>
+        <li><a href="04-trees-neural-networks.html">4 · Trees &amp; Neural Networks</a></li>
+        <li><a href="../notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="../syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="../about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script type="module" src="../assets/js/widgets/index.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

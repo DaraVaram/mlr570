@@ -9,6 +9,7 @@ import './prep.js';
 import './sim.js';
 import './eval.js';
 import './sup.js';
+import './nets.js';
 
 /* ------------------------------------------------------------
    Landing-page hero: an ambient linear transformation that
