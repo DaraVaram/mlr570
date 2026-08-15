@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Syllabus — MLR 570 Advanced Machine Learning</title>
+<meta name="description" content="Course description, learning outcomes, weekly schedule, assessment and grading policy for MLR 570 at the American University of Sharjah.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+<link rel="stylesheet" href="assets/css/components.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="index.html">Home</a>
+      <a class="nav__link" href="notes.html">Notes</a>
+      <a class="nav__link" href="syllabus.html" aria-current="page">Syllabus</a>
+      <a class="nav__link" href="about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="page page--narrow">
+
+  <div class="chapter-head">
+    <div class="chapter-head__crumb"><a href="index.html">Home</a> › Syllabus</div>
+    <h1>MLR 570 — Advanced Machine Learning</h1>
+    <p class="chapter-head__lede">
+      Graduate course, Department of Computer Science and Engineering, American University of Sharjah.
+    </p>
+    <div class="chapter-head__stats">
+      <span class="pill pill--brand">3 credit hours (3–0–3)</span>
+      <span class="pill pill--brand">16 weeks</span>
+      <span class="pill pill--brand">MSML programme</span>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:2.4rem">
+    <div class="stat"><div class="stat__val">3–0–3</div><div class="stat__key">Lecture–lab–credit hours</div></div>
+    <div class="stat"><div class="stat__val">7</div><div class="stat__key">Course learning outcomes</div></div>
+    <div class="stat"><div class="stat__val">5</div><div class="stat__key">Homework assignments</div></div>
+  </div>
+
+  <h2 id="description">Course description</h2>
+  <p>
+    Introduces machine learning concepts and data pre-processing techniques including aggregation,
+    dimensionality reduction, feature selection, and measures of data similarity and dissimilarity. Covers
+    supervised learning methods including Naïve Bayes, SVM, Feedforward, Convolutional and LSTM neural
+    networks. Examines semi-supervised learning including GANs and consistency regularization algorithms, as
+    well as unsupervised learning methods including K-Medoids, Gaussian Mixtures Methods, and Autoencoders.
+    Covers ensemble learning methods including bagging and boosting, and model evaluation techniques.
+  </p>
+
+  <div class="callout callout--note">
+    <div class="callout__title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+      Prerequisites
+    </div>
+    <p style="margin-bottom:.5em"><strong>Prerequisite:</strong> Approval of the CSE Head of Department.</p>
+    <p style="margin-bottom:.5em"><strong>Co-requisites:</strong> None.</p>
+    <p style="margin-bottom:0">
+      <strong>Assumed competencies:</strong> undergraduate-level knowledge of statistics and programming.
+      If that feels rusty, <a href="chapters/01-mathematical-background.html">Chapter 1</a> exists precisely
+      to close the gap — it is the mathematical background assumed from day one.
+    </p>
+  </div>
+
+  <h2 id="outcomes">Course learning outcomes</h2>
+  <p>Upon completion of the course, students will be able to:</p>
+  <ol>
+    <li>Apply data pre-processing techniques such as aggregation, dimensionality reduction, and feature selection for various types of data.</li>
+    <li>Demonstrate a strong understanding of the measures of data similarity and dissimilarity.</li>
+    <li>Evaluate different machine learning models.</li>
+    <li>Apply supervised learning methods.</li>
+    <li>Apply semi-supervised learning methods.</li>
+    <li>Compare unsupervised learning methods.</li>
+    <li>Apply appropriate ensemble methods.</li>
+  </ol>
+
+  <h2 id="schedule">Topics and weekly schedule</h2>
+  <div class="table-scroll">
+    <table class="sched">
+      <thead><tr><th>Week</th><th>Topic</th></tr></thead>
+      <tbody>
+        <tr><td>Week 1</td><td>Introduction to Machine Learning</td></tr>
+        <tr><td>Week 2</td><td>Data preprocessing — aggregation, sampling, normalization, encoding, discretization</td></tr>
+        <tr><td>Week 3</td><td>Data preprocessing — dimensionality reduction, feature selection, feature creation</td></tr>
+        <tr><td>Week 4</td><td>Measures of data similarity and dissimilarity</td></tr>
+        <tr><td>Week 5</td><td>Model evaluation</td></tr>
+        <tr><td>Week 6</td><td>Supervised learning — k-neighbours, logistic regression, SVM</td></tr>
+        <tr><td>Week 7</td><td>Supervised learning — Bayes, decision trees</td></tr>
+        <tr><td>Week 8</td><td>Supervised learning — feedforward and convolutional neural networks</td></tr>
+        <tr><td>Week 9</td><td>Supervised learning — LSTM, transformers</td></tr>
+        <tr><td>Week 10</td><td>Unsupervised learning — k-means, k-medoids</td></tr>
+        <tr><td>Week 11</td><td>Unsupervised learning — DBSCAN, Gaussian mixtures</td></tr>
+        <tr><td>Week 12</td><td>Unsupervised learning — autoencoders, VAE, AAE</td></tr>
+        <tr><td>Week 13</td><td>Semi-supervised learning — consistency regularization algorithms</td></tr>
+        <tr><td>Week 14</td><td>Semi-supervised learning — label propagation, SGAN</td></tr>
+        <tr><td>Week 15</td><td>Ensemble learning — AdaBoost, gradient boosting, isolation forest</td></tr>
+        <tr class="is-exam"><td>Week 16</td><td>Final exam</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="assignments">Assignments</h2>
+  <p>
+    Each homework consists of some theoretical questions and hands-on application of the techniques learned
+    to different datasets. Homework is done in <strong>teams of two</strong>.
+  </p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Assignment</th><th>Due (tentative)</th></tr></thead>
+      <tbody>
+        <tr><td>HW-1 · Data pre-processing and feature engineering</td><td>Week 4</td></tr>
+        <tr><td>HW-2 · Supervised learning (SVM, decision trees, k-neighbours)</td><td>Week 7</td></tr>
+        <tr><td>HW-3 · Supervised learning (neural networks)</td><td>Week 10</td></tr>
+        <tr><td>HW-4 · Semi- and unsupervised learning</td><td>Week 14</td></tr>
+        <tr><td>HW-5 · Ensemble learning methods</td><td>Week 15</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="assessment">Assessment and grading</h2>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Assessment</th><th>Weight</th><th>Due</th></tr></thead>
+      <tbody>
+        <tr><td>Homework assignments</td><td>20%</td><td>See above</td></tr>
+        <tr><td>Survey report</td><td>20%</td><td>Week 10</td></tr>
+        <tr><td>Final project report</td><td>30%</td><td>Week 15</td></tr>
+        <tr><td>Final exam</td><td>30%</td><td>Week 16</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    There is no laboratory component. The <strong>final project</strong> is done in teams of three: apply the
+    techniques to a non-trivial large dataset and evaluate the results, or make an algorithmic contribution
+    to one of the algorithms covered. The <strong>survey report</strong> is individual — select a topic area
+    and write a detailed survey based on a literature review.
+  </p>
+
+  <h3 id="grades">Letter grade policy</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Total (T)</th><th>Letter grade</th></tr></thead>
+      <tbody>
+        <tr><td>93 ≤ T</td><td>A</td></tr>
+        <tr><td>90 ≤ T &lt; 93</td><td>A−</td></tr>
+        <tr><td>85 ≤ T &lt; 90</td><td>B+</td></tr>
+        <tr><td>80 ≤ T &lt; 85</td><td>B</td></tr>
+        <tr><td>75 ≤ T &lt; 80</td><td>B−</td></tr>
+        <tr><td>70 ≤ T &lt; 75</td><td>C+</td></tr>
+        <tr><td>65 ≤ T &lt; 70</td><td>C</td></tr>
+        <tr><td>T &lt; 65</td><td>F</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="teaching">Teaching and learning methodology</h2>
+  <p>
+    Different teaching and learning methods are adopted in class to help students achieve the course's
+    learning outcomes and to encourage participation, creativity and interaction with each other. Methods
+    include formal lectures, class discussion, case studies and a term project.
+  </p>
+
+  <h2 id="textbooks">Textbooks and material</h2>
+  <p><strong>Primary:</strong> readings, excerpts from book chapters, and these notes.</p>
+  <p><strong>Secondary:</strong></p>
+  <ul>
+    <li>Alpaydin, E. <em>Introduction to Machine Learning</em>, MIT Press, 4th ed., 2020.</li>
+    <li>Goodfellow, I., Bengio, Y., Courville, A. <em>Deep Learning</em>, MIT Press, 2016.</li>
+    <li>Chollet, F. <em>Deep Learning with Python</em>, Manning Publications, 2021.</li>
+    <li>Raschka, S., Mirjalili, V. <em>Python Machine Learning: Machine Learning and Deep Learning with Python, Scikit-Learn, and TensorFlow</em>, 3rd ed., 2019.</li>
+  </ul>
+  <p>The mathematical background chapter additionally recommends:</p>
+  <ul>
+    <li>Petersen, K. B., Pedersen, M. S. <em>The Matrix Cookbook</em>.</li>
+    <li>Strang, G. <em>Introduction to Linear Algebra</em>.</li>
+    <li>Axler, S. <em>Linear Algebra Done Right</em>.</li>
+    <li>Boyd, S., Vandenberghe, L. <em>Convex Optimization</em>.</li>
+    <li>Devore, J. L. <em>Probability and Statistics for Engineering and the Sciences</em>.</li>
+    <li>Bishop, C. <em>Pattern Recognition and Machine Learning</em>.</li>
+  </ul>
+
+  <div class="callout callout--tip">
+    <div class="callout__title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+      A note on scope
+    </div>
+    <p style="margin-bottom:0">
+      This site reproduces the <strong>lecture notes</strong>. The syllabus schedule also includes
+      semi-supervised learning (weeks 13–14) and ensemble methods (week 15), which are taught from readings
+      rather than from these notes — so you will not find chapters for them here.
+      The official syllabus remains the authoritative document for anything assessment-related.
+    </p>
+  </div>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="chapters/01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MLR 570 — Advanced Machine Learning</title>
+<meta name="description" content="Interactive course notes for MLR 570 Advanced Machine Learning at the American University of Sharjah. Play with the figures, not just read them.">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:title" content="MLR 570 — Advanced Machine Learning">
+<meta property="og:description" content="Interactive course notes. Every figure is something you can pick up and move.">
+<meta property="og:type" content="website">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+
+<script>
+  // Set the theme before first paint to avoid a flash.
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+<link rel="stylesheet" href="assets/css/components.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="index.html" aria-current="page">Home</a>
+      <a class="nav__link" href="notes.html">Notes</a>
+      <a class="nav__link" href="syllabus.html">Syllabus</a>
+      <a class="nav__link" href="about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="page">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div>
+      <div class="hero__eyebrow">
+        <b>NEW</b> Chapter 1 is live and interactive
+      </div>
+      <h1>Machine learning you can<br>put your hands on.</h1>
+      <p class="hero__lede">
+        The full lecture notes for <strong>MLR&nbsp;570 — Advanced Machine Learning</strong> at the American
+        University of Sharjah. Same rigour as the PDF, except here every figure is something you can
+        actually pick up and move.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="chapters/01-mathematical-background.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+          Start with the mathematics
+        </a>
+        <a class="btn btn--ghost" href="notes.html">Browse all chapters</a>
+      </div>
+      <div class="hero__meta">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          Graduate level · 3 credits
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          16 weeks
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          Dept. of Computer Science &amp; Engineering
+        </span>
+      </div>
+    </div>
+    <div data-widget="hero-demo" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============ WHY ============ -->
+  <section>
+    <div class="section-head">
+      <div class="section-head__label">The idea</div>
+      <h2>Reading about a matrix is not the same as moving one.</h2>
+      <p>
+        These notes started life as LaTeX — good LaTeX, but static. A determinant was a number in a box, an
+        eigenvector was an arrow in a PNG. This site keeps every definition, proof and worked example exactly
+        as it was, and then makes the pictures live.
+      </p>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="playground__icon" style="margin-bottom:.85rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5V5a1.5 1.5 0 0 1 3 0v6"/><path d="M12 11V4a1.5 1.5 0 0 1 3 0v7"/><path d="M15 11V6a1.5 1.5 0 0 1 3 0v9a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0v1.5"/></svg>
+        </div>
+        <h3 style="margin-top:0;font-size:1.05rem">Drag the actual objects</h3>
+        <p style="margin:0;font-size:.92rem;color:var(--ink-muted)">
+          Grab the columns of a matrix and watch the determinant, the rank and the eigenvectors respond in
+          real time. The intuition arrives before the algebra does.
+        </p>
+      </div>
+      <div class="card">
+        <div class="playground__icon" style="margin-bottom:.85rem;background:var(--amber-500)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+        </div>
+        <h3 style="margin-top:0;font-size:1.05rem">Break things on purpose</h3>
+        <p style="margin:0;font-size:.92rem;color:var(--ink-muted)">
+          Push the learning rate until gradient descent explodes. Collapse a matrix until it stops being
+          invertible. The failure modes are where the understanding is.
+        </p>
+      </div>
+      <div class="card">
+        <div class="playground__icon" style="margin-bottom:.85rem;background:var(--teal-500)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h3 style="margin-top:0;font-size:1.05rem">Verified, line by line</h3>
+        <p style="margin:0;font-size:.92rem;color:var(--ink-muted)">
+          Every worked example on this site has been recomputed and checked. Where the original notes had a
+          slip, it is fixed and recorded openly in the errata.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHAPTERS ============ -->
+  <section>
+    <div class="section-head">
+      <div class="section-head__label">The notes</div>
+      <h2>Five parts, built in order.</h2>
+      <p>
+        Chapter 1 is the mathematical toolkit everything else stands on. It is complete and interactive now;
+        the remaining chapters are being converted one at a time.
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <a class="card-link" href="chapters/01-mathematical-background.html">
+        <div class="card-link__num">CHAPTER 1</div>
+        <h3 class="card-link__title">Mathematical Background</h3>
+        <p class="card-link__desc">
+          Linear algebra, probability &amp; statistics, and calculus &amp; optimisation — the prerequisites,
+          assembled in one place with the machine learning motivation attached.
+        </p>
+        <div class="card-link__foot">
+          <span class="pill pill--live">Live</span>
+          <span class="pill pill--play">26 interactive figures</span>
+          <span>· 3 parts</span>
+        </div>
+      </a>
+
+      <a class="card-link" href="#" aria-disabled="true">
+        <div class="card-link__num">CHAPTER 2</div>
+        <h3 class="card-link__title">Data Fundamentals</h3>
+        <p class="card-link__desc">
+          Preprocessing and feature engineering, similarity and dissimilarity measures, and how to evaluate a
+          model without fooling yourself.
+        </p>
+        <div class="card-link__foot"><span class="pill pill--soon">In conversion</span></div>
+      </a>
+
+      <a class="card-link" href="#" aria-disabled="true">
+        <div class="card-link__num">CHAPTER 3</div>
+        <h3 class="card-link__title">Supervised Learning</h3>
+        <p class="card-link__desc">
+          Linear models and SVMs, kernels and k-NN, decision trees, then feedforward, convolutional and
+          recurrent networks through to transformers.
+        </p>
+        <div class="card-link__foot"><span class="pill pill--soon">In conversion</span></div>
+      </a>
+
+      <a class="card-link" href="#" aria-disabled="true">
+        <div class="card-link__num">CHAPTER 4</div>
+        <h3 class="card-link__title">Unsupervised Learning</h3>
+        <p class="card-link__desc">
+          Clustering — k-means, k-medoids, DBSCAN, Gaussian mixtures — and autoencoders for representation
+          learning.
+        </p>
+        <div class="card-link__foot"><span class="pill pill--soon">In conversion</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ HOW TO USE ============ -->
+  <section>
+    <div class="section-head">
+      <div class="section-head__label">How to use this</div>
+      <h2>Suggestions, not rules.</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="margin-top:0;font-size:1.02rem">If you are taking the course</h3>
+        <p style="font-size:.93rem;color:var(--ink-muted);margin-bottom:.8rem">
+          Read the section, then spend two minutes in the playground beneath it before moving on. Try to
+          predict what will happen before you drag anything — being wrong is the fastest way to learn.
+        </p>
+        <p style="font-size:.93rem;color:var(--ink-muted);margin:0">
+          The Python snippets are runnable as-is with NumPy. Type them out; do not copy them.
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;font-size:1.02rem">If you are here to revise</h3>
+        <p style="font-size:.93rem;color:var(--ink-muted);margin-bottom:.8rem">
+          Use the sidebar to jump straight to a topic. Every definition, property list and worked example from
+          the original notes is preserved, so nothing you revised from before has moved.
+        </p>
+        <p style="font-size:.93rem;color:var(--ink-muted);margin:0">
+          Dark mode is in the top-right, and the site works on a phone — the figures are touch-friendly.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PEOPLE ============ -->
+  <section>
+    <div class="section-head">
+      <div class="section-head__label">Who made this</div>
+      <h2>The people behind the course.</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="person">
+          <img class="person__photo" src="assets/img/mohamed-alhajri.jpg" alt="Dr. Mohamed I. AlHajri" loading="lazy" width="92" height="92">
+          <div>
+            <div class="person__role">Course Instructor</div>
+            <h3 class="person__name">Dr. Mohamed I. AlHajri</h3>
+            <p class="person__body">
+              Department of Computer Science and Engineering, American University of Sharjah.
+            </p>
+            <div class="person__contact">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+                <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a>
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>
+                Office ESB-2066 · Office hours Sat 12:00–13:15
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="person">
+          <img class="person__photo" src="assets/img/dara-varam.jpg" alt="Dara Varam" loading="lazy" width="92" height="92">
+          <div>
+            <div class="person__role">Teaching Assistant</div>
+            <h3 class="person__name">Dara Varam</h3>
+            <p class="person__body">
+              Wrote the course notes these pages are built from, and built this site.
+            </p>
+            <div class="person__contact">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Notes author &amp; site maintainer
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.6rem;text-align:center">
+      <a class="btn btn--ghost" href="about.html">More about the course and its authors</a>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="chapters/01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/widgets/index.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

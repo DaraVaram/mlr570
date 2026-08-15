@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — MLR 570 Advanced Machine Learning</title>
+<meta name="description" content="Who teaches MLR 570, who wrote the notes, how the site is built, and how to report a mistake.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+<link rel="stylesheet" href="assets/css/components.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="index.html">Home</a>
+      <a class="nav__link" href="notes.html">Notes</a>
+      <a class="nav__link" href="syllabus.html">Syllabus</a>
+      <a class="nav__link" href="about.html" aria-current="page">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="page page--narrow">
+
+  <div class="chapter-head">
+    <div class="chapter-head__crumb"><a href="index.html">Home</a> › About</div>
+    <h1>About this site</h1>
+    <p class="chapter-head__lede">
+      Who is behind MLR 570, why these notes exist in this form, and how to tell us when something is wrong.
+    </p>
+  </div>
+
+  <h2 id="people">The people</h2>
+
+  <div class="card" style="margin-bottom:1.2rem">
+    <div class="person">
+      <img class="person__photo" src="assets/img/mohamed-alhajri.jpg" alt="Dr. Mohamed I. AlHajri" width="92" height="92">
+      <div>
+        <div class="person__role">Course Instructor</div>
+        <h3 class="person__name">Dr. Mohamed I. AlHajri</h3>
+        <p class="person__body">
+          Department of Computer Science and Engineering, American University of Sharjah. Dr. AlHajri
+          designed and teaches MLR 570.
+        </p>
+        <div class="person__contact">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+            <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a>
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+            Office ESB-2066
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>
+            06-515-4987
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Office hours: Saturday 12:00 – 13:15
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="person">
+      <img class="person__photo" src="assets/img/dara-varam.jpg" alt="Dara Varam" width="92" height="92">
+      <div>
+        <div class="person__role">Teaching Assistant</div>
+        <h3 class="person__name">Dara Varam</h3>
+        <p class="person__body">
+          Teaching assistant for MLR 570. Wrote the lecture notes this site is built from, and built the site
+          and its interactive figures.
+        </p>
+        <div class="person__contact">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Notes author &amp; site maintainer
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="why">Why the notes look like this</h2>
+  <p>
+    The original notes are LaTeX, and they are good LaTeX — careful definitions, worked examples with every
+    step shown, Python snippets that actually run. What a PDF cannot do is let you <em>move</em> anything.
+    A determinant stays a number in a box. An eigenvector stays an arrow in a fixed picture.
+  </p>
+  <p>
+    So this site keeps the text as it was and rebuilds the figures as things you can grab. The goal is not
+    decoration: it is that you should be able to form a guess, act on it, and be corrected within a second or
+    two. That loop is where intuition comes from, and it is the one thing a static document cannot offer.
+  </p>
+
+  <div class="callout callout--intuition">
+    <div class="callout__title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+      The one habit worth forming
+    </div>
+    <p style="margin-bottom:0">
+      Before you drag anything in a playground, say out loud what you expect to happen. If you are right, you
+      understood it. If you are wrong, you have just found the exact gap worth closing — which is far more
+      useful than reading the paragraph again.
+    </p>
+  </div>
+
+  <h2 id="verification">On correctness</h2>
+  <p>
+    Every worked example reproduced on this site has been recomputed independently and checked against the
+    original. Where the notes contained a genuine error, the page shows the corrected mathematics and records
+    what changed in the chapter's errata section — openly, rather than quietly.
+  </p>
+  <p>
+    The interactive figures compute their results numerically at run time rather than displaying pre-rendered
+    answers, so what you see is what the mathematics actually does, including at the awkward edge cases.
+  </p>
+
+  <h2 id="built">How it is built</h2>
+  <p>
+    Plain HTML, CSS and JavaScript — no framework and no build step. Mathematics is typeset with
+    <a href="https://katex.org" rel="noopener">KaTeX</a>. Every interactive figure is a small self-contained
+    module drawing to a <code>&lt;canvas&gt;</code>, sharing one plotting and interaction library. The
+    numerical routines behind them (SVD, eigendecomposition, row reduction) are implemented from scratch so
+    the pages stay dependency-free.
+  </p>
+  <p>
+    The site is static and hosted on GitHub Pages, which means it loads fast, works offline once cached, and
+    will keep working long after any particular JavaScript framework has gone out of fashion.
+  </p>
+
+  <h2 id="feedback">Found a mistake?</h2>
+  <p>
+    Please report it. A typo in an exponent can cost a student an hour, and there is no reason for anyone
+    else to lose that hour too. Email
+    <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a>, or raise it in class or in office hours.
+  </p>
+  <p>
+    That includes the interactive figures: if a playground behaves oddly, gives a result you cannot reproduce
+    by hand, or is confusing rather than clarifying, that is a bug worth hearing about.
+  </p>
+
+  <h2 id="licence">Use and attribution</h2>
+  <p>
+    These notes were written for students of MLR 570 at the American University of Sharjah. You are welcome
+    to read, share and learn from them. If you reuse the material elsewhere, please credit the course and its
+    authors.
+  </p>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="chapters/01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
+</body>
+</html>

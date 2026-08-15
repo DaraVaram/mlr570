@@ -1,0 +1,2741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1 · Mathematical Background — MLR 570</title>
+<meta name="description" content="Linear algebra, probability and statistics, and calculus and optimisation for MLR 570 — with interactive figures for every major idea.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="../index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="../index.html">Home</a>
+      <a class="nav__link" href="../notes.html" aria-current="page">Notes</a>
+      <a class="nav__link" href="../syllabus.html">Syllabus</a>
+      <a class="nav__link" href="../about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar__mobile-toggle" id="sidebar-toggle" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      On this page
+    </button>
+    <div class="sidebar__body">
+      <div class="sidebar__group">
+        <div class="sidebar__title">1.1 · Linear Algebra</div>
+        <ul class="toc">
+          <li><a href="#addition">Vector &amp; matrix addition</a></li>
+          <li><a href="#real-world">Where matrices come from</a></li>
+          <li><a href="#multiplication">Matrix multiplication</a></li>
+          <li><a href="#linear-systems">Solving linear systems</a></li>
+          <li><a href="#transpose">Transpose</a></li>
+          <li><a href="#inverse">Matrix inverse</a></li>
+          <li><a href="#rank">Rank</a></li>
+          <li><a href="#null-space">Null space</a></li>
+          <li><a href="#matrix-types">Common types of matrices</a></li>
+          <li><a href="#norms">Vector &amp; matrix norms</a></li>
+          <li><a href="#eigen">Eigenvalues &amp; eigenvectors</a></li>
+          <li><a href="#svd">Singular value decomposition</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">1.2 · Probability</div>
+        <ul class="toc">
+          <li><a href="#sample-space">Sample space &amp; random variables</a></li>
+          <li><a href="#discrete-rv">Discrete random variables</a></li>
+          <li><a href="#moments">Moments</a></li>
+          <li><a href="#joint">Joint, marginal &amp; conditional</a></li>
+          <li><a href="#continuous-rv">Continuous random variables</a></li>
+          <li><a href="#bayes">Total probability &amp; Bayes</a></li>
+          <li><a href="#independence">Independence</a></li>
+          <li><a href="#sample-stats">Sample mean &amp; variance</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">1.3 · Calculus</div>
+        <ul class="toc">
+          <li><a href="#derivatives">Limits &amp; derivatives</a></li>
+          <li><a href="#gradients">Partial derivatives &amp; gradients</a></li>
+          <li><a href="#matrix-derivatives">Vector &amp; matrix derivatives</a></li>
+          <li><a href="#chain-rule">The chain rule</a></li>
+          <li><a href="#matrix-calculus">Matrix calculus identities</a></li>
+          <li><a href="#convexity">Convexity &amp; optimisation</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">1.4 · Further topics</div>
+        <ul class="toc">
+          <li><a href="#inner-products">Inner products &amp; orthonormality</a></li>
+          <li><a href="#psd">Positive (semi)definite matrices</a></li>
+          <li><a href="#quadratic-forms">Quadratic forms</a></li>
+          <li><a href="#projections">Orthogonal projections</a></li>
+          <li><a href="#lln-clt">LLN &amp; CLT</a></li>
+          <li><a href="#complexity">Algorithmic complexity</a></li>
+          <li><a href="#reading">Further reading</a></li>
+          <li><a href="#errata">Errata &amp; verification</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ CONTENT ============ -->
+  <main class="content" id="main">
+
+    <div class="chapter-head">
+      <div class="chapter-head__crumb">
+        <a href="../index.html">Home</a> › <a href="../notes.html">Notes</a> › Chapter 1
+      </div>
+      <h1>Mathematical Background</h1>
+      <p class="chapter-head__lede">
+        A guide to the core mathematics assumed by MLR&nbsp;570. Everything here is prerequisite material —
+        but gathered in one place, with the reason each piece matters for machine learning attached, and with
+        figures you can take apart.
+      </p>
+      <div class="chapter-head__stats">
+        <span class="pill pill--live">Verified</span>
+        <span class="pill pill--play">26 interactive figures</span>
+        <span class="pill pill--brand">4 parts</span>
+      </div>
+    </div>
+
+    <div class="callout callout--tip">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5V5a1.5 1.5 0 0 1 3 0v6"/><path d="M12 11V4a1.5 1.5 0 0 1 3 0v7"/><path d="M15 11V6a1.5 1.5 0 0 1 3 0v9a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0v1.5"/></svg>
+        Anything in a bordered panel is meant to be touched
+      </div>
+      <p style="margin-bottom:0">
+        Drag the arrows, edit the matrix entries, push the sliders past where they ought to go. Before you
+        move anything, try to predict what will happen — being wrong is the fastest route to understanding.
+        The figures compute everything live, so the numbers you see are what the mathematics actually does.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="linear-algebra">Part 1.1 · Linear Algebra</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      This part introduces the essential operations and properties of vectors and matrices. Each section
+      gives symbolic definitions, intuitive explanations, additional properties, numerical examples, and
+      short Python snippets you can run directly.
+    </p>
+
+    <!-- ---------- Addition ---------- -->
+    <h3 id="addition">Vector and matrix addition</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>Let \(\mathbf{a}, \mathbf{b} \in \mathbb{R}^n\) be vectors. Their sum is defined element-wise:</p>
+      \[ \mathbf{a} + \mathbf{b} = [a_1 + b_1,\ a_2 + b_2,\ \dots,\ a_n + b_n]. \]
+      <p>Similarly, for matrices \(\mathbf{A}, \mathbf{B} \in \mathbb{R}^{m \times n}\):</p>
+      \[ \mathbf{A} + \mathbf{B} = [a_{ij} + b_{ij}] \quad \text{for all } i = 1, \dots, m;\ j = 1, \dots, n. \]
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Intuition
+      </div>
+      <p style="margin-bottom:0">
+        Addition combines corresponding entries. For vectors this is adding directed line segments
+        <strong>tip-to-tail</strong> in Euclidean space: walk along \(\mathbf{a}\), then walk along
+        \(\mathbf{b}\), and the sum is where you end up.
+      </p>
+    </div>
+
+    <p><strong>Basic properties.</strong></p>
+    <ul>
+      <li>Commutative: \(\mathbf{A}+\mathbf{B} = \mathbf{B}+\mathbf{A}\).</li>
+      <li>Associative: \((\mathbf{A}+\mathbf{B})+\mathbf{C} = \mathbf{A}+(\mathbf{B}+\mathbf{C})\).</li>
+      <li>Additive identity: \(\mathbf{A} + \mathbf{0} = \mathbf{A}\), where \(\mathbf{0}\) is the zero matrix.</li>
+      <li>Additive inverse: \(\mathbf{A} + (-\mathbf{A}) = \mathbf{0}\).</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Vector addition, tip to tail</p>
+          <p class="playground__sub">Drag either arrow and watch the sum follow. Switch to subtraction to see why \(\mathbf{a}-\mathbf{b}\) points from \(\mathbf{b}\) to \(\mathbf{a}\).</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="vector-add"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · vectors
+      </div>
+      <div class="example__body">
+        \[ \mathbf{a} = [2, -1, 3], \quad \mathbf{b} = [0, 4, -2] \;\Rightarrow\;
+           \mathbf{a} + \mathbf{b} = [2 + 0,\; -1 + 4,\; 3 + (-2)] = [2, 3, 1]. \]
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · matrices
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{A} = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}, \quad
+        \mathbf{B} = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}, \quad
+        \mathbf{A} + \mathbf{B} = \begin{bmatrix} 1+5 & 2+6 \\ 3+7 & 4+8 \end{bmatrix}
+        = \begin{bmatrix} 6 & 8 \\ 10 & 12 \end{bmatrix}.
+        \]
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import numpy as np
+
+A = np.array([[1, 2], [3, 4]])
+B = np.array([[5, 6], [7, 8]])
+C = A + B
+
+a = np.array([2, -1, 3])
+b = np.array([0, 4, -2])
+c = a + b</code></pre>
+    </div>
+
+    <!-- ---------- Real world ---------- -->
+    <h3 id="real-world">Where do matrices and vectors come from?</h3>
+
+    <p>
+      Matrices and vectors are the standard representation for real-world data and operations. Before working
+      through the mechanics, it is worth grounding the symbols in things you already recognise.
+    </p>
+
+    <h4>1 · One-dimensional data (vectors)</h4>
+    <p>A real-valued vector \(\mathbf{x} = [x_1,\ldots,x_n]^T\) naturally represents ordered measurements:</p>
+    <ul>
+      <li><strong>Time series:</strong> daily temperatures, stock prices, sensor readings.</li>
+      <li><strong>Text features:</strong> bag-of-words counts (non-negative integers).</li>
+      <li><strong>Audio snippets:</strong> amplitude samples over time.</li>
+    </ul>
+    <p>
+      For instance, a five-day temperature record is
+      \(\mathbf{t} = [36.2,\, 35.8,\, 37.1,\, 36.5,\, 35.9]^T\).
+    </p>
+
+    <h4>2 · Images as matrices (and tensors)</h4>
+    <p>
+      A <strong>grayscale image</strong> of height \(m\) and width \(n\) is a matrix
+      \(\mathbf{I} \in \mathbb{R}^{m\times n}\), where \(\mathbf{I}_{ij}\) holds the pixel intensity at row
+      \(i\), column \(j\). Intensity runs from 0 (fully black) to 255 (fully white). A
+      \(28 \times 28\) MNIST digit is therefore a matrix \(\mathbf{I} \in \mathbb{R}^{28 \times 28}\), and
+      nothing at all is lost in that translation.
+    </p>
+    \[
+    \mathbf{I} = \begin{bmatrix}
+      0 & 128 & 255 \\
+      64 & 192 & 32 \\
+      255 & 16 & 80
+    \end{bmatrix}
+    \]
+    <p>
+      Basic operations model familiar edits: scalar multiplication changes brightness, subtraction from 255
+      inverts, and convolution with a small kernel blurs or detects edges.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">An image <em>is</em> a matrix</p>
+          <p class="playground__sub">Draw a digit with your mouse. Every stroke changes a number on the right — brightness, inversion and blurring are all just arithmetic on that grid.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="pixel-matrix"></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>I = np.array([[0, 128, 255],
+              [64, 192,  32],
+              [255,  16,  80]], dtype=float)
+
+# Brighten by 10% (clip to the valid range)
+I_bright = np.clip(1.1 * I, 0, 255)
+
+# 2D smoothing via a 3x3 averaging kernel
+from scipy.signal import convolve2d
+K = (1/9) * np.ones((3, 3))
+I_smooth = convolve2d(I, K, mode='same', boundary='symm')</code></pre>
+    </div>
+
+    <h4>3 · Data tables as matrices</h4>
+    <p>
+      A dataset with \(m\) examples and \(n\) features is an \(m \times n\) matrix \(\mathbf{X}\), where row
+      \(i\) is example \(i\) and column \(j\) is feature \(j\). Labels live in a vector
+      \(\mathbf{y} \in \mathbb{R}^m\) for regression, or a categorical vector for classification.
+    </p>
+    \[
+    \mathbf{X} = \begin{bmatrix} 170 & 70 \\ 165 & 60 \\ 180 & 90 \end{bmatrix}, \quad
+    \mathbf{y} = \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix}
+    \]
+    <p>
+      Three patients (\(m=3\)), two features (\(n=2\)). Each row is a vector in \(\mathbb{R}^2\); columns can
+      be standardised feature-wise.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>X = np.array([[170, 70],
+              [165, 60],
+              [180, 90]], dtype=float)
+
+# Column-wise standardisation
+X_std = (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)</code></pre>
+    </div>
+
+    <h4>4 · Systems of linear equations</h4>
+    <p>Many real problems reduce to solving \(\mathbf{A}\mathbf{x}=\mathbf{b}\):</p>
+    <ul>
+      <li><strong>Circuits (Kirchhoff's laws):</strong> solve for node voltages and currents.</li>
+      <li><strong>Structural engineering:</strong> equilibrium of forces.</li>
+      <li><strong>Economics:</strong> Leontief input–output models.</li>
+      <li><strong>Least squares / linear regression:</strong> \(\min_\mathbf{x} \|\mathbf{A}\mathbf{x}-\mathbf{b}\|_2^2\).</li>
+    </ul>
+    \[
+    \begin{cases} 2x + y = 5 \\ -x + 3y = 1 \end{cases}
+    \quad \Leftrightarrow \quad
+    \mathbf{A}=\begin{bmatrix}2 & 1\\ -1 & 3\end{bmatrix},\ \mathbf{b}=\begin{bmatrix}5\\1\end{bmatrix}
+    \quad \Rightarrow \quad
+    \mathbf{x}=\mathbf{A}^{-1}\mathbf{b}=\begin{bmatrix}2 \\ 1\end{bmatrix}.
+    \]
+
+    <!-- ---------- Multiplication ---------- -->
+    <h3 id="multiplication">Matrix multiplication</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        Let \(\mathbf{A} \in \mathbb{R}^{m \times n}\) and \(\mathbf{B} \in \mathbb{R}^{n \times p}\).
+        The product \(\mathbf{C} = \mathbf{AB} \in \mathbb{R}^{m \times p}\) is defined by
+      </p>
+      \[ c_{ij} = \sum_{k=1}^n a_{ik} b_{kj}. \]
+      <p style="margin-bottom:0">
+        This is defined <em>only</em> when the number of columns of \(\mathbf{A}\) equals the number of rows
+        of \(\mathbf{B}\).
+      </p>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Intuition
+      </div>
+      <p style="margin-bottom:0">
+        Each entry of \(\mathbf{C}\) combines one row of \(\mathbf{A}\) with one column of \(\mathbf{B}\).
+        Geometrically, matrix multiplication <strong>composes linear transformations</strong>: applying
+        \(\mathbf{AB}\) means first apply \(\mathbf{B}\), then \(\mathbf{A}\). That right-to-left reading is
+        the reason the order matters.
+      </p>
+    </div>
+
+    <p><strong>Key properties.</strong></p>
+    <ul>
+      <li>Associative: \((\mathbf{AB})\mathbf{C} = \mathbf{A}(\mathbf{BC})\) when the dimensions match.</li>
+      <li>Distributive: \(\mathbf{A}(\mathbf{B}+\mathbf{C}) = \mathbf{AB} + \mathbf{AC}\) and \((\mathbf{A}+\mathbf{B})\mathbf{C} = \mathbf{AC} + \mathbf{BC}\).</li>
+      <li>Generally <em>not</em> commutative: \(\mathbf{AB} \neq \mathbf{BA}\) in general.</li>
+      <li>Identity: for \(\mathbf{A} \in \mathbb{R}^{m \times n}\), \(\ \mathbf{I}_m\mathbf{A} = \mathbf{A}\) and \(\mathbf{A}\mathbf{I}_n = \mathbf{A}\).</li>
+    </ul>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        On "when the dimensions match"
+      </div>
+      <p style="margin-bottom:0">
+        For \(\mathbf{AB}\) to exist, the number of columns of \(\mathbf{A}\) must equal the number of rows
+        of \(\mathbf{B}\): if \(\mathbf{A} \in \mathbb{R}^{m \times n}\), then \(\mathbf{B}\) must be
+        \(n \times p\). The identity property needs the same care — for
+        \(\mathbf{A} \in \mathbb{R}^{m \times n}\), the identity that works on the <em>left</em> is
+        \(\mathbf{I}_m \in \mathbb{R}^{m\times m}\), and the one that works on the <em>right</em> is
+        \(\mathbf{I}_n \in \mathbb{R}^{n \times n}\). Only when \(\mathbf{A}\) is square are they the same
+        matrix.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Where does each entry come from?</p>
+          <p class="playground__sub">Click any entry of \(\mathbf{C}\) to highlight the exact row and column that produced it, with the sum written out term by term. All entries are editable.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="matmul"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example 1
+      </div>
+      <div class="example__body">
+        <p>With \(\mathbf{A} = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}\) and \(\mathbf{B} = \begin{bmatrix} 2 & 0 \\ 1 & 2 \end{bmatrix}\):</p>
+        \[
+        \mathbf{AB} =
+        \begin{bmatrix}
+        1 \cdot 2 + 2 \cdot 1 & 1 \cdot 0 + 2 \cdot 2 \\
+        3 \cdot 2 + 4 \cdot 1 & 3 \cdot 0 + 4 \cdot 2
+        \end{bmatrix}
+        =
+        \begin{bmatrix} 2 + 2 & 0 + 4 \\ 6 + 4 & 0 + 8 \end{bmatrix}
+        =
+        \begin{bmatrix} 4 & 4 \\ 10 & 8 \end{bmatrix}
+        \]
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example 2 · non-square
+      </div>
+      <div class="example__body">
+        <p>With \(\mathbf{A} = \begin{bmatrix} 1 & 0 & -1 \\ 2 & 3 & 1 \end{bmatrix}\) (2×3) and \(\mathbf{B} = \begin{bmatrix} 1 & 2 \\ 0 & -1 \\ 4 & 0 \end{bmatrix}\) (3×2):</p>
+        \[
+        \mathbf{AB} =
+        \begin{bmatrix}
+        1 \cdot 1 + 0 \cdot 0 + (-1) \cdot 4 & 1 \cdot 2 + 0 \cdot (-1) + (-1) \cdot 0 \\
+        2 \cdot 1 + 3 \cdot 0 + 1 \cdot 4 & 2 \cdot 2 + 3 \cdot (-1) + 1 \cdot 0
+        \end{bmatrix}
+        =
+        \begin{bmatrix} -3 & 2 \\ 6 & 1 \end{bmatrix}
+        \]
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>A = np.array([[1, 2], [3, 4]])
+B = np.array([[2, 0], [1, 2]])
+C = A @ B          # or np.dot(A, B)
+
+A2 = np.array([[1, 0, -1], [2, 3, 1]])
+B2 = np.array([[1, 2], [0, -1], [4, 0]])
+C2 = A2 @ B2</code></pre>
+    </div>
+
+    <!-- ---------- Linear systems ---------- -->
+    <h3 id="linear-systems">Solving linear systems</h3>
+
+    <p>
+      A <strong>linear system</strong> is a collection of linear equations in the same variables. A system of
+      \(m\) equations in \(n\) variables is written
+    </p>
+    \[ \mathbf{A}\mathbf{x} = \mathbf{b}, \]
+    <p>
+      where \(\mathbf{A} \in \mathbb{R}^{m \times n}\) is the <strong>coefficient matrix</strong>,
+      \(\mathbf{x} \in \mathbb{R}^n\) the <strong>variable vector</strong>, and
+      \(\mathbf{b} \in \mathbb{R}^m\) the <strong>right-hand side</strong>. Exactly three outcomes are
+      possible: a unique solution, no solution, or infinitely many. We find out which by
+      <strong>Gaussian elimination</strong>, reducing to row echelon form (REF) or reduced row echelon form
+      (RREF).
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21 21 3M3 8l5 5M16 11l5 5"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Three outcomes, one picture</p>
+          <p class="playground__sub">Each equation is a line. Drag one onto the other, or make them parallel, and watch the RREF and the classification change together.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="linsys"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example 1 · unique solution
+      </div>
+      <div class="example__body">
+        \[
+        \begin{cases} x + y = 3 \\ 2x - y = 0 \end{cases}
+        \quad \Rightarrow \quad
+        \left[\begin{array}{cc|c} 1 & 1 & 3 \\ 2 & -1 & 0 \end{array}\right]
+        \]
+        \[
+        \begin{aligned}
+        R_2 \leftarrow R_2 - 2R_1 &\Rightarrow \left[\begin{array}{cc|c} 1 & 1 & 3 \\ 0 & -3 & -6 \end{array}\right] \\
+        R_2 \leftarrow -\tfrac{1}{3} R_2 &\Rightarrow \left[\begin{array}{cc|c} 1 & 1 & 3 \\ 0 & 1 & 2 \end{array}\right] \\
+        R_1 \leftarrow R_1 - R_2 &\Rightarrow \left[\begin{array}{cc|c} 1 & 0 & 1 \\ 0 & 1 & 2 \end{array}\right]
+        \end{aligned}
+        \]
+        <p><strong>Solution:</strong> \(x = 1\), \(y = 2\).</p>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example 2 · no solution
+      </div>
+      <div class="example__body">
+        \[
+        \begin{cases} x + y = 2 \\ 2x + 2y = 5 \end{cases}
+        \quad \Rightarrow \quad
+        \left[\begin{array}{cc|c} 1 & 1 & 2 \\ 2 & 2 & 5 \end{array}\right]
+        \xrightarrow{R_2 \leftarrow R_2 - 2R_1}
+        \left[\begin{array}{cc|c} 1 & 1 & 2 \\ 0 & 0 & 1 \end{array}\right]
+        \]
+        <p>
+          The second row now reads \(0 = 1\), a contradiction. The system is
+          <strong>inconsistent</strong> — no solution.
+        </p>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example 3 · infinitely many solutions
+      </div>
+      <div class="example__body">
+        \[
+        \begin{cases} x + 2y = 4 \\ 2x + 4y = 8 \end{cases}
+        \quad \Rightarrow \quad
+        \left[\begin{array}{cc|c} 1 & 2 & 4 \\ 2 & 4 & 8 \end{array}\right]
+        \xrightarrow{R_2 \leftarrow R_2 - 2R_1}
+        \left[\begin{array}{cc|c} 1 & 2 & 4 \\ 0 & 0 & 0 \end{array}\right]
+        \]
+        <p>The second equation was redundant. From the first row, \(x = 4 - 2y\), so with \(y = t\) free:</p>
+        \[ \mathbf{x} = \begin{bmatrix} 4 - 2t \\ t \end{bmatrix},\quad t \in \mathbb{R} \]
+        <p>Infinitely many solutions, forming a line in \(\mathbb{R}^2\).</p>
+      </div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Row reduction, one step at a time</p>
+          <p class="playground__sub">Step through Gaussian elimination on any augmented matrix you type in, and watch the pivots emerge.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="rref-stepper"></div>
+    </div>
+
+    <p><strong>Geometric interpretation.</strong></p>
+    <ul>
+      <li><strong>Unique solution:</strong> lines (or planes) intersect at a single point.</li>
+      <li><strong>No solution:</strong> lines are parallel — planes never all meet.</li>
+      <li><strong>Infinitely many:</strong> lines coincide, or planes intersect along a line or plane.</li>
+    </ul>
+
+    <!-- ---------- Transpose ---------- -->
+    <h3 id="transpose">Transpose</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        The transpose of \(\mathbf{A} \in \mathbb{R}^{m \times n}\), written \(\mathbf{A}^T\), swaps rows and
+        columns:
+      </p>
+      \[ (\mathbf{A}^T)_{ij} = \mathbf{A}_{ji}. \]
+      <p style="margin-bottom:0">Geometrically, it reflects the matrix across its main diagonal.</p>
+    </div>
+
+    <p><strong>Properties.</strong></p>
+    <ul>
+      <li>\((\mathbf{A}^T)^T = \mathbf{A}\).</li>
+      <li>\((\mathbf{A}+\mathbf{B})^T = \mathbf{A}^T + \mathbf{B}^T\).</li>
+      <li>\((\mathbf{AB})^T = \mathbf{B}^T \mathbf{A}^T\) — note the reversal of order.</li>
+      <li>If \(\mathbf{A}\) is square and \(\mathbf{A}^T = \mathbf{A}\), then \(\mathbf{A}\) is <strong>symmetric</strong>.</li>
+    </ul>
+
+    \[
+    \mathbf{A} = \begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{bmatrix}, \quad
+    \mathbf{A}^T = \begin{bmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{bmatrix}, \qquad
+    \mathbf{S} = \begin{bmatrix} 2 & 1 \\ 1 & 3 \end{bmatrix} \text{ satisfies } \mathbf{S}^T = \mathbf{S}.
+    \]
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · verifying \((\mathbf{AB})^T = \mathbf{B}^T \mathbf{A}^T\)
+      </div>
+      <div class="example__body">
+        <p>Let \(\mathbf{A} = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}\) and \(\mathbf{B} = \begin{bmatrix} 0 & 5 \\ 6 & 7 \end{bmatrix}\). First compute the product:</p>
+        \[
+        \mathbf{AB} =
+        \begin{bmatrix}
+        1 \cdot 0 + 2 \cdot 6 & 1 \cdot 5 + 2 \cdot 7 \\
+        3 \cdot 0 + 4 \cdot 6 & 3 \cdot 5 + 4 \cdot 7
+        \end{bmatrix}
+        = \begin{bmatrix} 12 & 19 \\ 24 & 43 \end{bmatrix}
+        \quad\Rightarrow\quad
+        (\mathbf{AB})^T = \begin{bmatrix} 12 & 24 \\ 19 & 43 \end{bmatrix}
+        \]
+        <p>Now the other side, with \(\mathbf{B}^T = \begin{bmatrix} 0 & 6 \\ 5 & 7 \end{bmatrix}\) and \(\mathbf{A}^T = \begin{bmatrix} 1 & 3 \\ 2 & 4 \end{bmatrix}\):</p>
+        \[
+        \mathbf{B}^T \mathbf{A}^T =
+        \begin{bmatrix}
+        0 \cdot 1 + 6 \cdot 2 & 0 \cdot 3 + 6 \cdot 4 \\
+        5 \cdot 1 + 7 \cdot 2 & 5 \cdot 3 + 7 \cdot 4
+        \end{bmatrix}
+        = \begin{bmatrix} 12 & 24 \\ 19 & 43 \end{bmatrix} \quad\checkmark
+        \]
+        <p style="margin-bottom:1em">
+          Had we written \(\mathbf{A}^T\mathbf{B}^T\) instead we would have got
+          \(\begin{bmatrix} 18 & 26 \\ 20 & 38\end{bmatrix}\) — which is why the order reversal is not
+          optional.
+        </p>
+      </div>
+    </div>
+
+    <!-- ---------- Inverse ---------- -->
+    <h3 id="inverse">Matrix inverse</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        A square matrix \(\mathbf{A} \in \mathbb{R}^{n \times n}\) is <strong>invertible</strong> if there
+        exists \(\mathbf{A}^{-1}\) with
+      </p>
+      \[ \mathbf{A}\mathbf{A}^{-1} = \mathbf{A}^{-1}\mathbf{A} = \mathbf{I}_n. \]
+      <p style="margin-bottom:0">
+        <strong>Condition:</strong> \(\mathbf{A}\) is invertible if and only if \(\det(\mathbf{A}) \neq 0\),
+        equivalently \(\operatorname{rank}(\mathbf{A}) = n\).
+      </p>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        The determinant, briefly
+      </div>
+      <p style="margin-bottom:.6em">
+        For a \(2\times2\) matrix \(\mathbf{A} = \begin{bmatrix} a & b \\ c & d\end{bmatrix}\), the
+        determinant is \(\det(\mathbf{A}) = ad - bc\). Geometrically it is the
+        <strong>signed area scale factor</strong> of the transformation: the unit square of area 1 is mapped
+        to a parallelogram of area \(|\det(\mathbf{A})|\), and a negative sign means orientation was flipped.
+      </p>
+      <p style="margin-bottom:0">
+        A determinant of zero means area was crushed to nothing — information was destroyed, so the map
+        cannot be undone. That is exactly why \(\det(\mathbf{A}) \neq 0\) is the invertibility condition.
+        The playground below lets you watch this happen.
+      </p>
+    </div>
+
+    <p><strong>Further facts.</strong></p>
+    <ul>
+      <li>\((\mathbf{A}^{-1})^{-1} = \mathbf{A}\).</li>
+      <li>\((\mathbf{AB})^{-1} = \mathbf{B}^{-1}\mathbf{A}^{-1}\) — the order reverses, as with the transpose.</li>
+      <li>\((\mathbf{A}^T)^{-1} = (\mathbf{A}^{-1})^T\).</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3H3v18h18z"/><path d="m8 16 8-8M8 8h8v8"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The linear transformation sandbox</p>
+          <p class="playground__sub">The two arrows you drag <em>are</em> the columns of \(\mathbf{A}\). Watch the determinant, rank, eigenvectors and invertibility all move together — and collapse the arrows onto one line to make the matrix singular.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="transform2d"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · an invertible matrix
+      </div>
+      <div class="example__body">
+        <p>Take \(\mathbf{A} = \begin{bmatrix} 4 & 7 \\ 2 & 6 \end{bmatrix}\).</p>
+        <p><strong>Step 1 — determinant:</strong> \(\det(\mathbf{A}) = (4)(6) - (7)(2) = 24 - 14 = 10 \neq 0\), so \(\mathbf{A}\) is invertible.</p>
+        <p><strong>Step 2 — the \(2\times2\) formula:</strong></p>
+        \[
+        \mathbf{A}^{-1} = \frac{1}{\det(\mathbf{A})} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}
+        = \frac{1}{10} \begin{bmatrix} 6 & -7 \\ -2 & 4 \end{bmatrix}
+        \]
+        <p><strong>Step 3 — verify:</strong></p>
+        \[
+        \mathbf{A}\mathbf{A}^{-1} = \frac{1}{10}
+        \begin{bmatrix} 24 - 14 & -28 + 28 \\ 12 - 12 & -14 + 24 \end{bmatrix}
+        = \frac{1}{10}\begin{bmatrix} 10 & 0 \\ 0 & 10 \end{bmatrix}
+        = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = \mathbf{I}_2 \quad\checkmark
+        \]
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · a singular matrix
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{A} = \begin{bmatrix} 2 & 4 \\ 1 & 2 \end{bmatrix}, \quad
+        \det(\mathbf{A}) = (2)(2) - (4)(1) = 0 \;\Rightarrow\; \text{not invertible.}
+        \]
+        <p style="margin-bottom:1em">
+          The second row is exactly half the first, so the two rows carry the same information and the
+          matrix collapses the plane onto a line.
+        </p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>A = np.array([[4, 7], [2, 6]])
+A_inv = np.linalg.inv(A)
+
+A_sing = np.array([[2, 4], [1, 2]])
+# np.linalg.inv(A_sing) -> LinAlgError (singular matrix)</code></pre>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        What about rectangular matrices?
+      </div>
+      <p style="margin-bottom:0">
+        Only <em>square</em> matrices have a standard inverse, and even then only when they are full rank
+        (see <a href="#rank">rank</a>). Rectangular matrices still have useful structure: we can compute their
+        rank, and define a <strong>pseudoinverse</strong> (the Moore–Penrose inverse) that gives the
+        least-squares solution when an exact one does not exist.
+      </p>
+    </div>
+
+    <!-- ---------- Rank ---------- -->
+    <h3 id="rank">Rank of a matrix</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        The rank of \(\mathbf{A}\), written \(\operatorname{rank}(\mathbf{A})\), is the dimension of its
+        column space — equivalently, of its row space. It counts the number of linearly independent columns
+        (or rows), which are always the same number.
+      </p>
+      <p style="margin-bottom:0">
+        <strong>Rank–nullity theorem.</strong> For \(\mathbf{A} \in \mathbb{R}^{m \times n}\):
+        \[ \operatorname{rank}(\mathbf{A}) + \operatorname{nullity}(\mathbf{A}) = n. \]
+      </p>
+    </div>
+
+    <p><strong>Full rank.</strong> The matrix</p>
+    \[
+    \mathbf{B} = \begin{bmatrix} 1 & 0 & 2 \\ 0 & 1 & 3 \\ 4 & 5 & 6 \end{bmatrix}
+    \quad \Rightarrow \quad \operatorname{rank}(\mathbf{B}) = 3,
+    \]
+    <p>since \(\det(\mathbf{B}) = -17 \neq 0\).</p>
+
+    <p><strong>Low rank.</strong> By contrast,</p>
+    \[
+    \mathbf{L} = \begin{bmatrix}
+    1 & 0 & 2 & 3 & 4 \\
+    0.5 & 0 & 1 & 1.5 & 2 \\
+    2 & 0 & 4 & 6 & 8 \\
+    1 & 0 & 2 & 3 & 4 \\
+    2 & 0 & 4 & 6 & 8
+    \end{bmatrix}
+    \quad \Rightarrow \quad \operatorname{rank}(\mathbf{L}) = 1.
+    \]
+    <p>
+      Every row is a scalar multiple of the first: \(R_2 = \tfrac{1}{2}R_1\), \(R_3 = 2R_1\), \(R_4 = R_1\),
+      \(R_5 = 2R_1\). Five rows, but only one independent direction.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Rank is how many dimensions survive</p>
+          <p class="playground__sub">Drag to orbit. Set every row equal and watch a solid cube get crushed onto a single line — that collapse is what rank 1 means, and why the matrix has no inverse.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="rank3d"></div>
+    </div>
+
+    <h4>Low rank: curse or blessing?</h4>
+
+    <p>
+      A low-rank square matrix is <strong>singular</strong>. Its determinant is zero, it has no inverse, and
+      \(\mathbf{A}\mathbf{x} = \mathbf{b}\) may have no solution or infinitely many. In theory and in
+      practice, that is a problem.
+    </p>
+    <p>
+      But being low-rank also means the matrix can be described with far fewer numbers. Suppose
+      \(\mathbf{W} \in \mathbb{R}^{1000 \times 1000}\) has rank 5. Then all 1000 rows live in a
+      5-dimensional subspace, and there exist \(\mathbf{U} \in \mathbb{R}^{1000 \times 5}\) and
+      \(\mathbf{V} \in \mathbb{R}^{5 \times 1000}\) with \(\mathbf{W} = \mathbf{U}\mathbf{V}\).
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4 style="margin-top:0;color:var(--ok)">Why this is good</h4>
+        <ol style="margin-bottom:0;font-size:.93rem">
+          <li><strong>Storage.</strong> Instead of \(10^6\) parameters, store \(1000\times5 + 5\times1000 = 10{,}000\) — a hundredfold compression.</li>
+          <li><strong>Speed.</strong> \(\mathbf{W}\mathbf{x}\) becomes \(\mathbf{U}(\mathbf{V}\mathbf{x})\), two small products instead of one large one.</li>
+          <li><strong>Noise reduction.</strong> In images and sensor signals the high-rank components often carry the noise. Truncating keeps the structure and drops the rest.</li>
+          <li><strong>Generalisation.</strong> Reducing the rank of weight matrices acts as an implicit regulariser, limiting capacity and discouraging overfitting.</li>
+          <li><strong>Latent structure.</strong> Low-rank decompositions such as SVD and PCA are how hidden low-dimensional structure gets discovered in the first place.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0;color:var(--warn)">Why it can be bad</h4>
+        <ol style="margin-bottom:0;font-size:.93rem">
+          <li><strong>Lost expressivity.</strong> A low-rank map cannot represent complex relationships; constraining rank constrains capacity, which can underfit rich data.</li>
+          <li><strong>Information loss.</strong> Discarding small singular components can discard subtle but real patterns, especially in noisy or fine-grained data.</li>
+          <li><strong>Harder optimisation.</strong> Rank constraints make the parameter space non-convex and awkward for gradient descent.</li>
+          <li><strong>Over-simplification.</strong> Blindly imposing low rank on transformer or CNN weights degrades performance when higher-rank features carry task-specific information.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Key insight
+      </div>
+      <p style="margin-bottom:0">
+        Low-rankness means <strong>redundancy</strong>. Exploiting that redundancy buys efficient storage,
+        faster inference, and often better generalisation under resource constraints — which is why it turns
+        up in image compression, low-rank approximation of transformer weights, and model pruning for edge
+        devices.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>A = np.array([[1, 2, 3], [2, 4, 6], [3, 6, 9]])
+np.linalg.matrix_rank(A)     # 1  (every row is a multiple of the first)
+
+B = np.array([[1, 0, 2], [0, 1, 3], [4, 5, 6]])
+np.linalg.matrix_rank(B)     # 3  (full rank)</code></pre>
+    </div>
+
+    <!-- ---------- Null space ---------- -->
+    <h3 id="null-space">Null space</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>The null space (or kernel) of \(\mathbf{A} \in \mathbb{R}^{m \times n}\) is</p>
+      \[ \operatorname{Null}(\mathbf{A}) = \{\, \mathbf{x} \in \mathbb{R}^n : \mathbf{A}\mathbf{x} = \mathbf{0} \,\}. \]
+      <p style="margin-bottom:0">
+        Its dimension is the <strong>nullity</strong> of \(\mathbf{A}\). It contains every input that
+        \(\mathbf{A}\) sends to the zero vector, and so records exactly the linear dependencies among the
+        columns of \(\mathbf{A}\).
+      </p>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        A null space is never empty
+      </div>
+      <p style="margin-bottom:0">
+        \(\mathbf{A}\mathbf{0} = \mathbf{0}\) always holds, so \(\mathbf{0}\) belongs to every null space.
+        The right question is not whether it is empty but how <em>large</em> it is. When only the zero vector
+        is present we call the null space <strong>trivial</strong> and write \(\{\mathbf{0}\}\) — a set
+        containing exactly one element, which is not the same thing as the empty set \(\varnothing\).
+      </p>
+    </div>
+
+    <p><strong>Trivial null space.</strong></p>
+    \[ \mathbf{I}_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \;\Rightarrow\; \operatorname{Null}(\mathbf{I}_2) = \{\mathbf{0}\}, \quad \operatorname{nullity}(\mathbf{I}_2) = 0. \]
+
+    <p><strong>Non-trivial null space.</strong></p>
+    \[
+    \mathbf{A} = \begin{bmatrix} 1 & 2 & -1 \\ 2 & 4 & -2 \end{bmatrix}
+    \;\Rightarrow\; \operatorname{rank}(\mathbf{A}) = 1
+    \;\Rightarrow\; \operatorname{nullity}(\mathbf{A}) = 3 - 1 = 2.
+    \]
+    <p>A basis for the null space is</p>
+    \[
+    \operatorname{Null}(\mathbf{A}) = \operatorname{span}\left\{
+    \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix},\;
+    \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix} \right\}.
+    \]
+    <p>
+      Check the first: \(\mathbf{A}(1,0,1)^T = (1 + 0 - 1,\; 2 + 0 - 2)^T = \mathbf{0}\) ✓, and the second:
+      \(\mathbf{A}(0,1,2)^T = (0 + 2 - 2,\; 0 + 4 - 4)^T = \mathbf{0}\) ✓. Both are annihilated and they are
+      linearly independent, so together they span the whole 2-dimensional null space.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m4.9 4.9 14.2 14.2"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">What gets sent to zero</p>
+          <p class="playground__sub">Drag \(\mathbf{x}\) onto the dashed line and \(\mathbf{A}\mathbf{x}\) vanishes. Watch rank and nullity always add up to \(n\).</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="nullspace"></div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>from scipy.linalg import null_space
+
+A = np.array([[1, 2, -1], [2, 4, -2]])
+ns = null_space(A)      # columns are an orthonormal basis of Null(A); shape (3, 2)
+
+I = np.eye(2)
+ns2 = null_space(I)     # shape (2, 0) -- trivial null space, no basis vectors</code></pre>
+    </div>
+
+    <!-- ---------- Matrix types ---------- -->
+    <h3 id="matrix-types">Common types of matrices</h3>
+
+    <p>
+      Recognising structure is how large problems become tractable. Each family below buys you something
+      concrete — a cheaper solve, a free inverse, or a guarantee about the eigenvalues.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The matrix zoo</p>
+          <p class="playground__sub">Nine structures side by side, with the sparsity pattern and the properties each one guarantees.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="matrix-zoo"></div>
+    </div>
+
+    <h4>Identity matrix</h4>
+    <p>Ones on the diagonal, zeros elsewhere. For any \(\mathbf{A}\), \(\mathbf{A}\mathbf{I} = \mathbf{I}\mathbf{A} = \mathbf{A}\) with matching dimensions.</p>
+    \[ \mathbf{I}_3 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix} \]
+    <p><strong>Use:</strong> the multiplicative identity of matrix algebra; represents "no change" in a linear transformation, and appears in regularisation terms such as \(\lambda\mathbf{I}\).</p>
+
+    <h4>Diagonal matrix</h4>
+    <p>All off-diagonal entries are zero, so it scales each axis independently.</p>
+    \[ \mathbf{D} = \begin{bmatrix} 3 & 0 & 0 \\ 0 & 7 & 0 \\ 0 & 0 & 2 \end{bmatrix} \]
+    <p><strong>Use:</strong> trivial to invert (reciprocate the diagonal) and to multiply. Appears in eigendecomposition and in Ridge regression penalties.</p>
+
+    <h4>Symmetric matrix</h4>
+    <p>\(\mathbf{A}^T = \mathbf{A}\) — a mirror image across the diagonal.</p>
+    \[ \mathbf{A} = \begin{bmatrix} 2 & -1 & 0 \\ -1 & 3 & 4 \\ 0 & 4 & 5 \end{bmatrix} \]
+    <p><strong>Use:</strong> covariance matrices and Hessians are always symmetric. Real symmetric matrices are guaranteed real eigenvalues and an orthonormal eigenbasis — a very strong guarantee.</p>
+
+    <h4>Orthogonal matrix</h4>
+    <p>A <em>square</em> matrix \(\mathbf{Q}\) whose columns are orthonormal, so that</p>
+    \[ \mathbf{Q}^T \mathbf{Q} = \mathbf{Q}\mathbf{Q}^T = \mathbf{I} \quad\Longleftrightarrow\quad \mathbf{Q}^{-1} = \mathbf{Q}^T. \]
+    \[ \mathbf{Q} = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ -1 & 1 \end{bmatrix} \]
+    <p><strong>Use:</strong> preserves lengths and angles — rotations and reflections. Appears in QR decomposition, in PCA, and in neural network weight initialisation. The inverse being free is the main practical attraction.</p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        "Orthogonal" versus "orthonormal"
+      </div>
+      <p style="margin-bottom:.6em">
+        These words are easy to trip over. A set of vectors is <strong>orthogonal</strong> if they are
+        mutually perpendicular, and <strong>orthonormal</strong> if they are additionally each of unit length.
+        A matrix whose columns are merely orthogonal satisfies \(\mathbf{Q}^T\mathbf{Q} = \mathbf{D}\) for
+        some diagonal \(\mathbf{D}\); orthonormal columns are what give \(\mathbf{Q}^T\mathbf{Q} = \mathbf{I}\).
+      </p>
+      <p style="margin-bottom:0">
+        Confusingly, the standard term <strong>orthogonal matrix</strong> refers to the stronger condition: a
+        square matrix with <em>orthonormal</em> columns. There is no separate standard object called an
+        "orthonormal matrix". And for a non-square \(\mathbf{Q} \in \mathbb{R}^{m \times k}\) with
+        \(k &lt; m\) and orthonormal columns, \(\mathbf{Q}^T\mathbf{Q} = \mathbf{I}_k\) still holds but
+        \(\mathbf{Q}\mathbf{Q}^T \neq \mathbf{I}_m\) — that product is a projection, not the identity.
+      </p>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · verifying orthonormal columns
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{Q} =
+        \begin{bmatrix}
+        \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{6}} & \frac{1}{\sqrt{3}} \\
+        -\frac{1}{\sqrt{2}} & \frac{1}{\sqrt{6}} & \frac{1}{\sqrt{3}} \\
+        0 & -\frac{2}{\sqrt{6}} & \frac{1}{\sqrt{3}}
+        \end{bmatrix}
+        \]
+        <p>Write \(\mathbf{q}_1, \mathbf{q}_2, \mathbf{q}_3\) for the columns. First, each has unit length:</p>
+        \[ \|\mathbf{q}_1\|^2 = \tfrac{1}{2} + \tfrac{1}{2} + 0 = 1, \qquad
+           \|\mathbf{q}_2\|^2 = \tfrac{1}{6} + \tfrac{1}{6} + \tfrac{4}{6} = 1, \qquad
+           \|\mathbf{q}_3\|^2 = 3 \cdot \tfrac{1}{3} = 1. \]
+        <p>Second, they are mutually orthogonal:</p>
+        \[
+        \mathbf{q}_1 \cdot \mathbf{q}_2 = \tfrac{1}{\sqrt{12}} - \tfrac{1}{\sqrt{12}} + 0 = 0, \qquad
+        \mathbf{q}_1 \cdot \mathbf{q}_3 = \tfrac{1}{\sqrt{6}} - \tfrac{1}{\sqrt{6}} + 0 = 0,
+        \]
+        \[
+        \mathbf{q}_2 \cdot \mathbf{q}_3 = \tfrac{1}{\sqrt{18}} + \tfrac{1}{\sqrt{18}} - \tfrac{2}{\sqrt{18}} = 0.
+        \]
+        <p>
+          Those two facts <em>are</em> the statement \(\mathbf{Q}^T\mathbf{Q} = \mathbf{I}_3\): entry
+          \((i,j)\) of \(\mathbf{Q}^T\mathbf{Q}\) is precisely \(\mathbf{q}_i \cdot \mathbf{q}_j\), which is 1
+          on the diagonal and 0 off it. Written out — note that \(\mathbf{Q}^T\) is the left factor:
+        </p>
+        \[
+        \mathbf{Q}^T\mathbf{Q} =
+        \begin{bmatrix}
+        \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}} & 0 \\
+        \frac{1}{\sqrt{6}} & \frac{1}{\sqrt{6}} & -\frac{2}{\sqrt{6}} \\
+        \frac{1}{\sqrt{3}} & \frac{1}{\sqrt{3}} & \frac{1}{\sqrt{3}}
+        \end{bmatrix}
+        \begin{bmatrix}
+        \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{6}} & \frac{1}{\sqrt{3}} \\
+        -\frac{1}{\sqrt{2}} & \frac{1}{\sqrt{6}} & \frac{1}{\sqrt{3}} \\
+        0 & -\frac{2}{\sqrt{6}} & \frac{1}{\sqrt{3}}
+        \end{bmatrix}
+        = \mathbf{I}_3 .
+        \]
+        <p style="margin-bottom:1em">Since \(\mathbf{Q}\) is square, it is an orthogonal matrix and \(\mathbf{Q}^{-1} = \mathbf{Q}^T\).</p>
+      </div>
+    </div>
+
+    <h4>Skew-symmetric matrix</h4>
+    <p>\(\mathbf{A}^T = -\mathbf{A}\). The diagonal is therefore forced to be zero.</p>
+    \[
+    \mathbf{A} = \begin{bmatrix} 0 & 2 & -1 \\ -2 & 0 & -4 \\ 1 & 4 & 0 \end{bmatrix}
+    \quad \Rightarrow \quad
+    \mathbf{A}^T = \begin{bmatrix} 0 & -2 & 1 \\ 2 & 0 & 4 \\ -1 & -4 & 0 \end{bmatrix} = -\mathbf{A}. \quad\checkmark
+    \]
+    <p><strong>Use:</strong> models rotations and angular momentum in physics. Eigenvalues are purely imaginary or zero.</p>
+
+    <h4>Upper and lower triangular matrices</h4>
+    \[
+    \mathbf{U} = \begin{bmatrix} 1 & 2 & 3 \\ 0 & 5 & 6 \\ 0 & 0 & 9 \end{bmatrix}, \qquad
+    \mathbf{L} = \begin{bmatrix} 4 & 0 & 0 \\ 7 & 2 & 0 \\ 5 & 8 & 1 \end{bmatrix}
+    \]
+    <p><strong>Use:</strong> essential to LU decomposition. Triangular systems solve by forward or backward substitution in \(\mathcal{O}(n^2)\) instead of requiring a full \(\mathcal{O}(n^3)\) inversion, and the determinant is just the product of the diagonal.</p>
+
+    <h4>Sparse matrix</h4>
+    <p>Most entries are zero.</p>
+    \[ \mathbf{S} = \begin{bmatrix} 0 & 0 & 3 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \end{bmatrix} \]
+    <p><strong>Use:</strong> ubiquitous in recommender systems, NLP bag-of-words features, and graph adjacency matrices. Storing only the non-zeros enables memory-efficient storage and lets the arithmetic skip most of the work.</p>
+
+    <h4>Rank-one matrix</h4>
+    <p>Expressible as an outer product of two vectors, \(\mathbf{A} = \mathbf{u}\mathbf{v}^T\).</p>
+    \[
+    \mathbf{u} = \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \quad
+    \mathbf{v} = \begin{bmatrix} 3 \\ 4 \\ 5 \end{bmatrix} \;\Rightarrow\;
+    \mathbf{A} = \mathbf{u}\mathbf{v}^T = \begin{bmatrix} 3 & 4 & 5 \\ 6 & 8 & 10 \end{bmatrix}
+    \]
+    <p><strong>Use:</strong> the atom of low-rank approximation — every SVD writes a matrix as a weighted sum of rank-one pieces.</p>
+
+    <!-- ---------- Norms ---------- -->
+    <h3 id="norms">Vector and matrix norms</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Vector norms.</strong></p>
+      \[
+      \|\mathbf{x}\|_1 = \sum_i |x_i|, \qquad
+      \|\mathbf{x}\|_2 = \sqrt{\textstyle\sum_i x_i^2}, \qquad
+      \|\mathbf{x}\|_\infty = \max_i |x_i|.
+      \]
+      <p><strong>Matrix norm (Frobenius).</strong></p>
+      \[ \|\mathbf{A}\|_F = \sqrt{\textstyle\sum_{i,j} a_{ij}^2}. \]
+      <p style="margin-bottom:0">This is just the \(\ell_2\) norm of the matrix flattened into one long vector.</p>
+    </div>
+
+    <p><strong>Norm axioms.</strong> Anything calling itself a norm must satisfy:</p>
+    <ul>
+      <li><strong>Non-negativity and definiteness:</strong> \(\|\mathbf{x}\| \ge 0\), with \(\|\mathbf{x}\| = 0 \iff \mathbf{x} = \mathbf{0}\).</li>
+      <li><strong>Absolute homogeneity:</strong> \(\|\alpha\mathbf{x}\| = |\alpha|\,\|\mathbf{x}\|\).</li>
+      <li><strong>Triangle inequality:</strong> \(\|\mathbf{x}+\mathbf{y}\| \le \|\mathbf{x}\| + \|\mathbf{y}\|\).</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">What "length 1" looks like</p>
+          <p class="playground__sub">Slide \(p\) from 1 towards \(\infty\) and watch the unit ball morph from a diamond to a circle to a square. Those corners at \(p=1\) are why LASSO produces exact zeros.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="norms"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Examples
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{x} = [3, -4] \;\Rightarrow\;
+        \|\mathbf{x}\|_1 = 3 + 4 = 7, \quad
+        \|\mathbf{x}\|_2 = \sqrt{9 + 16} = 5, \quad
+        \|\mathbf{x}\|_\infty = 4.
+        \]
+        \[
+        \mathbf{A} = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}
+        \;\Rightarrow\; \|\mathbf{A}\|_F = \sqrt{1 + 4 + 9 + 16} = \sqrt{30} \approx 5.477.
+        \]
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>x = np.array([3, -4])
+np.linalg.norm(x, 1)        # 7.0
+np.linalg.norm(x, 2)        # 5.0
+np.linalg.norm(x, np.inf)   # 4.0
+
+A = np.array([[1, 2], [3, 4]])
+np.linalg.norm(A, 'fro')    # 5.477...</code></pre>
+    </div>
+
+    <!-- ---------- Eigen ---------- -->
+    <h3 id="eigen">Eigenvalues, eigenvectors and diagonalisation</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        Let \(\mathbf{A} \in \mathbb{R}^{n \times n}\). A <em>nonzero</em> vector \(\mathbf{v}\) is an
+        <strong>eigenvector</strong> of \(\mathbf{A}\) if
+      </p>
+      \[ \mathbf{A}\mathbf{v} = \lambda \mathbf{v} \]
+      <p style="margin-bottom:0">
+        for some scalar \(\lambda\), the associated <strong>eigenvalue</strong>. For a real matrix
+        \(\lambda\) may be real or complex; real symmetric matrices are guaranteed real eigenvalues.
+      </p>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Geometric intuition
+      </div>
+      <p style="margin-bottom:0">
+        Most vectors change both magnitude <em>and</em> direction when hit with \(\mathbf{A}\). Eigenvectors
+        are the rare directions that do not rotate — they are only <strong>scaled</strong>, stretched or
+        compressed (and possibly flipped). That makes them the natural "axes" of the transformation, and the
+        eigenvalue is how much stretching happens along each one.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4M14 4h6v6"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Hunt for an eigenvector</p>
+          <p class="playground__sub">Rotate \(\mathbf{v}\) until \(\mathbf{A}\mathbf{v}\) lines up with it. When the arrows are parallel you have found one — and the length ratio is \(\lambda\). Try a rotation matrix to see a case with no real eigenvector at all.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="eigen-explore"></div>
+    </div>
+
+    <h4>Diagonalisation</h4>
+    <p>If \(\mathbf{A}\) is diagonalisable, then</p>
+    \[ \mathbf{A} = \mathbf{V}\mathbf{\Lambda}\mathbf{V}^{-1}, \]
+    <p>
+      where \(\mathbf{V}\) has the eigenvectors as columns and \(\mathbf{\Lambda}\) is diagonal with the
+      corresponding eigenvalues. This makes powers almost free:
+    </p>
+    \[ \mathbf{A}^k = \mathbf{V}\mathbf{\Lambda}^k\mathbf{V}^{-1}. \]
+    <p>
+      Computing \(\mathbf{A}^{100}\mathbf{x}\) becomes
+      \(\mathbf{V}\mathbf{\Lambda}^{100}\mathbf{V}^{-1}\mathbf{x}\) — raise \(n\) numbers to the hundredth
+      power instead of performing a hundred matrix multiplications. Cheaper, and numerically more stable.
+    </p>
+    <ul>
+      <li>If \(\mathbf{A}\) has \(n\) linearly independent eigenvectors, it is diagonalisable.</li>
+      <li>Real symmetric matrices are <em>always</em> diagonalisable, and with an orthonormal eigenbasis — so \(\mathbf{V}\) can be taken orthogonal and \(\mathbf{V}^{-1} = \mathbf{V}^T\).</li>
+    </ul>
+
+    <h4>Why this matters</h4>
+    <p>
+      <strong>In machine learning:</strong> eigenvalues and eigenvectors identify the most informative
+      directions in data (PCA), reveal how the loss surface curves and hence how optimisation will behave,
+      describe the structure of graphs in graph-based models, and indicate whether an attention mechanism is
+      focusing too narrowly or too broadly.
+    </p>
+    <p>
+      <strong>In engineering more broadly:</strong> the eigenvalues of a system's state matrix determine
+      stability in control systems; impedance and admittance matrices reveal resonances in circuit design;
+      and the singular values used for image compression are built from the eigenvalues of
+      \(\mathbf{A}^T\mathbf{A}\) — see <a href="#svd">SVD</a>.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Examples
+      </div>
+      <div class="example__body">
+        <p><strong>Diagonal.</strong> For \(\mathbf{A} = \begin{bmatrix} 2 & 0 \\ 0 & 3 \end{bmatrix}\) the eigenvalues sit on the diagonal: \(\lambda_1 = 2\), \(\lambda_2 = 3\), with eigenvectors \(\mathbf{e}_1\) and \(\mathbf{e}_2\).</p>
+        <p><strong>Non-diagonal.</strong> For \(\mathbf{B} = \begin{bmatrix} 4 & 1 \\ 2 & 3 \end{bmatrix}\), solve the characteristic equation:</p>
+        \[
+        \det(\mathbf{B} - \lambda\mathbf{I}) = (4-\lambda)(3-\lambda) - 2 = \lambda^2 - 7\lambda + 10 = (\lambda - 5)(\lambda - 2) = 0
+        \]
+        <p style="margin-bottom:1em">giving \(\lambda_1 = 5\) and \(\lambda_2 = 2\). This is the matrix loaded in the playground above.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>A = np.array([[2, 0], [0, 3]])
+vals, vecs = np.linalg.eig(A)      # vals = [2., 3.]
+
+B = np.array([[4, 1], [2, 3]])
+vals2, vecs2 = np.linalg.eig(B)    # vals2 = [5., 2.]
+# eigenvectors are stored as COLUMNS: vecs2[:, 0] pairs with vals2[0]</code></pre>
+    </div>
+
+    <!-- ---------- SVD ---------- -->
+    <h3 id="svd">Singular value decomposition</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        For <em>any</em> matrix \(\mathbf{A} \in \mathbb{R}^{m \times n}\) there exist orthogonal matrices
+        \(\mathbf{U} \in \mathbb{R}^{m \times m}\) and \(\mathbf{V} \in \mathbb{R}^{n \times n}\), and a
+        rectangular diagonal \(\mathbf{S} \in \mathbb{R}^{m \times n}\) with non-negative entries
+        \(\sigma_1 \ge \sigma_2 \ge \cdots \ge \sigma_r > 0\) (the <strong>singular values</strong>), such that
+      </p>
+      \[ \mathbf{A} = \mathbf{U}\mathbf{S}\mathbf{V}^T. \]
+      <p style="margin-bottom:0">
+        Here \(r = \operatorname{rank}(\mathbf{A})\). Unlike eigendecomposition this works for <em>every</em>
+        real matrix — square or not, invertible or not, diagonalisable or not.
+      </p>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Existence yes, uniqueness no
+      </div>
+      <p style="margin-bottom:0">
+        The SVD always <em>exists</em>, and the <strong>singular values are unique</strong>. But
+        \(\mathbf{U}\) and \(\mathbf{V}\) are not: flipping the sign of a column \(\mathbf{u}_i\) together
+        with the matching \(\mathbf{v}_i\) leaves \(\mathbf{A}\) unchanged, and when a singular value is
+        repeated you may rotate freely within its subspace. The decomposition is therefore unique only up to
+        those choices — which is why two libraries can hand you different-looking but equally valid factors
+        for the same matrix.
+      </p>
+    </div>
+
+    <h4>What it means geometrically</h4>
+    <p>SVD expresses any linear transformation as a sequence of three operations:</p>
+    <ol>
+      <li>Rotate (or reflect) the input space via \(\mathbf{V}^T\),</li>
+      <li>Stretch or shrink along the coordinate axes using \(\mathbf{S}\),</li>
+      <li>Rotate again via \(\mathbf{U}\).</li>
+    </ol>
+    <p><strong>Rotation → scaling → rotation.</strong> That is the whole story, and it is why the image of the unit circle is always an ellipse.</p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 6 0 0 0 0 18 9 6 0 0 0 0-18Z"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Circle in, ellipse out</p>
+          <p class="playground__sub">Scrub through the three stages one at a time. The semi-axes of the final ellipse are exactly \(\sigma_1\) and \(\sigma_2\).</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="svd-geometry"></div>
+    </div>
+
+    <h4>Key properties</h4>
+    <ul>
+      <li>\(\mathbf{A}^T\mathbf{A} = \mathbf{V}\mathbf{S}^T\mathbf{S}\mathbf{V}^T\) and \(\mathbf{A}\mathbf{A}^T = \mathbf{U}\mathbf{S}\mathbf{S}^T\mathbf{U}^T\).</li>
+      <li>The columns of \(\mathbf{U}\) are eigenvectors of \(\mathbf{A}\mathbf{A}^T\); the columns of \(\mathbf{V}\) are eigenvectors of \(\mathbf{A}^T\mathbf{A}\).</li>
+      <li>\(\operatorname{rank}(\mathbf{A})\) equals the number of non-zero singular values.</li>
+      <li>The singular values are the square roots of the eigenvalues of \(\mathbf{A}^T\mathbf{A}\) — the precise link back to <a href="#eigen">eigendecomposition</a>.</li>
+      <li>Truncating to the largest \(k\) singular values gives the <strong>best possible rank-\(k\) approximation</strong> in Frobenius norm (the Eckart–Young theorem).</li>
+    </ul>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>For \(\mathbf{A} = \begin{bmatrix} 1 & 0 \\ 0 & -2 \end{bmatrix}\), compute \(\mathbf{A}^T\mathbf{A} = \begin{bmatrix} 1 & 0 \\ 0 & 4\end{bmatrix}\), whose eigenvalues are 1 and 4. Taking square roots and ordering:</p>
+        \[ \sigma_1 = 2, \qquad \sigma_2 = 1. \]
+        <p style="margin-bottom:1em">
+          Singular values are <em>always non-negative</em>, even though this matrix has a negative entry —
+          the sign is absorbed into \(\mathbf{U}\).
+        </p>
+      </div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Image compression by rank-\(k\) truncation</p>
+          <p class="playground__sub">Slide \(k\) and watch a real SVD rebuild the image from its largest components. Compare the smooth image with the pure-noise one — compressibility is a property of the data, not of the method.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="svd-compress"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Summary intuition
+      </div>
+      <p style="margin-bottom:0">
+        SVD takes a complicated transformation and peels it into orthogonal building blocks. It answers three
+        questions at once: <strong>which directions does this matrix care about most, how much does it
+        stretch each one, and what can I safely throw away?</strong> That is why the same decomposition
+        underlies image compression, denoising, PCA, and low-rank compression of network weights.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>A = np.array([[1., 0.], [0., -2.]])
+U, s, Vt = np.linalg.svd(A)        # s = [2., 1.]
+
+# Rank-k approximation of any matrix
+def rank_k(A, k):
+    U, s, Vt = np.linalg.svd(A, full_matrices=False)
+    return (U[:, :k] * s[:k]) @ Vt[:k, :]
+
+# Fraction of "energy" retained by the first k components
+energy = np.cumsum(s**2) / np.sum(s**2)</code></pre>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="probability">Part 1.2 · Probability &amp; Statistics</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      This part summarises the probability and statistics background assumed before enrolling. Formal
+      definitions, plain-language explanations, numerical examples, and — where they help — figures you can
+      drive yourself.
+    </p>
+
+    <!-- ---------- Sample space ---------- -->
+    <h3 id="sample-space">Sample space and random variables</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        The <strong>sample space</strong> \(\Omega\) is the set of all possible outcomes of a random
+        experiment.
+      </p>
+      <ul>
+        <li>Tossing two coins: \(\Omega = \{\mathrm{HH}, \mathrm{HT}, \mathrm{TH}, \mathrm{TT}\}\).</li>
+        <li>Measuring a temperature: \(\Omega = \mathbb{R}\).</li>
+      </ul>
+      <p style="margin-bottom:0">
+        A <strong>random variable</strong> \(X\) is a function \(X: \Omega \to \mathbb{R}\) assigning a
+        number to each outcome \(\omega \in \Omega\). This is what lets us do arithmetic instead of
+        bookkeeping over outcomes.
+      </p>
+    </div>
+
+    <p>
+      <strong>Notation.</strong> Capitals \(X, Y, Z\) for random variables; lowercase \(x, y, z\) for
+      particular realisations. So \(\mathbb{P}(X = x)\) reads "the probability that the random variable
+      \(X\) takes the specific value \(x\)".
+    </p>
+
+    <!-- ---------- Discrete RVs ---------- -->
+    <h3 id="discrete-rv">Discrete random variables</h3>
+
+    <p>A discrete random variable \(X\) takes values in a countable set \(\mathcal{X} \subset \mathbb{R}\).</p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Probability mass function (pmf).</strong></p>
+      \[ p_X(x) = \mathbb{P}(X = x), \quad x \in \mathcal{X}, \qquad \sum_{x \in \mathcal{X}} p_X(x) = 1. \]
+      <p><strong>Cumulative distribution function (cdf).</strong></p>
+      \[ F_X(x) = \mathbb{P}(X \le x) = \sum_{t \le x} p_X(t). \]
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · number of heads in two flips
+      </div>
+      <div class="example__body">
+        <p>With \(X \in \{0,1,2\}\) counting heads in two fair flips:</p>
+        \[ p_X(0) = \tfrac{1}{4}, \qquad p_X(1) = \tfrac{1}{2}, \qquad p_X(2) = \tfrac{1}{4}. \]
+        <p style="margin-bottom:1em">
+          There are four equally likely outcomes; one gives zero heads, two give exactly one, and one gives
+          two. The probabilities sum to 1, as they must.
+        </p>
+      </div>
+    </div>
+
+    <h4>Common discrete distributions</h4>
+    <ul>
+      <li><strong>Bernoulli(\(p\)).</strong> A single yes/no trial, success with probability \(p\). \(\mathbb{E}[X] = p\), \(\operatorname{Var}(X) = p(1-p)\). <em>Uses:</em> a coin flip, a spam indicator.</li>
+      <li>
+        <strong>Binomial(\(n, p\)).</strong> Number of successes in \(n\) independent Bernoulli trials:
+        \[ \mathbb{P}(X=k) = \binom{n}{k} p^k (1-p)^{n-k}, \qquad \mathbb{E}[X] = np, \qquad \operatorname{Var}(X) = np(1-p). \]
+        <em>Uses:</em> defect counts in manufacturing, heads in repeated flips.
+      </li>
+      <li>
+        <strong>Poisson(\(\lambda\)).</strong> Counts of rare events in a fixed window:
+        \[ \mathbb{P}(X=k) = \frac{\lambda^k e^{-\lambda}}{k!}, \qquad \mathbb{E}[X] = \operatorname{Var}(X) = \lambda. \]
+        <em>Uses:</em> arrivals per hour, typos per page. Mean and variance coincide, which is a useful
+        diagnostic in practice.
+      </li>
+      <li><strong>Multinomial(\(n, \boldsymbol{\pi}\)).</strong> Counts across multiple categories — the generalisation of the binomial. <em>Uses:</em> customer choices over \(K\) products.</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5M12 16V8M17 16v-3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The distribution explorer</p>
+          <p class="playground__sub">Six distributions, live parameters, with the pmf/pdf and the cdf drawn together and the mean and variance computed as you go.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="distributions"></div>
+    </div>
+
+    <!-- ---------- Moments ---------- -->
+    <h3 id="moments">Moments of a discrete random variable</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Expectation</strong> — the probability-weighted average:</p>
+      \[ \mathbb{E}[X] = \sum_x x\, p_X(x). \]
+      <p><strong>Variance</strong> — the expected squared deviation from the mean:</p>
+      \[ \operatorname{Var}(X) = \mathbb{E}\!\left[(X - \mathbb{E}[X])^2\right] = \mathbb{E}[X^2] - (\mathbb{E}[X])^2. \]
+      <p style="margin-bottom:0">
+        The second form is usually the easier one to compute, and is worth committing to memory.
+      </p>
+    </div>
+
+    <p>
+      <strong>Numerical example.</strong> If \(X \sim \mathrm{Bernoulli}(p = 0.3)\), then
+      \(\mathbb{E}[X] = 0.3\) and \(\operatorname{Var}(X) = 0.3 \times 0.7 = 0.21\).
+    </p>
+
+    <!-- ---------- Joint ---------- -->
+    <h3 id="joint">Joint, marginal and conditional probability</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Joint pmf.</strong></p>
+      \[ p_{X,Y}(x,y) = \mathbb{P}(X=x, Y=y), \qquad \sum_{x,y} p_{X,Y}(x,y) = 1. \]
+      <p><strong>Marginal pmf</strong> — sum away the variable you do not care about:</p>
+      \[ p_X(x) = \sum_y p_{X,Y}(x,y), \qquad p_Y(y) = \sum_x p_{X,Y}(x,y). \]
+      <p><strong>Conditional pmf</strong> — take a slice and renormalise:</p>
+      \[ \mathbb{P}(X = x \mid Y = y) = \frac{p_{X,Y}(x,y)}{p_Y(y)}. \]
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Joint, marginal, conditional — one table</p>
+          <p class="playground__sub">Switch views to see marginalising as summing a row or column, and conditioning as isolating a slice and rescaling it back to sum to 1.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="joint-table"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        \[
+        \begin{array}{c|ccc}
+        p_{X,Y}(x,y) & y=0 & y=1 & y=2 \\\hline
+        x=0 & 0.1 & 0.1 & 0.1 \\
+        x=1 & 0.2 & 0.2 & 0.3
+        \end{array}
+        \]
+        <p>Summing the second row gives the marginal \(p_X(1) = 0.2 + 0.2 + 0.3 = 0.7\). Summing the last column gives \(p_Y(2) = 0.1 + 0.3 = 0.4\). Conditioning on \(Y = 2\):</p>
+        \[ \mathbb{P}(X = 1 \mid Y = 2) = \frac{p_{X,Y}(1,2)}{p_Y(2)} = \frac{0.3}{0.4} = 0.75. \]
+        <p style="margin-bottom:1em">(All six entries sum to 1, so this is a valid joint distribution.)</p>
+      </div>
+    </div>
+
+    <h4>Covariance and correlation</h4>
+    \[
+    \operatorname{Cov}(X,Y) = \mathbb{E}[XY] - \mathbb{E}[X]\mathbb{E}[Y], \qquad
+    \rho_{X,Y} = \frac{\operatorname{Cov}(X,Y)}{\sigma_X \sigma_Y}.
+    \]
+    <p>
+      Covariance carries the units of \(X\) times the units of \(Y\), which makes its magnitude hard to
+      interpret on its own. Correlation divides that scale out, so \(\rho\) always lies in \([-1, 1]\).
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><circle cx="9" cy="14" r="1"/><circle cx="13" cy="10" r="1"/><circle cx="17" cy="7" r="1"/><circle cx="11" cy="12" r="1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Covariance versus correlation</p>
+          <p class="playground__sub">Change \(\sigma_X\) with \(\rho\) fixed: the covariance moves but the cloud's shape does not. That is exactly what correlation is designed to factor out.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="covariance"></div>
+    </div>
+
+    <!-- ---------- Continuous ---------- -->
+    <h3 id="continuous-rv">Continuous random variables</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>A continuous random variable \(X\) has a <strong>probability density function</strong> \(f_X(x)\) with</p>
+      \[ f_X(x) \ge 0, \qquad \int_{-\infty}^{\infty} f_X(x)\, dx = 1. \]
+      <p>Probabilities are areas under that density, never heights:</p>
+      \[ \mathbb{P}(a \le X \le b) = \int_a^b f_X(x)\, dx, \qquad \mathbb{P}(X = x) = 0. \]
+      <p style="margin-bottom:0">And the cdf accumulates that area: \(F_X(x) = \int_{-\infty}^x f_X(t)\, dt\).</p>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Density is not probability
+      </div>
+      <p style="margin-bottom:0">
+        \(f_X(x)\) can exceed 1 — a Uniform\((0, 0.5)\) has density 2 everywhere on its support. What must not
+        exceed 1 is the <em>area</em>. This is also why \(\mathbb{P}(X = x) = 0\) for every single point:
+        a point has no width, so it encloses no area. Probability lives in intervals.
+      </p>
+    </div>
+
+    <h4>Common continuous distributions</h4>
+    <ul>
+      <li><strong>Uniform(\(a, b\)).</strong> Constant density \(\frac{1}{b-a}\) on \([a,b]\). The "I know the range and nothing else" model.</li>
+      <li>
+        <strong>Normal(\(\mu, \sigma^2\)).</strong> The bell curve. Models measurement noise, heights,
+        aggregated small effects. The <strong>68–95–99.7 rule</strong> says roughly 68% of the mass lies
+        within \(\mu \pm \sigma\), 95% within \(\mu \pm 2\sigma\), and 99.7% within \(\mu \pm 3\sigma\).
+      </li>
+      <li>
+        <strong>Exponential(\(\lambda\)).</strong> Waiting time between Poisson events. It is
+        <strong>memoryless</strong>: \(\mathbb{P}(X > s+t \mid X > s) = \mathbb{P}(X > t)\) — having waited
+        already tells you nothing about how much longer you must wait.
+      </li>
+      <li><strong>Multivariate normal.</strong> Generalises the normal to \(d\) dimensions, parameterised by a mean vector and a covariance matrix.</li>
+    </ul>
+
+    <p><strong>Expectation and variance</strong> replace the sums with integrals:</p>
+    \[ \mathbb{E}[X] = \int x\, f_X(x)\, dx, \qquad \operatorname{Var}(X) = \int (x - \mathbb{E}[X])^2 f_X(x)\, dx. \]
+
+    <!-- ---------- Bayes ---------- -->
+    <h3 id="bayes">Law of total probability and Bayes' theorem</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        <strong>Law of total probability.</strong> If \(\{B_i\}\) partitions the sample space with
+        \(\mathbb{P}(B_i) > 0\):
+      </p>
+      \[ \mathbb{P}(A) = \sum_i \mathbb{P}(A \mid B_i)\, \mathbb{P}(B_i). \]
+      <p><strong>Bayes' theorem.</strong> For events \(A\) and \(B\) with \(\mathbb{P}(B) > 0\):</p>
+      \[ \mathbb{P}(A \mid B) = \frac{\mathbb{P}(B \mid A)\, \mathbb{P}(A)}{\mathbb{P}(B)}. \]
+      <p style="margin-bottom:0">In densities: \( f_{X \mid Y}(x \mid y) = \dfrac{f_{Y \mid X}(y \mid x)\, f_X(x)}{f_Y(y)} \).</p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The base-rate trap, in 1000 people</p>
+          <p class="playground__sub">A 95%-accurate test for a 1%-prevalence disease. Read the posterior off the dots, then try to talk yourself out of it.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="bayes"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · a medical test
+      </div>
+      <div class="example__body">
+        <p>
+          Suppose a disease has prevalence \(\mathbb{P}(D) = 0.01\), the test has sensitivity
+          \(\mathbb{P}(+ \mid D) = 0.95\), and a false-positive rate
+          \(\mathbb{P}(+ \mid \overline{D}) = 0.05\). By the law of total probability:
+        </p>
+        \[ \mathbb{P}(+) = 0.95(0.01) + 0.05(0.99) = 0.0095 + 0.0495 = 0.059. \]
+        <p>Then Bayes' theorem gives the posterior:</p>
+        \[ \mathbb{P}(D \mid +) = \frac{0.95 \times 0.01}{0.059} = \frac{0.0095}{0.059} \approx 0.161. \]
+        <p style="margin-bottom:1em">
+          A positive result on a 95%-accurate test still leaves only a <strong>16% chance</strong> of having
+          the disease. The reason is arithmetic, not paradox: 99% of people are healthy, so their 5% false
+          positive rate produces about 49.5 false alarms per 1000 — far more than the 9.5 genuine detections.
+        </p>
+      </div>
+    </div>
+
+    <!-- ---------- Independence ---------- -->
+    <h3 id="independence">Independence and conditional independence</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Independence.</strong> \(X \perp Y\) exactly when the joint factorises:</p>
+      \[ p_{X,Y}(x,y) = p_X(x)\,p_Y(y) \quad \text{(discrete)}, \qquad f_{X,Y}(x,y) = f_X(x)\,f_Y(y) \quad \text{(continuous)} \]
+      <p>for all \((x,y)\).</p>
+      <p style="margin-bottom:0"><strong>Conditional independence.</strong> \(X \perp Y \mid Z\) when</p>
+      \[ p_{X,Y \mid Z}(x,y \mid z) = p_{X \mid Z}(x \mid z)\, p_{Y \mid Z}(y \mid z) \]
+      <p style="margin-bottom:0">for every \(z\) of positive probability or density.</p>
+    </div>
+
+    <p>
+      <strong>Numerical example.</strong> Let \(X, Y\) be independent fair coin flips. Then
+      \(p_{X,Y}(x,y) = \tfrac14\) for all \(x, y \in \{0,1\}\), and indeed
+      \(p_X(x)\,p_Y(y) = \tfrac12 \cdot \tfrac12 = \tfrac14\). ✓
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Why conditional independence earns its keep
+      </div>
+      <p style="margin-bottom:0">
+        Conditional independence is the assumption that makes large probabilistic models tractable. It is
+        exactly what the "naïve" in <strong>Naïve Bayes</strong> refers to: features are assumed independent
+        <em>given the class label</em>, which turns an impossible joint distribution into a product of small,
+        estimable ones. The assumption is usually false and the classifier often works anyway.
+      </p>
+    </div>
+
+    <!-- ---------- Sample stats ---------- -->
+    <h3 id="sample-stats">Sample mean and sample variance</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        Given i.i.d. samples \(X_1, \dots, X_n\) from a distribution with finite mean \(\mu\) and variance
+        \(\sigma^2\):
+      </p>
+      \[ \overline{X}_n = \frac{1}{n}\sum_{i=1}^n X_i, \qquad S_n^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \overline{X}_n)^2. \]
+      <p style="margin-bottom:0">
+        The \(n-1\) in the denominator (rather than \(n\)) is what makes \(S_n^2\) an <em>unbiased</em>
+        estimator of \(\sigma^2\): one degree of freedom was already spent estimating the mean.
+      </p>
+    </div>
+
+    <p><strong>Properties.</strong></p>
+    <ul>
+      <li>\(\mathbb{E}[\overline{X}_n] = \mu\) — the sample mean is unbiased.</li>
+      <li>\(\operatorname{Var}(\overline{X}_n) = \sigma^2 / n\) — averaging shrinks variance, and the standard error therefore falls like \(1/\sqrt{n}\).</li>
+    </ul>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>For the sample \((3, 5, 2, 4)\) with \(n = 4\):</p>
+        \[ \overline{X}_4 = \frac{3+5+2+4}{4} = 3.5, \]
+        \[ S_4^2 = \frac{(3-3.5)^2 + (5-3.5)^2 + (2-3.5)^2 + (4-3.5)^2}{3}
+                 = \frac{0.25 + 2.25 + 2.25 + 0.25}{3} = \frac{5}{3} \approx 1.6667. \]
+      </div>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="calculus">Part 1.3 · Calculus &amp; Optimisation</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Training a model means minimising a loss, and minimising means following derivatives. This part covers
+      the calculus that makes that possible — with both the symbolic rules and the geometric picture.
+    </p>
+
+    <!-- ---------- Derivatives ---------- -->
+    <h3 id="derivatives">Limits and derivatives</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Limit.</strong> We write \(\lim_{x \to a} f(x) = L\) if \(f(x)\) gets arbitrarily close to \(L\) as \(x\) gets close to \(a\).</p>
+      <p><strong>Derivative.</strong> The derivative of \(f\) at \(a\) is</p>
+      \[ f'(a) = \lim_{h \to 0} \frac{f(a+h) - f(a)}{h}, \]
+      <p style="margin-bottom:0">the instantaneous rate of change of \(f\) at \(a\) — equivalently, the slope of the tangent line.</p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M4 17c4-10 10-12 16-13"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Watch the secant become the tangent</p>
+          <p class="playground__sub">Shrink \(h\) towards zero and see the difference quotient converge on the exact derivative. The error row is the whole limit argument, in numbers.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="derivative-limit"></div>
+    </div>
+
+    <p><strong>Rules.</strong></p>
+    <ul>
+      <li>Power rule: \(\frac{d}{dx}x^n = n x^{n-1}\).</li>
+      <li>Sum rule: \(\frac{d}{dx}[f(x)+g(x)] = f'(x) + g'(x)\).</li>
+      <li>Product rule: \(\frac{d}{dx}[f(x)g(x)] = f'(x)g(x) + f(x)g'(x)\).</li>
+      <li>Quotient rule: \(\frac{d}{dx}\frac{f(x)}{g(x)} = \frac{f'(x)g(x) - f(x)g'(x)}{g(x)^2}\).</li>
+      <li>Chain rule: \(\frac{d}{dx} f(g(x)) = f'(g(x))\,g'(x)\).</li>
+    </ul>
+
+    <p>
+      <strong>Example.</strong> If \(f(x) = 3x^2 + 2x + 1\) then \(f'(x) = 6x + 2\), so at \(x = 2\) the
+      slope is \(f'(2) = 14\).
+    </p>
+
+    <!-- ---------- Gradients ---------- -->
+    <h3 id="gradients">Partial derivatives and gradients</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Partial derivative.</strong> For \(f(x,y)\):</p>
+      \[ \frac{\partial f}{\partial x}(x,y) = \lim_{h \to 0} \frac{f(x+h, y) - f(x,y)}{h}, \]
+      <p>measuring how \(f\) changes with \(x\) while \(y\) is held fixed.</p>
+      <p><strong>Gradient.</strong> For \(f: \mathbb{R}^n \to \mathbb{R}\), collect them into a vector:</p>
+      \[
+      \nabla f(\mathbf{x}) =
+      \begin{bmatrix} \dfrac{\partial f}{\partial x_1} & \cdots & \dfrac{\partial f}{\partial x_n} \end{bmatrix}^T .
+      \]
+      <p style="margin-bottom:0">It points in the direction of <strong>steepest ascent</strong>, which is why descent moves against it.</p>
+    </div>
+
+    <p>
+      <strong>Example.</strong> If \(f(x,y) = x^2 + y^2\) then \(\nabla f(x,y) = (2x, 2y)^T\), so at
+      \((1,2)\) the gradient is \((2,4)^T\).
+    </p>
+
+    <!-- ---------- Matrix derivatives ---------- -->
+    <h3 id="matrix-derivatives">Vector and matrix derivatives</h3>
+
+    <p>
+      In machine learning we optimise scalar-valued functions \(f: \mathbb{R}^n \to \mathbb{R}\) that depend
+      on vectors or matrices — loss functions, in other words. Being able to differentiate with respect to a
+      whole vector or matrix is what makes gradient-based training possible.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        A word on layout conventions
+      </div>
+      <p style="margin-bottom:.6em">
+        Matrix calculus has two competing conventions, and mixing them is a classic source of transpose bugs:
+      </p>
+      <ul style="margin-bottom:.6em">
+        <li>
+          <strong>Denominator layout</strong> (also called gradient layout): \(\partial y / \partial \mathbf{x}\)
+          has the <em>same shape as \(\mathbf{x}\)</em>. For scalar \(y\) and column vector \(\mathbf{x}\),
+          the result is a column vector.
+        </li>
+        <li>
+          <strong>Numerator layout</strong> (Jacobian layout): the result follows the shape of the
+          <em>numerator</em>, so the same derivative comes out as a row vector — the transpose of the above.
+        </li>
+      </ul>
+      <p style="margin-bottom:0">
+        <strong>These notes use denominator layout throughout</strong>, so \(\nabla f\) always has the same
+        shape as the thing you are differentiating with respect to. That is the convention deep learning
+        frameworks follow, and it is what makes the update \(\mathbf{w} \leftarrow \mathbf{w} - \eta \nabla f\)
+        type-check without a transpose.
+      </p>
+    </div>
+
+    <p><strong>Scalar function of a vector.</strong> For \(f: \mathbb{R}^n \to \mathbb{R}\), the gradient is the column vector of partials:</p>
+    \[
+    \nabla f(\mathbf{x}) = \frac{\partial f}{\partial \mathbf{x}} =
+    \begin{bmatrix} \frac{\partial f}{\partial x_1} \\ \vdots \\ \frac{\partial f}{\partial x_n} \end{bmatrix}.
+    \]
+    <p>Two that come up constantly:</p>
+    \[
+    f(\mathbf{x}) = \mathbf{a}^T\mathbf{x} \;\Rightarrow\; \frac{\partial f}{\partial \mathbf{x}} = \mathbf{a},
+    \qquad
+    f(\mathbf{x}) = \mathbf{x}^T\mathbf{x} \;\Rightarrow\; \frac{\partial f}{\partial \mathbf{x}} = 2\mathbf{x}.
+    \]
+
+    <p><strong>Scalar function of a matrix.</strong> For \(f: \mathbb{R}^{m \times n} \to \mathbb{R}\), the derivative is an \(m \times n\) matrix with</p>
+    \[ \left[\frac{\partial f}{\partial \mathbf{X}}\right]_{ij} = \frac{\partial f}{\partial \mathbf{X}_{ij}}. \]
+    <p>For instance, \(f(\mathbf{X}) = \operatorname{tr}(\mathbf{A}^T\mathbf{X}) \Rightarrow \frac{\partial f}{\partial \mathbf{X}} = \mathbf{A}\).</p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        The trace, briefly
+      </div>
+      <p style="margin-bottom:0">
+        The <strong>trace</strong> of a square matrix is the sum of its diagonal entries,
+        \(\operatorname{tr}(\mathbf{A}) = \sum_i a_{ii}\). It is linear, satisfies the cyclic property
+        \(\operatorname{tr}(\mathbf{AB}) = \operatorname{tr}(\mathbf{BA})\), and equals the sum of the
+        eigenvalues. The Frobenius inner product is
+        \(\langle \mathbf{A}, \mathbf{X}\rangle_F = \sum_{i,j} a_{ij}x_{ij} = \operatorname{tr}(\mathbf{A}^T\mathbf{X})\)
+        — note the transpose, which is easy to drop and matters below.
+      </p>
+    </div>
+
+    <p><strong>Vector function of a vector (the Jacobian).</strong> For \(\mathbf{f}: \mathbb{R}^n \to \mathbb{R}^m\):</p>
+    \[
+    J_{\mathbf{f}}(\mathbf{x}) = \frac{\partial \mathbf{f}}{\partial \mathbf{x}} =
+    \begin{bmatrix}
+    \frac{\partial f_1}{\partial x_1} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+    \vdots & \ddots & \vdots \\
+    \frac{\partial f_m}{\partial x_1} & \cdots & \frac{\partial f_m}{\partial x_n}
+    \end{bmatrix}.
+    \]
+    <p>For \(\mathbf{f}(x,y) = \begin{bmatrix} x+y \\ x^2 y \end{bmatrix}\):</p>
+    \[ J_{\mathbf{f}}(x,y) = \begin{bmatrix} 1 & 1 \\ 2xy & x^2 \end{bmatrix}. \]
+
+    <p><strong>Second derivatives (the Hessian).</strong> For \(f: \mathbb{R}^n \to \mathbb{R}\):</p>
+    \[
+    H_f(\mathbf{x}) = \frac{\partial^2 f}{\partial \mathbf{x}^2} =
+    \begin{bmatrix}
+    \frac{\partial^2 f}{\partial x_1^2} & \cdots & \frac{\partial^2 f}{\partial x_1 \partial x_n} \\
+    \vdots & \ddots & \vdots \\
+    \frac{\partial^2 f}{\partial x_n \partial x_1} & \cdots & \frac{\partial^2 f}{\partial x_n^2}
+    \end{bmatrix}.
+    \]
+    <p>For \(f(x,y) = x^2 + 3xy + y^2\):</p>
+    \[ H_f = \begin{bmatrix} 2 & 3 \\ 3 & 2 \end{bmatrix}. \]
+    <p>
+      The Hessian is symmetric because mixed partials commute under mild smoothness conditions (Clairaut's
+      theorem) — which in turn guarantees it has real eigenvalues, the fact that makes the second-derivative
+      test work at all.
+    </p>
+
+    <!-- ---------- Chain rule ---------- -->
+    <h3 id="chain-rule">The chain rule for multivariable functions</h3>
+
+    <p>For \(z = f(y)\) and \(y = g(x)\), so that \(z = f(g(x))\):</p>
+    \[ \frac{dz}{dx} = \frac{df}{dy} \cdot \frac{dg}{dx}. \]
+    <p>In differential form the reason is almost visible:</p>
+    \[ dz = \frac{df}{dy}\, dy, \qquad dy = \frac{dg}{dx}\, dx
+       \;\Longrightarrow\; dz = \frac{df}{dy}\cdot\frac{dg}{dx}\, dx, \]
+    <p>and dividing through by \(dx\) recovers the rule. For the multivariable case with \(\mathbf{u} = g(\mathbf{x})\), the Jacobian takes over:</p>
+    \[ \nabla_\mathbf{x} f(g(\mathbf{x})) = J_g(\mathbf{x})^T\, \nabla f(g(\mathbf{x})). \]
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Forward values, backward derivatives</p>
+          <p class="playground__sub">A three-node computation graph. Values flow right; local derivatives multiply back left. Scale this up and it is backpropagation.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="chain-rule"></div>
+    </div>
+
+    <p>
+      <strong>Example.</strong> If \(f(u,v) = u^2 + v\) with \((u,v) = (x^2, y)\), then
+    </p>
+    \[ \frac{\partial f}{\partial x} = 2u\,\frac{\partial u}{\partial x} + \frac{\partial v}{\partial x}
+       = 2(x^2)(2x) + 0 = 4x^3. \]
+
+    <!-- ---------- Matrix calculus ---------- -->
+    <h3 id="matrix-calculus">Matrix calculus identities</h3>
+
+    <p>Four identities do most of the work in practice:</p>
+    <ol>
+      <li>\(f(\mathbf{x}) = \mathbf{a}^T\mathbf{x} \;\Rightarrow\; \nabla_\mathbf{x} f = \mathbf{a}\).</li>
+      <li>\(f(\mathbf{x}) = \mathbf{x}^T\mathbf{A}\mathbf{x}\) with \(\mathbf{A}\) symmetric \(\Rightarrow \nabla_\mathbf{x} f = 2\mathbf{A}\mathbf{x}\).</li>
+      <li>\(f(\mathbf{x}) = \|\mathbf{x}\|^2 = \mathbf{x}^T\mathbf{x} \;\Rightarrow\; \nabla_\mathbf{x} f = 2\mathbf{x}\).</li>
+      <li>\(f(\mathbf{X}) = \operatorname{tr}(\mathbf{A}\mathbf{X}) \;\Rightarrow\; \nabla_\mathbf{X} f = \mathbf{A}^T\).</li>
+    </ol>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Derivations
+      </div>
+      <div class="example__body">
+        <p><strong>1 · Linear form.</strong> Let \(f(\mathbf{x}) = \mathbf{a}^T\mathbf{x}\) with \(\mathbf{a} \in \mathbb{R}^n\) constant.</p>
+        \[ f(\mathbf{x}) = \sum_{i=1}^n a_i x_i \;\Rightarrow\; \frac{\partial f}{\partial x_i} = a_i
+           \;\Rightarrow\; \nabla_\mathbf{x} f = \mathbf{a}. \]
+
+        <p><strong>2 · Quadratic form.</strong> Let \(f(\mathbf{x}) = \mathbf{x}^T\mathbf{A}\mathbf{x}\) with \(\mathbf{A} \in \mathbb{R}^{n \times n}\) symmetric.</p>
+        \[ f(\mathbf{x}) = \sum_{i=1}^n\sum_{j=1}^n x_i A_{ij} x_j \]
+        <p>Differentiating with respect to \(x_k\) picks up the terms where \(k\) appears in either index:</p>
+        \[ \frac{\partial f}{\partial x_k} = \sum_{j=1}^n A_{kj}x_j + \sum_{i=1}^n x_i A_{ik}
+           = [\mathbf{A}\mathbf{x}]_k + [\mathbf{A}^T\mathbf{x}]_k. \]
+        <p>Since \(\mathbf{A} = \mathbf{A}^T\), the two terms coincide:</p>
+        \[ \frac{\partial f}{\partial x_k} = 2[\mathbf{A}\mathbf{x}]_k \;\Rightarrow\; \nabla_\mathbf{x} f = 2\mathbf{A}\mathbf{x}. \]
+        <p style="font-size:.93rem;color:var(--ink-muted)">
+          Without symmetry the general result is \(\nabla_\mathbf{x} f = (\mathbf{A} + \mathbf{A}^T)\mathbf{x}\).
+        </p>
+
+        <p><strong>3 · Squared norm.</strong> Let \(f(\mathbf{x}) = \|\mathbf{x}\|^2 = \mathbf{x}^T\mathbf{x}\).</p>
+        \[ f(\mathbf{x}) = \sum_{i=1}^n x_i^2 \;\Rightarrow\; \frac{\partial f}{\partial x_i} = 2x_i
+           \;\Rightarrow\; \nabla_\mathbf{x} f = 2\mathbf{x}. \]
+        <p>This is just identity 2 with \(\mathbf{A} = \mathbf{I}\).</p>
+
+        <p><strong>4 · Trace.</strong> Let \(f(\mathbf{X}) = \operatorname{tr}(\mathbf{A}\mathbf{X})\). For the product to be square we need \(\mathbf{A} \in \mathbb{R}^{m \times n}\) and \(\mathbf{X} \in \mathbb{R}^{n \times m}\). Expanding the trace:</p>
+        \[ \operatorname{tr}(\mathbf{A}\mathbf{X}) = \sum_{i=1}^m [\mathbf{A}\mathbf{X}]_{ii}
+           = \sum_{i=1}^m \sum_{j=1}^n A_{ij} X_{ji}. \]
+        <p>The entry \(X_{kl}\) appears exactly once, multiplied by \(A_{lk}\), so</p>
+        \[ \frac{\partial f}{\partial X_{kl}} = A_{lk} \;\Rightarrow\; \nabla_\mathbf{X} f = \mathbf{A}^T. \]
+        <p style="margin-bottom:1em;font-size:.93rem;color:var(--ink-muted)">
+          Watch the index order carefully: it is \(A_{ij}X_{ji}\), not \(A_{ij}X_{ij}\). The latter sum is the
+          Frobenius inner product \(\langle\mathbf{A},\mathbf{X}\rangle_F = \operatorname{tr}(\mathbf{A}^T\mathbf{X})\),
+          whose derivative is \(\mathbf{A}\) rather than \(\mathbf{A}^T\). The two identities differ by exactly
+          one transpose, and that transpose is where the sign errors live.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Example (identity 1).</strong> For a linear model \(f(\mathbf{x}) = \mathbf{w}^T\mathbf{x} + b\)
+      with scalar bias \(b\), the gradient with respect to the input is \(\nabla_\mathbf{x} f = \mathbf{w}\),
+      and with respect to the weights it is \(\nabla_\mathbf{w} f = \mathbf{x}\).
+    </p>
+    <p>
+      For more, see the <em>Matrix Cookbook</em> in the <a href="#reading">further reading</a> section.
+    </p>
+
+    <!-- ---------- Convexity ---------- -->
+    <h3 id="convexity">Convexity and optimisation</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        A set \(C \subseteq \mathbb{R}^n\) is <strong>convex</strong> if for any \(x, y \in C\) the whole
+        segment \(\theta x + (1-\theta)y\), \(0 \le \theta \le 1\), stays inside \(C\).
+      </p>
+      <p>A function \(f\) is <strong>convex</strong> if its domain is convex and</p>
+      \[ f(\theta x + (1-\theta)y) \le \theta f(x) + (1-\theta) f(y). \]
+      <p style="margin-bottom:0"><strong>First-order condition.</strong> For differentiable \(f\), convexity is equivalent to</p>
+      \[ f(y) \ge f(x) + \nabla f(x)^T (y - x) \quad \text{for all } x, y, \]
+      <p style="margin-bottom:0">i.e. the tangent plane is a global underestimator.</p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 19C7 8 12 5 20 4"/><path d="M5 19 20 4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The chord test</p>
+          <p class="playground__sub">Drag the endpoints. If any chord dips below the curve, the function is not convex — and you have found the counterexample yourself.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="convexity"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Why anyone cares about convexity
+      </div>
+      <p style="margin-bottom:0">
+        For a convex function, <strong>every local minimum is a global minimum</strong>. There are no
+        false bottoms to get stuck in, so gradient descent that stops moving has genuinely finished. Neural
+        network losses are famously <em>not</em> convex — which is exactly why initialisation, learning-rate
+        schedules and momentum matter so much in practice.
+      </p>
+    </div>
+
+    <h4>Optimisation basics</h4>
+    <ul>
+      <li>A <strong>critical point</strong> satisfies \(\nabla f(\mathbf{x}) = \mathbf{0}\).</li>
+      <li>
+        The Hessian classifies it: at a critical point, \(H \succ 0\) (all eigenvalues positive) gives a
+        local minimum, \(H \prec 0\) gives a local maximum, and mixed signs give a <strong>saddle point</strong>.
+      </li>
+      <li>The <strong>gradient descent</strong> update is \(\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \eta\,\nabla f(\mathbf{x}^{(k)})\), where \(\eta\) is the learning rate.</li>
+    </ul>
+
+    <p>
+      <strong>Example.</strong> For \(f(x) = x^2\), \(f'(x) = 2x\), so the only critical point is \(x = 0\).
+      Since \(f''(0) = 2 > 0\) it is a minimum — and because \(f\) is convex, it is the global one.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="m7 12 5 5 5-5"/><path d="M4 21h16"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Gradient descent, and how to break it</p>
+          <p class="playground__sub">Click anywhere to drop a starting point. Push \(\eta\) until it diverges, switch to the ill-conditioned bowl to see zig-zagging, then add momentum to damp it out.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="gradient-descent"></div>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="further">Part 1.4 · Further Topics</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Material that supports the rest of the course without belonging to any single earlier section —
+      the geometry of inner products, the matrices that behave like positive numbers, projections and least
+      squares, the two limit theorems, and how algorithm cost scales.
+    </p>
+
+    <!-- ---------- Inner products ---------- -->
+    <h3 id="inner-products">Inner products, orthogonality and orthonormal bases</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Inner product.</strong> For \(\mathbf{a}, \mathbf{b} \in \mathbb{R}^n\):</p>
+      \[ \langle \mathbf{a}, \mathbf{b} \rangle = \sum_{i=1}^n a_i b_i = \mathbf{a}^T\mathbf{b}. \]
+      <p><strong>Orthogonality.</strong> \(\mathbf{a} \perp \mathbf{b}\) when \(\langle \mathbf{a}, \mathbf{b}\rangle = 0\).</p>
+      <p style="margin-bottom:0">
+        <strong>Orthonormal set.</strong> \(\{\mathbf{v}_1, \dots, \mathbf{v}_k\}\) is orthonormal if
+        \(\langle \mathbf{v}_i, \mathbf{v}_j \rangle = \delta_{ij}\) — mutually orthogonal and each of unit
+        length. If it also spans a subspace, it is an <strong>orthonormal basis</strong> of that subspace.
+      </p>
+    </div>
+
+    <p><strong>Two inequalities worth knowing by heart.</strong></p>
+    \[
+    |\langle \mathbf{a}, \mathbf{b} \rangle| \le \|\mathbf{a}\|_2\,\|\mathbf{b}\|_2
+    \quad \text{(Cauchy–Schwarz)}, \qquad
+    \|\mathbf{a}+\mathbf{b}\|_2 \le \|\mathbf{a}\|_2 + \|\mathbf{b}\|_2
+    \quad \text{(triangle)}.
+    \]
+    <p>
+      Cauchy–Schwarz is what makes the cosine similarity
+      \(\cos\theta = \frac{\langle\mathbf{a},\mathbf{b}\rangle}{\|\mathbf{a}\|\|\mathbf{b}\|}\)
+      well-defined — it guarantees the ratio never leaves \([-1,1]\), so it really is a cosine.
+    </p>
+
+    <p><strong>Examples.</strong> The standard basis is orthonormal:</p>
+    \[ \mathbf{e}_1 = [1,0]^T,\ \mathbf{e}_2 = [0,1]^T \;\Rightarrow\; \langle \mathbf{e}_1, \mathbf{e}_2\rangle = 0, \quad \|\mathbf{e}_i\| = 1. \]
+    <p>And a rotated pair is too:</p>
+    \[
+    \mathbf{u}_1 = \tfrac{1}{\sqrt{2}}[1,1]^T, \quad
+    \mathbf{u}_2 = \tfrac{1}{\sqrt{2}}[-1,1]^T, \quad
+    \mathbf{u}_1^T\mathbf{u}_2 = \tfrac{1}{2}(-1 + 1) = 0.
+    \]
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>np.dot([1, 0], [0, 1])      # 0 -- orthogonal
+
+U = np.array([[1/np.sqrt(2), -1/np.sqrt(2)],
+              [1/np.sqrt(2),  1/np.sqrt(2)]])
+np.allclose(U.T @ U, np.eye(2))    # True -- orthonormal columns</code></pre>
+    </div>
+
+    <!-- ---------- PSD ---------- -->
+    <h3 id="psd">Positive (semi)definite matrices</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>A symmetric matrix \(\mathbf{A} \in \mathbb{R}^{n \times n}\) is</p>
+      <ul style="margin-bottom:.6em">
+        <li><strong>positive definite</strong> (PD) if \(\mathbf{x}^T\mathbf{A}\mathbf{x} > 0\) for all \(\mathbf{x} \neq \mathbf{0}\),</li>
+        <li><strong>positive semidefinite</strong> (PSD) if \(\mathbf{x}^T\mathbf{A}\mathbf{x} \ge 0\) for all \(\mathbf{x}\).</li>
+      </ul>
+      <p style="margin-bottom:0">
+        These are the matrix analogues of "positive number" and "non-negative number", and they behave that
+        way in almost every respect that matters.
+      </p>
+    </div>
+
+    <p><strong>Equivalent characterisations</strong> (for symmetric \(\mathbf{A}\)):</p>
+    <ul>
+      <li>PD \(\iff\) all eigenvalues \(> 0\); PSD \(\iff\) all eigenvalues \(\ge 0\).</li>
+      <li>PD \(\iff\) there exists an invertible \(\mathbf{R}\) with \(\mathbf{A} = \mathbf{R}^T\mathbf{R}\) (the Cholesky factorisation).</li>
+    </ul>
+
+    <p><strong>Examples.</strong></p>
+    \[
+    \mathbf{A} = \begin{bmatrix} 2 & -1 \\ -1 & 2 \end{bmatrix} \Rightarrow \lambda = 1, 3 \ (\text{both} > 0) \Rightarrow \text{PD},
+    \]
+    \[
+    \mathbf{B} = \begin{bmatrix} 1 & -1 \\ -1 & 1 \end{bmatrix} \Rightarrow \lambda = 0, 2 \ (\text{both} \ge 0) \Rightarrow \text{PSD but not PD}.
+    \]
+    <p>
+      For \(\mathbf{B}\), the vector \(\mathbf{x} = (1,1)^T\) gives \(\mathbf{x}^T\mathbf{B}\mathbf{x} = 0\)
+      despite \(\mathbf{x} \neq \mathbf{0}\) — the zero eigenvalue in action.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Where these show up
+      </div>
+      <p style="margin-bottom:0">
+        Every <strong>covariance matrix</strong> is PSD (a variance cannot be negative). Every
+        <strong>kernel matrix</strong> must be PSD for the kernel trick to be valid. And a
+        <strong>Hessian</strong> that is PD at a critical point certifies a local minimum. Recognising
+        definiteness is often the shortest route to knowing whether a method will work.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>A = np.array([[2, -1], [-1, 2]])
+vals = np.linalg.eigvalsh(A)     # eigvalsh: for symmetric matrices
+is_pd  = np.all(vals > 0)        # True
+is_psd = np.all(vals >= 0)       # True</code></pre>
+    </div>
+
+    <!-- ---------- Quadratic forms ---------- -->
+    <h3 id="quadratic-forms">Quadratic forms</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>For \(\mathbf{A} \in \mathbb{R}^{n \times n}\) and \(\mathbf{x} \in \mathbb{R}^n\), the scalar</p>
+      \[ Q(\mathbf{x}) = \mathbf{x}^T\mathbf{A}\mathbf{x} \]
+      <p style="margin-bottom:0">is a <strong>quadratic form</strong>.</p>
+    </div>
+
+    <p><strong>Notes.</strong></p>
+    <ul>
+      <li>
+        If \(\mathbf{A}\) is symmetric with eigenvalues \(\lambda_{\min} \le \cdots \le \lambda_{\max}\), then
+        \(Q\) is trapped between them:
+        \[ \lambda_{\min}\|\mathbf{x}\|_2^2 \le \mathbf{x}^T\mathbf{A}\mathbf{x} \le \lambda_{\max}\|\mathbf{x}\|_2^2. \]
+      </li>
+      <li>If \(\mathbf{A} = \mathbf{I}\), then \(Q(\mathbf{x}) = \|\mathbf{x}\|_2^2\).</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c4-14 12-14 16 0"/><path d="M3 20h18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Bowl, saddle, or trough?</p>
+          <p class="playground__sub">Watch \(Q\) in every direction at once. The eigenvalues set the extremes, and their signs decide whether a critical point is a minimum, a maximum, or neither.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="quadratic-form"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Examples
+      </div>
+      <div class="example__body">
+        <p><strong>1.</strong> With \(\mathbf{A} = \mathbf{I}_3\) and \(\mathbf{x} = [1,2,2]^T\):</p>
+        \[ Q(\mathbf{x}) = 1^2 + 2^2 + 2^2 = 9 = \|\mathbf{x}\|_2^2. \]
+        <p><strong>2.</strong> With \(\mathbf{A} = \begin{bmatrix} 2 & 1 \\ 1 & 3 \end{bmatrix}\) and \(\mathbf{x} = \begin{bmatrix} 1 \\ 2 \end{bmatrix}\), first compute \(\mathbf{A}\mathbf{x} = (2 + 2,\ 1 + 6)^T = (4, 7)^T\), then</p>
+        \[ Q(\mathbf{x}) = \mathbf{x}^T(\mathbf{A}\mathbf{x}) = 1 \cdot 4 + 2 \cdot 7 = 18. \]
+      </div>
+    </div>
+
+    <!-- ---------- Projections ---------- -->
+    <h3 id="projections">Orthogonal projections</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Onto a vector.</strong> The projection of \(\mathbf{b}\) onto a nonzero \(\mathbf{a}\) is</p>
+      \[ \operatorname{proj}_\mathbf{a}(\mathbf{b}) = \frac{\langle \mathbf{a}, \mathbf{b}\rangle}{\|\mathbf{a}\|^2}\,\mathbf{a}, \]
+      <p>the closest vector to \(\mathbf{b}\) in \(\operatorname{span}\{\mathbf{a}\}\).</p>
+      <p>
+        <strong>Onto a subspace.</strong> If \(\mathbf{A} \in \mathbb{R}^{m \times k}\) has full column rank
+        and its columns form a basis for \(\mathcal{S} \subseteq \mathbb{R}^m\), the orthogonal projection
+        matrix onto \(\mathcal{S}\) is
+      </p>
+      \[ \mathbf{P}_\mathcal{S} = \mathbf{A}(\mathbf{A}^T\mathbf{A})^{-1}\mathbf{A}^T, \qquad \text{with } \mathbf{P}_\mathcal{S}^2 = \mathbf{P}_\mathcal{S} = \mathbf{P}_\mathcal{S}^T. \]
+      <p style="margin-bottom:0">If \(\mathbf{Q}\) has orthonormal columns spanning \(\mathcal{S}\), this simplifies to \(\mathbf{P}_\mathcal{S} = \mathbf{Q}\mathbf{Q}^T\).</p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 17 6"/><path d="M12 11 8 15"/><path d="M3 20h18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Casting a shadow</p>
+          <p class="playground__sub">Drag \(\mathbf{a}\) and \(\mathbf{b}\). The error vector meets \(\mathbf{a}\) at a right angle no matter what — and that perpendicularity is the whole of least squares.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="projection"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · onto a vector
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{a} = \begin{bmatrix} 1 \\ 2\end{bmatrix}, \quad
+        \mathbf{b} = \begin{bmatrix} 3 \\ 4\end{bmatrix}
+        \;\Rightarrow\;
+        \operatorname{proj}_\mathbf{a}(\mathbf{b}) = \frac{(1)(3) + (2)(4)}{1^2 + 2^2}\begin{bmatrix}1\\2\end{bmatrix}
+        = \frac{11}{5}\begin{bmatrix}1\\2\end{bmatrix}
+        = \begin{bmatrix}2.2\\4.4\end{bmatrix}.
+        \]
+        <p style="margin-bottom:1em">
+          Check: the residual is \(\mathbf{b} - \operatorname{proj}_\mathbf{a}(\mathbf{b}) = (0.8, -0.4)^T\),
+          and \((1)(0.8) + (2)(-0.4) = 0\) ✓ — perpendicular, as required.
+        </p>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · onto a 2-D subspace of \(\mathbb{R}^3\)
+      </div>
+      <div class="example__body">
+        <p>Let</p>
+        \[
+        \mathbf{A} = \begin{bmatrix} 1 & 0 \\ 1 & 1 \\ 0 & 1 \end{bmatrix}, \qquad
+        \mathbf{b} = \begin{bmatrix} 2 \\ 0 \\ 1 \end{bmatrix}.
+        \]
+        <p>First \(\mathbf{A}^T\mathbf{A} = \begin{bmatrix} 2 & 1 \\ 1 & 2\end{bmatrix}\), so \((\mathbf{A}^T\mathbf{A})^{-1} = \frac{1}{3}\begin{bmatrix} 2 & -1 \\ -1 & 2\end{bmatrix}\), giving</p>
+        \[
+        \mathbf{P} = \mathbf{A}(\mathbf{A}^T\mathbf{A})^{-1}\mathbf{A}^T
+        = \frac{1}{3}\begin{bmatrix}
+          2 & 1 & -1 \\
+          1 & 2 & 1 \\
+          -1 & 1 & 2
+        \end{bmatrix}.
+        \]
+        <p>Applying it to \(\mathbf{b}\):</p>
+        \[
+        \mathbf{P}\mathbf{b} = \frac{1}{3}\begin{bmatrix}
+          (2)(2) + (1)(0) + (-1)(1) \\
+          (1)(2) + (2)(0) + (1)(1) \\
+          (-1)(2) + (1)(0) + (2)(1)
+        \end{bmatrix}
+        = \frac{1}{3}\begin{bmatrix} 3 \\ 3 \\ 0 \end{bmatrix}
+        = \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}.
+        \]
+        <p style="margin-bottom:1em">
+          Two checks that this is right. First, \((1,1,0)^T\) is the first column of \(\mathbf{A}\), so it
+          genuinely lies in the subspace. Second, the residual
+          \(\mathbf{b} - \mathbf{P}\mathbf{b} = (1,-1,1)^T\) is orthogonal to both columns:
+          \((1,-1,1)\cdot(1,1,0) = 0\) ✓ and \((1,-1,1)\cdot(0,1,1) = 0\) ✓.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        This is linear regression
+      </div>
+      <p style="margin-bottom:0">
+        Least squares asks for the \(\mathbf{x}\) minimising \(\|\mathbf{A}\mathbf{x} - \mathbf{b}\|_2^2\).
+        Since \(\mathbf{A}\mathbf{x}\) can only ever reach the column space of \(\mathbf{A}\), the best
+        possible answer is the point in that space closest to \(\mathbf{b}\) — its
+        <strong>projection</strong>. The normal equations
+        \(\mathbf{A}^T\mathbf{A}\mathbf{x} = \mathbf{A}^T\mathbf{b}\) are nothing more than the statement
+        that the residual must be orthogonal to every column of \(\mathbf{A}\).
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code># Projection onto a single vector
+a = np.array([1.0, 2.0])
+b = np.array([3.0, 4.0])
+proj_vec = (a @ b) / (a @ a) * a          # [2.2, 4.4]
+
+# Projection onto the column space of A
+A = np.array([[1., 0.],
+              [1., 1.],
+              [0., 1.]])
+P = A @ np.linalg.inv(A.T @ A) @ A.T
+b = np.array([2., 0., 1.])
+proj_sub = P @ b                          # [1., 1., 0.]</code></pre>
+    </div>
+
+    <!-- ---------- LLN & CLT ---------- -->
+    <h3 id="lln-clt">Law of large numbers and central limit theorem</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        <strong>(Weak) law of large numbers.</strong> Let \(X_1, \dots, X_n\) be i.i.d. with
+        \(\mathbb{E}[X_i] = \mu\) and \(\operatorname{Var}(X_i) = \sigma^2 < \infty\). Then
+      </p>
+      \[ \overline{X}_n \xrightarrow{\ \mathbb{P}\ } \mu \quad \text{as } n \to \infty, \]
+      <p>meaning \(\mathbb{P}(|\overline{X}_n - \mu| > \varepsilon) \to 0\) for every \(\varepsilon > 0\).</p>
+      <p><strong>Central limit theorem.</strong> Under the same conditions,</p>
+      \[ \sqrt{n}\,\frac{\overline{X}_n - \mu}{\sigma} \xrightarrow{\ \mathcal{D}\ } \mathcal{N}(0,1) \quad \text{as } n \to \infty. \]
+      <p style="margin-bottom:0">The standardised sample mean converges <em>in distribution</em> to a standard normal.</p>
+    </div>
+
+    <p>
+      <strong>Interpretation.</strong> The LLN says the sample mean settles near the true mean as \(n\)
+      grows. The CLT says more: after centring and scaling, the <em>distribution</em> of that sample mean is
+      approximately normal for large \(n\), <strong>regardless of what the parent distribution looked
+      like</strong> (under mild conditions). Together they explain why averages are so well behaved, and why
+      normality assumptions are so often defensible in practice.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 18c3 0 3-11 7-11s4 11 7 11"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The central limit theorem, watched happening</p>
+          <p class="playground__sub">Choose the most lopsided parent you can find, then raise \(n\). The histogram of sample means turns into a bell curve anyway.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="clt"></div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 16c3-6 5 2 7-2s3 1 5-1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The law of large numbers, converging</p>
+          <p class="playground__sub">Six independent runs of the same experiment. Early wild swings, then all of them squeezed into the ±ε band around the truth.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="lln"></div>
+    </div>
+
+    <!-- ---------- Complexity ---------- -->
+    <h3 id="complexity">Algorithmic complexity (Big-\(\mathcal{O}\))</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        <strong>Big-\(\mathcal{O}\)</strong> describes an upper bound on an algorithm's running time (or
+        operation count) as the input grows. We write \(f(n) = \mathcal{O}(g(n))\) to mean that \(f(n)\)
+        grows no faster than a constant multiple of \(g(n)\) for large \(n\).
+      </p>
+      <p style="margin-bottom:0">It is a worst-case estimate, and it deliberately ignores constant factors and lower-order terms.</p>
+    </div>
+
+    <p>Let \(\mathbf{A}, \mathbf{B} \in \mathbb{R}^{m \times n}\) and \(\mathbf{x} \in \mathbb{R}^n\).</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Operation</th><th>Work done</th><th>Complexity</th></tr></thead>
+        <tbody>
+          <tr><td>Vector addition \(\mathbf{x} + \mathbf{y}\)</td><td>\(n\) additions</td><td>\(\mathcal{O}(n)\)</td></tr>
+          <tr><td>Dot product \(\mathbf{x}^T\mathbf{y}\)</td><td>\(n\) multiplications, \(n-1\) additions</td><td>\(\mathcal{O}(n)\)</td></tr>
+          <tr><td>Vector norm \(\|\mathbf{x}\|_2\)</td><td>\(n\) multiplications, \(n-1\) additions</td><td>\(\mathcal{O}(n)\)</td></tr>
+          <tr><td>Matrix addition \(\mathbf{A} + \mathbf{B}\)</td><td>\(mn\) additions</td><td>\(\mathcal{O}(mn)\)</td></tr>
+          <tr><td>Element-wise product \(\mathbf{A} \circ \mathbf{B}\)</td><td>\(mn\) multiplications</td><td>\(\mathcal{O}(mn)\)</td></tr>
+          <tr><td>Transpose \(\mathbf{A}^T\)</td><td>copy each entry once</td><td>\(\mathcal{O}(mn)\)</td></tr>
+          <tr><td>Matrix–vector \(\mathbf{A}\mathbf{x}\)</td><td>\(m(2n-1) \approx 2mn\)</td><td>\(\mathcal{O}(mn)\)</td></tr>
+          <tr><td>Matrix–matrix \(\mathbf{A}\mathbf{B}\), \(\mathbf{A}\in\mathbb{R}^{m\times k}\), \(\mathbf{B}\in\mathbb{R}^{k\times n}\)</td><td>\(mn\) entries, each \(\mathcal{O}(k)\)</td><td>\(\mathcal{O}(mnk)\)</td></tr>
+          <tr><td>Determinant, naïve cofactor expansion</td><td>factorial blow-up</td><td>\(\mathcal{O}(n!)\)</td></tr>
+          <tr><td>Determinant via LU</td><td>one factorisation</td><td>\(\mathcal{O}(n^3)\)</td></tr>
+          <tr><td>Matrix inversion (Gaussian elimination)</td><td>—</td><td>\(\mathcal{O}(n^3)\)</td></tr>
+          <tr><td>Solving \(\mathbf{A}\mathbf{x}=\mathbf{b}\) (LU + substitution)</td><td>—</td><td>\(\mathcal{O}(n^3)\)</td></tr>
+          <tr><td>Eigenvalues (iterative, e.g. QR)</td><td>dense matrices</td><td>\(\mathcal{O}(n^3)\)</td></tr>
+          <tr><td>SVD</td><td>for \(m \ge n\)</td><td>\(\mathcal{O}(mn^2)\)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 18c4 0 7-12 13-13"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">How cost actually scales</p>
+          <p class="playground__sub">Switch between linear and logarithmic axes. On the linear scale the cubics make everything else look flat — which is the honest picture.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="bigo"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Key idea
+      </div>
+      <p style="margin-bottom:.6em">
+        Big-\(\mathcal{O}\) tells you how cost responds to size. Doubling the matrix size multiplies addition
+        by 4 and multiplication by 8:
+      </p>
+      \[ n \to 2n: \quad \mathcal{O}(n^2) \to 4\times, \qquad \mathcal{O}(n^3) \to 8\times. \]
+      <p style="margin-bottom:0">
+        The computational bottleneck in deep learning is <strong>matrix multiplication</strong>. That single
+        fact is why so much effort goes into shrinking the footprint of matrices — reducing rank, increasing
+        sparsity, quantising weights — since every one of those directly attacks the \(mnk\).
+      </p>
+    </div>
+
+    <!-- ---------- Further reading ---------- -->
+    <h3 id="reading">Further reading</h3>
+
+    <p>Recommended for going deeper on anything in this chapter:</p>
+    <ul>
+      <li><strong>The Matrix Cookbook</strong> — Kaare Brandt Petersen and Michael Syskind Pedersen. A reference, not a textbook: the identity you need is in it.</li>
+      <li><strong>Introduction to Linear Algebra</strong> — Gilbert Strang. The standard first course, strong on geometric intuition.</li>
+      <li><strong>Linear Algebra Done Right</strong> — Sheldon Axler. A more abstract, determinant-free treatment.</li>
+      <li><strong>Convex Optimization</strong> — Stephen Boyd and Lieven Vandenberghe. The definitive treatment, and freely available online.</li>
+      <li><strong>Probability and Statistics for Engineering and the Sciences</strong> — Jay L. Devore.</li>
+      <li><strong>Pattern Recognition and Machine Learning</strong> — Christopher Bishop. Where this mathematics starts being used in earnest.</li>
+    </ul>
+
+    <!-- ---------- Errata ---------- -->
+    <h3 id="errata">Errata and verification</h3>
+
+    <p>
+      Every worked example in this chapter was recomputed independently while converting it from the original
+      LaTeX notes. Most checked out exactly. The corrections below were applied to the text above, and are
+      recorded here openly so anyone working from an older PDF knows what changed.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Section</th><th>Original notes</th><th>Corrected to</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#projections">Orthogonal projections</a></td>
+            <td>\(\mathbf{P}\mathbf{b} = (1, 1, 1)^T\)</td>
+            <td>\(\mathbf{P}\mathbf{b} = (1, 1, 0)^T\)</td>
+            <td>Arithmetic slip in the third component. \((1,1,1)^T\) is not even in the column space of \(\mathbf{A}\), which requires \(y = x + z\); the projection matrix \(\mathbf{P}\) itself was correct.</td>
+          </tr>
+          <tr>
+            <td><a href="#matrix-calculus">Matrix calculus, identity 4</a></td>
+            <td>\(\operatorname{tr}(\mathbf{AX}) = \sum_{i}\sum_{j} A_{ij}X_{ij} = \langle \mathbf{A},\mathbf{X}\rangle_F\)</td>
+            <td>\(\operatorname{tr}(\mathbf{AX}) = \sum_{i}\sum_{j} A_{ij}X_{ji}\)</td>
+            <td>The index order was transposed. \(\sum_{ij}A_{ij}X_{ij}\) is \(\operatorname{tr}(\mathbf{A}^T\mathbf{X})\), a different quantity. The stated result \(\nabla_\mathbf{X} f = \mathbf{A}^T\) was right; the derivation reaching it was not. Dimensions were also corrected: \(\mathbf{X}\) must be \(n \times m\), not \(m \times n\).</td>
+          </tr>
+          <tr>
+            <td><a href="#matrix-derivatives">Layout conventions</a></td>
+            <td>"Numerator layout (used in ML)… the result follows the shape of \(x\)"</td>
+            <td>Denominator (gradient) layout, described as such</td>
+            <td>The description matched denominator layout while carrying the numerator-layout label, and the worked examples all used column vectors — i.e. denominator layout. The label was the error, not the mathematics.</td>
+          </tr>
+          <tr>
+            <td><a href="#multiplication">Matrix multiplication properties</a></td>
+            <td>\(\mathbf{A}\mathbf{I}_m = \mathbf{A}\) and \(\mathbf{A}\mathbf{I}_n = \mathbf{A}\)</td>
+            <td>\(\mathbf{I}_m\mathbf{A} = \mathbf{A}\) and \(\mathbf{A}\mathbf{I}_n = \mathbf{A}\)</td>
+            <td>For non-square \(\mathbf{A} \in \mathbb{R}^{m\times n}\) the product \(\mathbf{A}\mathbf{I}_m\) is undefined. The accompanying prose already described this correctly; only the formula disagreed.</td>
+          </tr>
+          <tr>
+            <td><a href="#svd">SVD</a></td>
+            <td>"this decomposition always exists and is unique"</td>
+            <td>Always exists; singular values unique, \(\mathbf{U}\) and \(\mathbf{V}\) are not</td>
+            <td>Sign flips of paired columns, and rotations within the subspace of a repeated singular value, all give valid alternative factorisations.</td>
+          </tr>
+          <tr>
+            <td><a href="#null-space">Null space</a></td>
+            <td>\(\operatorname{Null}(\mathbf{I}_2) = \{\varnothing\}\)</td>
+            <td>\(\operatorname{Null}(\mathbf{I}_2) = \{\mathbf{0}\}\)</td>
+            <td>A null space always contains the zero vector, so it is never the empty set. The trivial null space is the set containing \(\mathbf{0}\).</td>
+          </tr>
+          <tr>
+            <td><a href="#null-space">Null space</a></td>
+            <td>\(\operatorname{Null}(\mathbf{A}) = 2\); \(\operatorname{Null}(\mathbf{A}) = \{(1,0,1)^T, (0,1,2)^T\}\)</td>
+            <td>\(\operatorname{nullity}(\mathbf{A}) = 2\); \(\operatorname{Null}(\mathbf{A}) = \operatorname{span}\{\dots\}\)</td>
+            <td>A set was equated with a number, and a spanning set with its span. The two vectors given are correct and do form a basis.</td>
+          </tr>
+          <tr>
+            <td><a href="#matrix-types">Orthogonal / orthonormal matrices</a></td>
+            <td>Two separate subsections, both defined by \(\mathbf{Q}^T\mathbf{Q} = \mathbf{I}\)</td>
+            <td>Merged, with the actual distinction spelled out</td>
+            <td>The two definitions given were identical, so the intended contrast was lost. Merged into one section that distinguishes orthogonal from orthonormal <em>vectors</em> and notes that "orthogonal matrix" is the standard term for the square, orthonormal-column case.</td>
+          </tr>
+          <tr>
+            <td><a href="#matrix-types">Orthonormal example</a></td>
+            <td>Product labelled \(\mathbf{Q}^T\mathbf{Q}\) displayed \(\mathbf{Q}\) as the left factor</td>
+            <td>\(\mathbf{Q}^T\) shown as the left factor</td>
+            <td>Both products equal \(\mathbf{I}\) here, so the result was unaffected — but the displayed computation did not match its own label.</td>
+          </tr>
+          <tr>
+            <td><a href="#complexity">Complexity of the norm</a></td>
+            <td>\(\|\mathbf{x}\|^2 = \sqrt{\sum x_i^2}\)</td>
+            <td>\(\|\mathbf{x}\|_2 = \sqrt{\sum x_i^2}\)</td>
+            <td>The square and the square root cannot both be there. Typo in the exponent.</td>
+          </tr>
+          <tr>
+            <td><a href="#addition">Matrix addition example</a></td>
+            <td>Bottom-left entry written \(7+3\)</td>
+            <td>\(3+7\)</td>
+            <td>Cosmetic only — the sum is 10 either way — but the order should follow \(a_{21} + b_{21}\) like every other entry.</td>
+          </tr>
+          <tr>
+            <td><a href="#continuous-rv">68–95–99.7 rule</a></td>
+            <td>"Most data lie within \(\mu \pm k\sigma\)"</td>
+            <td>Explicit percentages for \(k = 1, 2, 3\)</td>
+            <td>The rule was named but its content omitted, leaving the reader with nothing to use.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Additions</strong> made while converting, where the notes referred to something they never defined:</p>
+    <ul>
+      <li>The <strong>Poisson distribution</strong> is now defined among the discrete distributions — it was previously only mentioned in passing, when the exponential distribution was described as modelling waiting times between Poisson events.</li>
+      <li>The <strong>determinant</strong> and the <strong>trace</strong> now have short definitions where they are first used, rather than being assumed.</li>
+      <li>The <strong>Bayes' theorem worked example</strong> has been restored — it was present in the source but commented out.</li>
+      <li>The <strong>SVD geometry figure</strong> (unit circle mapping to an ellipse) has likewise been restored from a commented-out block, as an interactive figure.</li>
+      <li>The <strong>Eckart–Young theorem</strong> is now stated explicitly, since the notes relied on the best-rank-\(k\) property without naming it.</li>
+      <li>Part 1.4 has been <strong>reorganised</strong>: in the original, the "Further Reading" chapter opened with the book list and then continued with substantive sections. The mathematical content now comes first and the reading list closes the chapter.</li>
+    </ul>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Found something else?
+      </div>
+      <p style="margin-bottom:0">
+        Please report it — a typo in an exponent can cost a student an hour, and there is no reason for
+        anyone else to lose that hour too. Email
+        <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a>, or raise it in class. That includes the
+        interactive figures: if one gives a result you cannot reproduce by hand, that is a bug worth hearing
+        about.
+      </p>
+    </div>
+
+    <!-- ---------- Page nav ---------- -->
+    <nav class="pagenav" aria-label="Chapter navigation">
+      <a href="../notes.html">
+        <small>Back to</small>
+        <b>All chapters</b>
+      </a>
+      <a href="../notes.html" class="is-next">
+        <small>Next up</small>
+        <b>2 · Data Fundamentals — in conversion</b>
+      </a>
+    </nav>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="../notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="../syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="../about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script type="module" src="../assets/js/widgets/index.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

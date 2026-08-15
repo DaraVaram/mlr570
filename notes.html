@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes — MLR 570 Advanced Machine Learning</title>
+<meta name="description" content="All chapters of the MLR 570 lecture notes, with the full table of contents.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/layout.css">
+<link rel="stylesheet" href="assets/css/components.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="index.html">Home</a>
+      <a class="nav__link" href="notes.html" aria-current="page">Notes</a>
+      <a class="nav__link" href="syllabus.html">Syllabus</a>
+      <a class="nav__link" href="about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+<div class="page">
+
+  <div class="chapter-head">
+    <div class="chapter-head__crumb"><a href="index.html">Home</a> › Notes</div>
+    <h1>Course notes</h1>
+    <p class="chapter-head__lede">
+      The complete MLR 570 lecture notes. Chapter 1 is converted and interactive; the rest are being brought
+      across in order, and this page will fill in as they land.
+    </p>
+  </div>
+
+  <!-- ===== Chapter 1 ===== -->
+  <section>
+    <div class="section-head" style="margin-top:0">
+      <div class="section-head__label">Available now</div>
+      <h2>1 · Mathematical Background</h2>
+      <p>
+        Everything the rest of the course assumes you already know, gathered in one place — with the reason
+        each piece matters for machine learning attached to it.
+      </p>
+    </div>
+
+    <div class="grid-3">
+      <a class="card-link" href="chapters/01-mathematical-background.html#linear-algebra">
+        <div class="card-link__num">PART 1.1</div>
+        <h3 class="card-link__title">Linear Algebra</h3>
+        <p class="card-link__desc">
+          Vectors and matrices, multiplication, linear systems, transpose, inverse, rank, null space, matrix
+          families, norms, eigenvalues and SVD.
+        </p>
+        <div class="card-link__foot">
+          <span class="pill pill--play">13 playgrounds</span>
+        </div>
+      </a>
+      <a class="card-link" href="chapters/01-mathematical-background.html#probability">
+        <div class="card-link__num">PART 1.2</div>
+        <h3 class="card-link__title">Probability &amp; Statistics</h3>
+        <p class="card-link__desc">
+          Sample spaces, discrete and continuous random variables, moments, joint and conditional
+          distributions, Bayes' theorem, independence, sample statistics.
+        </p>
+        <div class="card-link__foot">
+          <span class="pill pill--play">4 playgrounds</span>
+        </div>
+      </a>
+      <a class="card-link" href="chapters/01-mathematical-background.html#calculus">
+        <div class="card-link__num">PART 1.3</div>
+        <h3 class="card-link__title">Calculus &amp; Optimisation</h3>
+        <p class="card-link__desc">
+          Limits and derivatives, gradients, vector and matrix calculus, the chain rule, convexity and
+          gradient descent.
+        </p>
+        <div class="card-link__foot">
+          <span class="pill pill--play">4 playgrounds</span>
+        </div>
+      </a>
+      <a class="card-link" href="chapters/01-mathematical-background.html#further">
+        <div class="card-link__num">PART 1.4</div>
+        <h3 class="card-link__title">Further Topics</h3>
+        <p class="card-link__desc">
+          Inner products and orthonormal bases, positive definite matrices, quadratic forms, orthogonal
+          projections, LLN and CLT, and algorithmic complexity.
+        </p>
+        <div class="card-link__foot">
+          <span class="pill pill--play">5 playgrounds</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== Coming ===== -->
+  <section>
+    <div class="section-head">
+      <div class="section-head__label">In conversion</div>
+      <h2>The rest of the course</h2>
+      <p>
+        These chapters exist in full as lecture notes and are being converted to interactive pages one at a
+        time. The outline below is the real structure of the material.
+      </p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-link__num">CHAPTER 2</div>
+        <h3 style="margin-top:0;font-size:1.09rem">Data Fundamentals</h3>
+        <ul style="font-size:.92rem;color:var(--ink-muted);margin-bottom:0">
+          <li>Data preprocessing</li>
+          <li>Similarity measures</li>
+          <li>Model evaluation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-link__num">CHAPTER 3</div>
+        <h3 style="margin-top:0;font-size:1.09rem">Supervised Learning</h3>
+        <ul style="font-size:.92rem;color:var(--ink-muted);margin-bottom:0">
+          <li>Linear models for supervised learning</li>
+          <li>Nonlinear models and kernel methods</li>
+          <li>Decision trees</li>
+          <li>Feedforward neural networks</li>
+          <li>Convolutional neural networks</li>
+          <li>Recurrent neural networks</li>
+          <li>Transformers</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-link__num">CHAPTER 4</div>
+        <h3 style="margin-top:0;font-size:1.09rem">Unsupervised Learning</h3>
+        <ul style="font-size:.92rem;color:var(--ink-muted);margin-bottom:0">
+          <li>Clustering</li>
+          <li>Autoencoders</li>
+        </ul>
+      </div>
+      <div class="card" style="background:var(--bg-sunken);border-style:dashed">
+        <div class="card-link__num" style="color:var(--ink-faint)">ALSO ON THE SYLLABUS</div>
+        <h3 style="margin-top:0;font-size:1.09rem">Taught from readings</h3>
+        <ul style="font-size:.92rem;color:var(--ink-muted);margin-bottom:0">
+          <li>Semi-supervised learning (weeks 13–14)</li>
+          <li>Ensemble methods (week 15)</li>
+        </ul>
+        <p style="font-size:.87rem;color:var(--ink-faint);margin:.8rem 0 0">
+          These are on the <a href="syllabus.html#schedule">schedule</a> but are not part of the lecture-note
+          set, so no chapter is planned for them here.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="chapters/01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
+</body>
+</html>
