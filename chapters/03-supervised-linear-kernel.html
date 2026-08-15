@@ -1,0 +1,1338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3 · Supervised Learning I — MLR 570</title>
+<meta name="description" content="Linear models, the perceptron, support vector machines, regression and kernel methods for MLR 570 — with interactive figures for every major idea.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="../index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="../index.html">Home</a>
+      <a class="nav__link" href="../notes.html" aria-current="page">Notes</a>
+      <a class="nav__link" href="../syllabus.html">Syllabus</a>
+      <a class="nav__link" href="../about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar__mobile-toggle" id="sidebar-toggle" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      On this page
+    </button>
+    <div class="sidebar__body">
+      <div class="sidebar__group">
+        <div class="sidebar__title">3.1 · Linear Classification</div>
+        <ul class="toc">
+          <li><a href="#intro">What supervised learning is</a></li>
+          <li><a href="#separability">Linear separability</a></li>
+          <li><a href="#perceptron">The perceptron algorithm</a></li>
+          <li><a href="#perceptron-gd">Gradient descent view</a></li>
+          <li><a href="#perceptron-limits">Limitations</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">3.2 · Support Vector Machines</div>
+        <ul class="toc">
+          <li><a href="#margin">The maximum-margin idea</a></li>
+          <li><a href="#svm-dual">Primal, dual and KKT</a></li>
+          <li><a href="#soft-margin">Soft margin and C</a></li>
+          <li><a href="#svm-example">Worked example</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">3.3 · Linear Regression</div>
+        <ul class="toc">
+          <li><a href="#ols">Ordinary least squares</a></li>
+          <li><a href="#wls">Weighted least squares</a></li>
+          <li><a href="#ridge">Ridge regression</a></li>
+          <li><a href="#lasso">Lasso &amp; elastic net</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">3.4 · Kernel Methods</div>
+        <ul class="toc">
+          <li><a href="#nonlinear">Limits of linear models</a></li>
+          <li><a href="#feature-maps">Nonlinear feature maps</a></li>
+          <li><a href="#kernels">Kernel functions</a></li>
+          <li><a href="#poly-kernel">The polynomial kernel</a></li>
+          <li><a href="#rbf-kernel">The RBF kernel</a></li>
+          <li><a href="#kernel-choice">Choosing a kernel</a></li>
+          <li><a href="#kls">Kernel least squares</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">3.5 · k-Nearest Neighbours</div>
+        <ul class="toc">
+          <li><a href="#knn">k-NN</a></li>
+          <li><a href="#complexity">Computational cost</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">Reference</div>
+        <ul class="toc">
+          <li><a href="#errata">Errata &amp; verification</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content" id="main">
+
+    <div class="chapter-head">
+      <div class="chapter-head__crumb">
+        <a href="../index.html">Home</a> › <a href="../notes.html">Notes</a> › Chapter 3
+      </div>
+      <h1>Supervised Learning I</h1>
+      <p class="chapter-head__lede">
+        Linear models and the kernel methods that free them. The perceptron, support vector machines,
+        least squares and its regularised cousins — then the trick that lets all of them draw curved
+        boundaries without ever leaving linear algebra.
+      </p>
+      <div class="chapter-head__stats">
+        <span class="pill pill--live">Verified</span>
+        <span class="pill pill--play">10 interactive figures</span>
+        <span class="pill pill--brand">5 parts</span>
+      </div>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="intro">Part 3.1 · Linear Classification</h2>
+    <!-- ==================================================== -->
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        Supervised learning means learning a mapping \(f: \mathcal{X} \to \mathcal{Y}\) from input features
+        \(\mathcal{X} \subseteq \mathbb{R}^n\) to output labels \(\mathcal{Y}\), guided by example pairs
+        \((x_i, y_i)\). The goal is an \(f\) whose predictions \(\hat{y}_i = f(x_i)\) closely match the true
+        labels.
+      </p>
+      <p style="margin-bottom:0">Two paradigms:</p>
+      <ul style="margin-bottom:0">
+        <li><strong>Classification</strong> — \(\mathcal{Y}\) is discrete, e.g. \(\{0,1\}\) or \(\{1,\dots,k\}\). We look for <em>decision boundaries</em> separating the classes.</li>
+        <li><strong>Regression</strong> — \(\mathcal{Y}\) is continuous. We look for a <em>function</em> that best approximates the trend.</li>
+      </ul>
+    </div>
+
+    <h3 id="separability">Linear separability</h3>
+
+    <p>
+      A dataset is <strong>linearly separable</strong> if some hyperplane perfectly divides the classes. In
+      \(\mathbb{R}^n\) a hyperplane is
+    </p>
+    \[ w^\top x + b = 0, \]
+    <p>
+      where \(w \in \mathbb{R}^n\) is the <em>weight vector</em> setting the orientation and \(b \in \mathbb{R}\)
+      the <em>bias</em> setting the offset from the origin. Geometrically \(w\) is orthogonal to the
+      hyperplane, and the sign of \(w^\top x + b\) says which side a point falls on. In two dimensions the
+      hyperplane is a line; in three, a plane.
+    </p>
+    <p>For a sample \((x_i, y_i)\) with \(y_i \in \{-1, +1\}\), correct classification means</p>
+    \[ y_i\big(w^\top x_i + b\big) > 0, \]
+    <p>and the dataset is linearly separable if <em>every</em> point satisfies this.</p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Why multiply by the label?
+      </div>
+      <p style="margin-bottom:0">
+        Because it collapses two cases into one. Class \(+1\) should give a positive value and class \(-1\) a
+        negative one; multiplying by \(y_i\) makes both conditions read "positive". That single product,
+        called the <strong>functional margin</strong>, is the quantity every algorithm in this chapter is
+        built around.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4"/><circle cx="7" cy="8" r="2"/><circle cx="17" cy="16" r="2"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Is this line a valid separator?</p>
+          <p class="playground__sub">Drag the boundary and watch every functional margin update. Any negative product circles the offending point in red.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="linear-separability"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>Four points, with the line \(x_1 + x_2 - 1 = 0\) — that is \(w = (1,1)\), \(b = -1\):</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Point \((x_1, x_2)\)</th><th>Class \(y\)</th><th>\(w^\top x + b\)</th><th>\(y(w^\top x + b)\)</th></tr></thead>
+            <tbody>
+              <tr><td>(1, 1)</td><td>+1</td><td class="u-mono">1 + 1 − 1 = 1</td><td class="u-mono">(+1)(1) = 1 &gt; 0 ✓</td></tr>
+              <tr><td>(2, 2)</td><td>+1</td><td class="u-mono">2 + 2 − 1 = 3</td><td class="u-mono">(+1)(3) = 3 &gt; 0 ✓</td></tr>
+              <tr><td>(1, −2)</td><td>−1</td><td class="u-mono">1 − 2 − 1 = −2</td><td class="u-mono">(−1)(−2) = 2 &gt; 0 ✓</td></tr>
+              <tr><td>(−1, −3)</td><td>−1</td><td class="u-mono">−1 − 3 − 1 = −5</td><td class="u-mono">(−1)(−5) = 5 &gt; 0 ✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:1em">
+          All four products are positive, so this dataset is linearly separable and this particular line is
+          one valid separator. The obvious next question: how do we <em>find</em> such a line systematically,
+          rather than by inspection?
+        </p>
+      </div>
+    </div>
+
+    <!-- ---------- Perceptron ---------- -->
+    <h3 id="perceptron">The perceptron algorithm</h3>
+
+    <p>
+      The <strong>perceptron</strong> is one of the earliest learning algorithms for linear classification.
+      It looks for a separating hyperplane by repeatedly nudging its parameters toward misclassified points.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Model.</strong> \(f(x) = \operatorname{sign}(w^\top x + b)\), with \(w\) and \(b\) learned from data.</p>
+      <p style="margin-bottom:0">
+        <strong>Update rule.</strong> For a misclassified sample, i.e. one with \(y_i(w^\top x_i + b) \le 0\):
+      </p>
+      \[ w \leftarrow w + \eta\, y_i x_i, \qquad b \leftarrow b + \eta\, y_i, \]
+      <p style="margin-bottom:0">where \(\eta > 0\) is the learning rate. Correctly classified points produce no update at all.</p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h4l3-8 4 16 3-8h2"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Step through the updates</p>
+          <p class="playground__sub">The notes' four-point dataset, one iteration at a time. Then switch to XOR and watch it never terminate.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="perceptron"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · a full trace
+      </div>
+      <div class="example__body">
+        <p>
+          Same four points. Initialise \(w = (0,0)\), \(b = 0\), \(\eta = 1\), and pass over the samples in
+          order:
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Step</th><th>Sample \((x, y)\)</th><th>\(y(w^\top x + b)\)</th><th>Update?</th><th>New \(w\)</th><th>New \(b\)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>(1, 1), +1</td><td class="u-mono">0 ≤ 0</td><td>yes</td><td class="u-mono">(1, 1)</td><td class="u-mono">1</td></tr>
+              <tr><td>1</td><td>(2, 2), +1</td><td class="u-mono">5 &gt; 0</td><td>no</td><td class="u-mono">(1, 1)</td><td class="u-mono">1</td></tr>
+              <tr><td>2</td><td>(1, −2), −1</td><td class="u-mono">0 ≤ 0</td><td>yes</td><td class="u-mono">(0, 3)</td><td class="u-mono">0</td></tr>
+              <tr><td>3</td><td>(−1, −3), −1</td><td class="u-mono">9 &gt; 0</td><td>no</td><td class="u-mono">(0, 3)</td><td class="u-mono">0</td></tr>
+              <tr><td>4</td><td>full pass</td><td class="u-mono">all &gt; 0</td><td>no</td><td class="u-mono">(0, 3)</td><td class="u-mono">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          It converges in a single pass to \(w^\star = (0,3)\), \(b^\star = 0\), whose boundary is
+          \(3x_2 = 0\), i.e. \(x_2 = 0\).
+        </p>
+        <p style="margin-bottom:1em">
+          Note that this is a <em>different</em> separator from the hand-picked \(x_1 + x_2 - 1 = 0\), and
+          both are perfectly valid. <strong>The perceptron's solution is not unique</strong> — it depends on
+          the initialisation, the learning rate, and the order the data arrives in. It stops at the first
+          separator it finds, not the best one.
+        </p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import numpy as np
+
+def perceptron(X, y, eta=1.0, epochs=100):
+    w = np.zeros(X.shape[1])
+    b = 0.0
+    for _ in range(epochs):
+        errors = 0
+        for xi, yi in zip(X, y):
+            if yi * (w @ xi + b) &lt;= 0:      # misclassified
+                w += eta * yi * xi
+                b += eta * yi
+                errors += 1
+        if errors == 0:                     # a clean pass: converged
+            return w, b
+    return w, b                             # not separable -- gave up</code></pre>
+    </div>
+
+    <h3 id="perceptron-gd">The gradient descent view</h3>
+
+    <p>
+      The perceptron predates gradient descent, but its update is exactly stochastic gradient descent on the
+      <strong>perceptron loss</strong>
+    </p>
+    \[ L(w, b) = \max\big(0,\; -y_i(w^\top x_i + b)\big). \]
+    <p>The gradients are</p>
+    \[
+    \frac{\partial L}{\partial w} =
+    \begin{cases} -y_i x_i & \text{if } y_i(w^\top x_i + b) \le 0, \\ 0 & \text{otherwise,}\end{cases}
+    \qquad
+    \frac{\partial L}{\partial b} =
+    \begin{cases} -y_i & \text{if } y_i(w^\top x_i + b) \le 0, \\ 0 & \text{otherwise.}\end{cases}
+    \]
+    <p>so one stochastic gradient step is</p>
+    \[
+    w \leftarrow w - \eta\frac{\partial L}{\partial w} = w + \eta y_i x_i, \qquad
+    b \leftarrow b - \eta\frac{\partial L}{\partial b} = b + \eta y_i,
+    \]
+    <p>
+      which is the update rule verbatim. It also explains the "only on misclassified points" condition: for a
+      correctly classified sample both gradients are zero, so the step leaves \(w\) and \(b\) untouched.
+    </p>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        This is not the hinge loss
+      </div>
+      <p style="margin-bottom:.6em">
+        The two are easy to confuse and they appear within pages of each other. The
+        <strong>perceptron loss</strong> above is \(\max(0, -y f(x))\) — zero as soon as a point is on the
+        correct side, however narrowly. The <strong>hinge loss</strong>, which the SVM uses, is
+      </p>
+      \[ L_{\text{hinge}} = \max\big(0,\; 1 - y_i(w^\top x_i + b)\big), \]
+      <p style="margin-bottom:0">
+        with a <strong>margin of 1</strong> built in. That single change is the entire difference between
+        "find any separator" and "find the separator with the widest gap", and it is why the perceptron
+        stops the moment it is barely correct while the SVM keeps pushing.
+      </p>
+    </div>
+
+    <h3 id="perceptron-limits">Limitations of the perceptron</h3>
+    <ul>
+      <li><strong>Requires linear separability.</strong> It converges only when a perfect linear boundary exists. On XOR it never terminates.</li>
+      <li><strong>No margin maximisation.</strong> Among all separating hyperplanes it does not seek the one with the widest gap, which usually generalises worse.</li>
+      <li><strong>Sensitive to initialisation and learning rate.</strong> Poor choices cause oscillation or slow convergence, and change which separator you land on.</li>
+    </ul>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        What "no margin" costs you
+      </div>
+      <p style="margin-bottom:0">
+        A perceptron boundary can pass arbitrarily close to a training point — it only has to be on the right
+        side by any amount at all. Unseen data drawn from the same distribution will then land on the wrong
+        side of it. A boundary that keeps its distance from <em>both</em> classes has room to absorb that
+        variation. That observation is the whole motivation for the support vector machine.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="margin">Part 3.2 · Support Vector Machines</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Among all separating hyperplanes, the SVM picks the one with the <strong>maximum margin</strong>: the
+      widest possible corridor between the classes.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>The distance from a point \(x_0\) to the hyperplane \(w^\top x + b = 0\) is</p>
+      \[ \operatorname{dist}(x_0) = \frac{|w^\top x_0 + b|}{\|w\|_2}. \]
+      <p>
+        Imposing \(y_i(w^\top x_i + b) \ge 1\) places the closest points — the <strong>support vectors</strong> —
+        exactly on the margin hyperplanes \(w^\top x + b = \pm 1\). The perpendicular distance between those
+        two planes is
+      </p>
+      \[ \frac{|(+1) - (-1)|}{\|w\|_2} = \frac{2}{\|w\|_2}. \]
+      <p style="margin-bottom:0">
+        So <strong>maximising the margin \(2/\|w\|\) is the same as minimising \(\|w\|\)</strong>.
+      </p>
+    </div>
+
+    <p>
+      We minimise \(\tfrac12\|w\|^2\) rather than \(\|w\|\): the two have the same minimiser, but the squared
+      form is smooth and strictly convex, which makes the optimisation far better behaved. The \(\tfrac12\) is
+      pure convenience — it cancels the 2 when differentiating.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 17 3M7 21 21 7M5 19 19 5"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The margin, the support vectors, and C</p>
+          <p class="playground__sub">Drag points and watch which ones actually matter. Add an outlier, then sweep C from tolerant to strict.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="svm-margin"></div>
+    </div>
+
+    <h3 id="svm-dual">Primal, dual and the KKT conditions</h3>
+
+    <p>The hard-margin problem is a convex program with linear constraints:</p>
+    \[ \min_{w,b}\ \tfrac12\|w\|^2 \quad \text{s.t.}\quad y_i(w^\top x_i + b) \ge 1,\ i = 1,\dots,n. \]
+    <p>Introducing multipliers \(\alpha_i \ge 0\) gives the Lagrangian</p>
+    \[ \mathcal{L}(w,b,\alpha) = \tfrac12\|w\|^2 - \sum_{i=1}^n \alpha_i\big(y_i(w^\top x_i + b) - 1\big), \]
+    <p>and setting the partial derivatives to zero yields</p>
+    \[ w = \sum_{i=1}^n \alpha_i y_i x_i, \qquad \sum_{i=1}^n \alpha_i y_i = 0. \]
+    <p>Substituting back produces the <strong>dual problem</strong>:</p>
+    \[
+    \begin{aligned}
+    \max_{\alpha \in \mathbb{R}^n}\quad & \sum_{i=1}^n \alpha_i - \frac12 \sum_{i=1}^n\sum_{j=1}^n \alpha_i\alpha_j y_i y_j\, x_i^\top x_j \\
+    \text{s.t.}\quad & \sum_{i=1}^n \alpha_i y_i = 0, \qquad \alpha_i \ge 0.
+    \end{aligned}
+    \]
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Why the dual is the interesting form
+      </div>
+      <p style="margin-bottom:0">
+        Look at where the data appears: only as the inner product \(x_i^\top x_j\). The individual feature
+        vectors have vanished. That is precisely the opening the <a href="#kernels">kernel trick</a> walks
+        through — replace that inner product with \(K(x_i, x_j)\) and the whole algorithm operates in a
+        different, possibly infinite-dimensional space at no extra cost.
+      </p>
+    </div>
+
+    <p>At the optimum the <strong>KKT conditions</strong> hold:</p>
+    \[
+    \begin{aligned}
+    &\text{primal feasibility:} && y_i(w^\top x_i + b) - 1 \ge 0, \\
+    &\text{dual feasibility:} && \alpha_i \ge 0, \\
+    &\text{stationarity:} && w = \textstyle\sum_i \alpha_i y_i x_i, \quad \textstyle\sum_i \alpha_i y_i = 0, \\
+    &\text{complementary slackness:} && \alpha_i\big(y_i(w^\top x_i + b) - 1\big) = 0 \ \ \forall i.
+    \end{aligned}
+    \]
+    <p>
+      Complementary slackness is the key structural fact: either \(\alpha_i = 0\), or the constraint is tight
+      and the point sits exactly on the margin. Only points with \(\alpha_i > 0\) contribute to \(w\), and
+      those are the <strong>support vectors</strong>. Everything else could be deleted from the dataset
+      without changing the classifier. For any support vector \(x_k\),
+    </p>
+    \[ b = y_k - \sum_{j=1}^n \alpha_j y_j\, x_j^\top x_k, \]
+    <p>which in practice is averaged over all support vectors for numerical stability. The decision function is</p>
+    \[ f(x) = \operatorname{sign}\Big(\sum_{i=1}^n \alpha_i^\star y_i\, x_i^\top x + b^\star\Big). \]
+
+    <h3 id="soft-margin">Soft margin and the penalty C</h3>
+
+    <p>
+      Perfect linear separability is rare. With outliers or overlapping classes the hard-margin constraints
+      are simply infeasible, so we relax them with <strong>slack variables</strong> \(\xi_i \ge 0\):
+    </p>
+    \[ y_i(w^\top x_i + b) \ge 1 - \xi_i. \]
+    <ul>
+      <li>\(\xi_i = 0\): correctly classified, on or outside the margin.</li>
+      <li>\(0 < \xi_i < 1\): inside the margin but still on the correct side.</li>
+      <li>\(\xi_i > 1\): misclassified.</li>
+    </ul>
+    <p>The primal becomes a trade-off between a wide margin and few violations:</p>
+    \[
+    \min_{w,b,\xi}\ \tfrac12\|w\|^2 + C\sum_{i=1}^n \xi_i
+    \quad\text{s.t.}\quad y_i(w^\top x_i + b) \ge 1 - \xi_i,\ \ \xi_i \ge 0.
+    \]
+    <ul>
+      <li><strong>Large \(C\)</strong> — violations are expensive, so the model behaves like a hard margin.</li>
+      <li><strong>Small \(C\)</strong> — a wider margin is preferred and outliers are tolerated.</li>
+    </ul>
+    <p>The dual is almost unchanged; the only difference is an upper bound on the multipliers:</p>
+    \[
+    \max_\alpha\ \sum_i \alpha_i - \frac12\sum_{i,j}\alpha_i\alpha_j y_i y_j\, x_i^\top x_j
+    \quad\text{s.t.}\quad \sum_i \alpha_i y_i = 0,\ \ 0 \le \alpha_i \le C.
+    \]
+    <p>
+      Points with \(0 < \alpha_i < C\) are support vectors sitting on the margin; those with
+      \(\alpha_i = C\) are margin violations or misclassifications. \(C\) is effectively the
+      bias–variance dial.
+    </p>
+
+    <h3 id="svm-example">Worked example</h3>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Ten points in \(\mathbb{R}^2\)
+      </div>
+      <div class="example__body">
+        \[
+        \begin{aligned}
+        \mathcal{D}_+ &= \{(2.0, 2.0),\ (3.0, 1.6),\ (2.6, 2.6),\ (3.0, 2.6),\ (2.0, 3.0)\}, \\
+        \mathcal{D}_- &= \{(-1.0, -1.0),\ (0.0, -2.0),\ (-2.0, 0.0),\ (-1.4, -1.2),\ (0.6, -1.6)\},
+        \end{aligned}
+        \]
+        <p>
+          with \(y = +1\) on \(\mathcal{D}_+\) and \(y = -1\) on \(\mathcal{D}_-\). These are linearly
+          separable — for instance by
+        </p>
+        \[ x_1 + x_2 - 0.5 = 0, \]
+        <p>which gives every point a functional margin of at least 1.5.</p>
+
+        <p>
+          Solving the soft-margin problem with a large \(C\) (so it approximates the hard-margin solution)
+          gives the maximum-margin separator
+        </p>
+        \[
+        w^\star \approx \begin{bmatrix} 0.276 \\ 0.448 \end{bmatrix},
+        \qquad b^\star \approx -0.448,
+        \qquad \frac{2}{\|w^\star\|} \approx 3.80.
+        \]
+        <p style="margin-bottom:1em">
+          Exactly three points sit on the margin and act as support vectors: \((2, 2)\) from the positive
+          class, and \((-2, 0)\) and \((0.6, -1.6)\) from the negative class. Every other point could be
+          removed without moving the boundary at all — which you can confirm by dragging them in the figure
+          above.
+        </p>
+      </div>
+    </div>
+
+    <h3>Limitations of the SVM</h3>
+    <ul>
+      <li>
+        <strong>Computational cost.</strong> The quadratic program has \(n\) constraints and naïve
+        implementations need \(\mathcal{O}(n^2)\) memory. Specialised solvers — Sequential Minimal
+        Optimisation (SMO), interior-point methods, coordinate descent — are used in practice.
+      </li>
+      <li>
+        <strong>Non-linear data needs kernelisation.</strong> A linear SVM cannot bend. Replacing
+        \(x_i^\top x_j\) with a kernel \(K(x_i, x_j) = \phi(x_i)^\top\phi(x_j)\) fixes this, and is the
+        subject of <a href="#kernels">Part 3.4</a>.
+      </li>
+      <li>
+        <strong>No native probability output.</strong> The SVM returns a signed distance, not a calibrated
+        probability. Converting one to the other requires an extra step such as Platt scaling.
+      </li>
+    </ul>
+
+    <!-- ==================================================== -->
+    <h2 id="ols">Part 3.3 · Linear Regression</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Classification finds boundaries between discrete classes. <strong>Regression</strong> is the other
+      paradigm: the output space is continuous, and we fit a function that approximates the trend.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>Assume a linear relationship between features \(\mathbf{X} \in \mathbb{R}^{n\times p}\) and target \(\mathbf{y} \in \mathbb{R}^n\):</p>
+      \[ \mathbf{y} = \mathbf{X}\beta + \epsilon, \]
+      <p>where \(\beta \in \mathbb{R}^p\) holds the coefficients, \(\mathbf{X}\) includes a column of ones if an intercept is wanted, and \(\epsilon\) is random noise.</p>
+      <p style="margin-bottom:0"><strong>Ordinary least squares</strong> chooses \(\beta\) to minimise the residual sum of squares:</p>
+      \[ L(\beta) = \|\mathbf{y} - \mathbf{X}\beta\|_2^2 = \sum_{i=1}^n (y_i - x_i^\top\beta)^2. \]
+    </div>
+
+    <p><strong>Closed-form solution.</strong> Setting the gradient to zero,</p>
+    \[
+    \frac{\partial L}{\partial \beta} = -2\mathbf{X}^\top(\mathbf{y} - \mathbf{X}\beta) = 0
+    \quad\Rightarrow\quad \mathbf{X}^\top\mathbf{X}\beta = \mathbf{X}^\top\mathbf{y},
+    \]
+    <p>and, provided \(\mathbf{X}^\top\mathbf{X}\) is invertible,</p>
+    \[ \hat{\beta} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}. \]
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        This is a projection
+      </div>
+      <p style="margin-bottom:0">
+        OLS projects \(\mathbf{y}\) onto the column space of \(\mathbf{X}\). The fitted values
+        \(\hat{\mathbf{y}} = \mathbf{X}\hat\beta\) are the closest reachable point, and the residual is
+        orthogonal to every feature: \(\mathbf{X}^\top(\mathbf{y} - \mathbf{X}\hat\beta) = 0\). That is
+        exactly the <a href="01-mathematical-background.html#projections">orthogonal projection</a> from
+        Chapter 1, and the normal equations are just the statement that the error must be perpendicular to
+        everything you can reach.
+      </p>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Numerical example
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{X} = \begin{bmatrix} 1 & 1 \\ 1 & 2 \\ 1 & 3 \end{bmatrix}, \qquad
+        \mathbf{y} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}
+        \]
+        <p>Then \(\mathbf{X}^\top\mathbf{X} = \begin{bmatrix} 3 & 6 \\ 6 & 14\end{bmatrix}\) and \(\mathbf{X}^\top\mathbf{y} = \begin{bmatrix} 5 \\ 11\end{bmatrix}\), giving</p>
+        \[ \hat\beta = \frac{1}{6}\begin{bmatrix} 14 & -6 \\ -6 & 3\end{bmatrix}\begin{bmatrix}5\\11\end{bmatrix} = \begin{bmatrix} 0.6667 \\ 0.5 \end{bmatrix}. \]
+        <p style="margin-bottom:1em">So the fitted model is \(\hat{y} = 0.6667 + 0.5x\).</p>
+      </div>
+    </div>
+
+    <p><strong>What OLS assumes.</strong></p>
+    <ul>
+      <li>A genuinely <strong>linear</strong> relationship. If the data curves, no line will fit it.</li>
+      <li><strong>Constant residual variance</strong> (homoscedasticity) — the subject of the next section.</li>
+      <li><strong>\(\mathbf{X}^\top\mathbf{X}\) is invertible</strong>, i.e. no perfect multicollinearity. If the columns of \(\mathbf{X}\) are close to linearly dependent, the matrix is near-singular and the solution becomes wildly unstable. <a href="#ridge">Ridge regression</a> is the fix.</li>
+    </ul>
+
+    <h3 id="wls">Weighted least squares</h3>
+
+    <p>
+      When the noise variance is not constant, OLS still gives unbiased estimates but inefficient ones: the
+      noisiest observations get just as much say as the cleanest. WLS assigns each point a weight
+      \(w_i > 0\), typically \(1/\sigma_i^2\):
+    </p>
+    \[
+    L(\beta) = \sum_{i=1}^n w_i (y_i - x_i^\top\beta)^2 = (\mathbf{y} - \mathbf{X}\beta)^\top \mathbf{W}(\mathbf{y} - \mathbf{X}\beta),
+    \qquad \mathbf{W} = \operatorname{diag}(w_1,\dots,w_n).
+    \]
+    <p>Differentiating gives the weighted normal equations and hence</p>
+    \[
+    \mathbf{X}^\top\mathbf{W}\mathbf{X}\hat\beta = \mathbf{X}^\top\mathbf{W}\mathbf{y}
+    \quad\Rightarrow\quad
+    \hat\beta_{\text{WLS}} = (\mathbf{X}^\top\mathbf{W}\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{W}\mathbf{y}.
+    \]
+    <p>
+      High-variance observations (small \(w_i\)) exert less influence; low-variance ones exert more. Note
+      that if all the weights are equal, \(\mathbf{W}\) is a multiple of the identity, it cancels from both
+      sides, and <strong>WLS reduces exactly to OLS</strong>.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 18 20 6"/><path d="M5 14c5 0 10 3 15 6" opacity=".5"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">When the noise fans out</p>
+          <p class="playground__sub">Slide heteroscedasticity to zero and watch the OLS and WLS lines land on top of each other — then increase it and watch them diverge.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="ols-wls"></div>
+    </div>
+
+    <h3 id="ridge">Ridge regression</h3>
+
+    <p>
+      When predictors are highly correlated — <strong>multicollinearity</strong> — \(\mathbf{X}^\top\mathbf{X}\)
+      becomes nearly singular and OLS becomes unstable: tiny changes in \(\mathbf{y}\) produce enormous
+      swings in \(\hat\beta\). Ridge adds a penalty on coefficient magnitude:
+    </p>
+    \[ L(\beta) = \|\mathbf{y} - \mathbf{X}\beta\|_2^2 + \lambda\|\beta\|_2^2, \]
+    <p>with closed-form solution</p>
+    \[ \hat\beta_{\text{ridge}} = (\mathbf{X}^\top\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}^\top\mathbf{y}. \]
+    <p>
+      Adding \(\lambda\mathbf{I}\) lifts every eigenvalue of \(\mathbf{X}^\top\mathbf{X}\) by \(\lambda\),
+      which <strong>guarantees invertibility</strong> however collinear the predictors are. The cost is a
+      little bias; the gain is a large reduction in variance.
+    </p>
+    <ul>
+      <li>\(\lambda \to 0\): ridge \(\to\) OLS — low bias, high variance.</li>
+      <li>\(\lambda \to \infty\): \(\hat\beta \to 0\) — high bias, low variance.</li>
+      <li>Moderate \(\lambda\): the useful middle, chosen by cross-validation.</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 8c4 0 8 8 13 8M6 16c4 0 8-4 13-4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Coefficient paths under shrinkage</p>
+          <p class="playground__sub">The notes' three near-identical predictors. At λ → 0 the coefficients explode with opposite signs; increase λ and they collapse together.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="ridge"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Worked example · three near-identical predictors
+      </div>
+      <div class="example__body">
+        \[
+        \mathbf{X} = \begin{bmatrix}
+        1 & 1 & 1 \\ 1 & 1 & 0.9 \\ 1 & 0.9 & 1 \\ 1 & 0.9 & 0.9
+        \end{bmatrix},
+        \qquad
+        \mathbf{y} = \begin{bmatrix} 2.8 \\ 2.5 \\ 2.6 \\ 2.4 \end{bmatrix}
+        \]
+        <p><strong>Step 1 — form the normal-equation pieces.</strong></p>
+        \[
+        \mathbf{X}^\top\mathbf{X} = \begin{bmatrix}
+        4 & 3.8 & 3.8 \\ 3.8 & 3.62 & 3.61 \\ 3.8 & 3.61 & 3.62
+        \end{bmatrix},
+        \qquad
+        \mathbf{X}^\top\mathbf{y} = \begin{bmatrix} 10.3 \\ 9.8 \\ 9.81 \end{bmatrix}
+        \]
+        <p>
+          Its determinant is \(4\times10^{-4}\) and its condition number about <strong>3151</strong> — very
+          nearly singular, because the three columns are almost the same vector.
+        </p>
+
+        <p><strong>Step 2 — the OLS estimate.</strong> Solving \(\mathbf{X}^\top\mathbf{X}\beta = \mathbf{X}^\top\mathbf{y}\) exactly gives</p>
+        \[ \hat\beta_{\text{OLS}} \approx \begin{bmatrix} -1.225 \\ 1.500 \\ 2.500 \end{bmatrix}. \]
+        <p>
+          These are huge and include a sign flip, from a target that only varies between 2.4 and 2.8. Each
+          coefficient is individually meaningless — they are cancelling one another out.
+        </p>
+
+        <p><strong>Step 3 — add ridge regularisation with \(\lambda = 1\).</strong></p>
+        \[
+        \mathbf{X}^\top\mathbf{X} + \mathbf{I} = \begin{bmatrix}
+        5 & 3.8 & 3.8 \\ 3.8 & 4.62 & 3.61 \\ 3.8 & 3.61 & 4.62
+        \end{bmatrix},
+        \qquad
+        (\mathbf{X}^\top\mathbf{X} + \mathbf{I})^{-1} \approx \begin{bmatrix}
+        0.6707 & -0.3097 & -0.3097 \\
+        -0.3097 & 0.6988 & -0.2913 \\
+        -0.3097 & -0.2913 & 0.6988
+        \end{bmatrix}
+        \]
+        <p><strong>Step 4 — the ridge estimate.</strong></p>
+        \[ \hat\beta_{\text{ridge}} \approx \begin{bmatrix} 0.835 \\ 0.801 \\ 0.811 \end{bmatrix} \]
+        <p style="margin-bottom:1em">
+          All three are positive, similar in size, and modest. Ridge has recognised that the predictors carry
+          essentially the same information and split the credit between them, rather than letting them fight.
+          <strong>The predictions barely change; the coefficients become interpretable.</strong>
+        </p>
+      </div>
+    </div>
+
+    <h3 id="lasso">Lasso and elastic net</h3>
+
+    <p><strong>Lasso</strong> swaps the \(\ell_2\) penalty for \(\ell_1\):</p>
+    \[ \min_\beta\ \|\mathbf{y} - \mathbf{X}\beta\|_2^2 + \lambda\|\beta\|_1. \]
+    <p>
+      This drives some coefficients to <em>exactly</em> zero, performing automatic feature selection. The
+      reason \(\ell_1\) does this and \(\ell_2\) does not is geometric: the \(\ell_1\) ball is a diamond with
+      corners on the axes, so the solution tends to land on a corner where some coordinates vanish — the
+      same picture as the <a href="01-mathematical-background.html#norms">unit balls in Chapter 1</a>.
+    </p>
+    <p><strong>Elastic net</strong> combines both penalties:</p>
+    \[ \min_\beta\ \|\mathbf{y} - \mathbf{X}\beta\|_2^2 + \lambda_1\|\beta\|_1 + \lambda_2\|\beta\|_2^2, \]
+    <p>inheriting Lasso's sparsity and ridge's stability under correlation.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Aspect</th><th>Ridge</th><th>Lasso</th><th>Elastic net</th></tr></thead>
+        <tbody>
+          <tr><td>Penalty</td><td>\(\ell_2\)</td><td>\(\ell_1\)</td><td>\(\ell_1 + \ell_2\)</td></tr>
+          <tr><td>Feature selection</td><td>No</td><td>Yes (sparse)</td><td>Yes (grouped)</td></tr>
+          <tr><td>Multicollinearity</td><td>Keeps all, stabilises</td><td>Picks one arbitrarily</td><td>Handles groups well</td></tr>
+          <tr><td>Interpretability</td><td>Lower (dense)</td><td>Higher (sparse)</td><td>Moderate</td></tr>
+          <tr><td>Computation</td><td>Closed form</td><td>Iterative (coordinate descent)</td><td>Iterative, two parameters</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>In short:</strong> Lasso when you expect only a few predictors to matter and want them named;
+      ridge when all predictors are relevant but correlated; elastic net when you want both and can afford to
+      tune two hyperparameters.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import numpy as np
+from sklearn.linear_model import LinearRegression, RidgeCV, LassoCV, ElasticNetCV
+
+# Closed-form OLS, written out
+beta = np.linalg.solve(X.T @ X, X.T @ y)        # never use inv() -- solve() is stabler
+
+# Weighted least squares
+W = np.diag(1.0 / sigma**2)
+beta_wls = np.linalg.solve(X.T @ W @ X, X.T @ W @ y)
+
+# Regularised variants, with lambda chosen by cross-validation
+ridge = RidgeCV(alphas=np.logspace(-6, 2, 50)).fit(X, y)
+lasso = LassoCV(cv=5).fit(X, y)
+enet  = ElasticNetCV(l1_ratio=[.1, .5, .9], cv=5).fit(X, y)
+
+print("ridge coefs:", ridge.coef_)
+print("lasso kept :", np.flatnonzero(lasso.coef_))</code></pre>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="nonlinear">Part 3.4 · Kernel Methods</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Everything so far draws straight lines. Plenty of real problems are not separable by any straight line
+      — the XOR pattern being the canonical counterexample — and no amount of tuning fixes that, because the
+      model class simply does not contain a solution.
+    </p>
+
+    <h3 id="feature-maps">Nonlinear feature maps</h3>
+
+    <p>
+      The trick is to move the data somewhere the problem <em>is</em> linear. Map from a low-dimensional
+      input space to a higher-dimensional feature space via a nonlinear \(\phi\):
+    </p>
+    \[ \phi: \mathbb{R}^{d_1} \to \mathbb{R}^{d_2}, \qquad d_2 > d_1. \]
+    <p>
+      Data that is not linearly separable in the original space <em>may</em> become separable after mapping.
+      That "may" is important: \(\phi\) has to be chosen so the lift actually helps. An arbitrary mapping into
+      a higher dimension buys nothing.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>For \(x = [x_1, x_2]^\top \in \mathbb{R}^2\), define</p>
+        \[ \phi(x) = [x_1,\ x_2,\ x_1^2 + x_2^2]^\top. \]
+        <p>The classifier in feature space is</p>
+        \[
+        h_\phi(x) = \operatorname{sign}\big(\theta^\top\phi(x) + \theta_0\big)
+        = \operatorname{sign}\big(\theta_1 x_1 + \theta_2 x_2 + \theta_3(x_1^2 + x_2^2) + \theta_0\big),
+        \]
+        <p style="margin-bottom:1em">
+          which is a <strong>circle</strong> in the original 2-D space. Note that this is still just the
+          perceptron — the same linear machinery — applied one dimension up.
+        </p>
+      </div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="m5 8 7-5 7 5-7 5z"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Watch a circle become a plane</p>
+          <p class="playground__sub">Lift the ring dataset into the third dimension with \(x_1^2 + x_2^2\), then slide a flat plane between the classes.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="feature-lift"></div>
+    </div>
+
+    <h3 id="kernels">Kernel functions and the kernel trick</h3>
+
+    <p>
+      Explicit feature maps have a fatal problem: the dimension explodes. Even modest polynomial
+      transformations produce enormous feature vectors, and computing \(\phi(x)\) for every sample becomes
+      impossible.
+    </p>
+    <p>
+      The way out is that <strong>we never actually need \(\phi(x)\)</strong> — only inner products of mapped
+      vectors. A <strong>kernel function</strong> computes those directly:
+    </p>
+    \[ K(x, x') = \phi(x)^\top\phi(x'). \]
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        This is why the dual mattered
+      </div>
+      <p style="margin-bottom:0">
+        Look back at the <a href="#svm-dual">SVM dual</a>: the data appears only as \(x_i^\top x_j\). The
+        perceptron, least squares and SVM can all be rewritten the same way. So swapping every inner product
+        for \(K(x_i, x_j)\) runs the identical algorithm in a vastly richer space —
+        <strong>without ever building a vector in it</strong>. That substitution is the kernel trick.
+      </p>
+    </div>
+
+    <h3 id="poly-kernel">The polynomial kernel</h3>
+
+    \[ K(x, x') = (1 + x^\top x')^d \]
+    <p>
+      The constant 1 ensures lower-order interactions and the bias term are included, so the model can
+      represent both linear and nonlinear combinations.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Deriving \(\phi\) for \(n = 2\), \(d = 2\)
+      </div>
+      <div class="example__body">
+        <p><strong>Step 1 — expand.</strong></p>
+        \[
+        \begin{aligned}
+        K(x,x') &= (1 + x_1x_1' + x_2x_2')^2 \\
+        &= 1 + 2x_1x_1' + 2x_2x_2' + 2x_1x_2x_1'x_2' + x_1^2(x_1')^2 + x_2^2(x_2')^2.
+        \end{aligned}
+        \]
+        <p><strong>Step 2 — split each coefficient across the two sides.</strong> A term with coefficient 2 becomes \(\sqrt2\) on each side, since \(2x_1x_1' = (\sqrt2 x_1)(\sqrt2 x_1')\).</p>
+        <p><strong>Step 3 — read off the feature map.</strong></p>
+        \[
+        \phi(x) = \big[\,1,\ \sqrt2\,x_1,\ \sqrt2\,x_2,\ \sqrt2\,x_1x_2,\ x_1^2,\ x_2^2\,\big]^\top
+        \]
+        <p style="margin-bottom:1em">
+          Taking \(\phi(x)^\top\phi(x')\) reproduces the expansion exactly. Six components — and
+          \(\binom{n+d}{d} = \binom{4}{2} = 6\) ✓.
+        </p>
+      </div>
+    </div>
+
+    <p>In general, for \(x \in \mathbb{R}^n\) the feature map has</p>
+    \[ |\phi(x)| = \binom{n+d}{d} = \frac{(n+d)!}{d!\,n!} \]
+    <p>components — combinatorial growth that becomes impossible very quickly.</p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4M4 4l16 16" opacity=".3"/><path d="M3 12h18M12 3v18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The feature explosion, and what the kernel saves you</p>
+          <p class="playground__sub">Raise n and d and watch |φ(x)| grow past a hundred thousand while the kernel keeps costing n multiplications.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="kernel-expansion"></div>
+    </div>
+
+    <p>
+      Geometrically, \(d = 1\) gives a hyperplane, \(d = 2\) allows elliptical and circular boundaries, and
+      higher \(d\) permits increasingly contorted surfaces — with increasing risk of overfitting.
+    </p>
+
+    <h3 id="rbf-kernel">The RBF (Gaussian) kernel</h3>
+
+    \[ K(x, x') = \exp\!\big(-\gamma\|x - x'\|^2\big), \qquad \gamma > 0 \]
+    <p>
+      This measures similarity by distance: \(K = 1\) when the points coincide, decaying exponentially to 0
+      as they separate. Smaller \(\gamma\) means wider influence.
+    </p>
+    <p>The RBF kernel corresponds to an <strong>infinite-dimensional</strong> feature space. Expanding,</p>
+    \[
+    K(x,x') = e^{-\gamma\|x\|^2} e^{-\gamma\|x'\|^2} e^{2\gamma x^\top x'},
+    \qquad
+    e^{2\gamma x^\top x'} = \sum_{k=0}^{\infty} \frac{(2\gamma)^k}{k!}(x^\top x')^k.
+    \]
+    <p>
+      So the RBF kernel implicitly contains <em>every</em> polynomial degree, each weighted by a rapidly
+      decaying \((2\gamma)^k/k!\), all multiplied by a Gaussian envelope.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Why RBF succeeds where polynomials fail
+      </div>
+      <p style="margin-bottom:.6em">
+        The polynomial kernel expands as \((1 + x^\top x')^d = \sum_{k=0}^d \binom{d}{k}(x^\top x')^k\) — a
+        <em>finite</em> sum with binomial weights. It is a <strong>global</strong> object: every sample
+        influences the boundary everywhere, so fixing a wiggle in one region distorts another. Small \(d\)
+        cannot bend enough; large \(d\) oscillates wildly.
+      </p>
+      <p style="margin-bottom:0">
+        The RBF kernel is <strong>local</strong>. Its infinite expansion gives unlimited flexibility, while
+        the factorially-decaying coefficients and the distance-based envelope keep each training point's
+        influence confined to its own neighbourhood. That combination — arbitrary flexibility plus enforced
+        local smoothness — is why it is the sensible default.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Four datasets, four kernels, one algorithm</p>
+          <p class="playground__sub">Try the linear kernel on XOR, then polynomial on the checkerboard, then push RBF's γ past 5 and watch it shatter.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="kernel-playground"></div>
+    </div>
+
+    <h3 id="kernel-choice">Choosing a kernel</h3>
+    <ul>
+      <li><strong>Linear</strong> — high-dimensional sparse data such as text, where the problem is often already close to separable and you want speed and interpretability.</li>
+      <li><strong>Polynomial</strong> — when you have reason to believe explicit feature <em>interactions</em> of a known order matter.</li>
+      <li><strong>RBF</strong> — the sensible default for dense, moderate-dimensional data with locally structured classes.</li>
+      <li><strong>Exponential / Laplacian</strong>, \(\exp(-\gamma\|x-x'\|)\) — like RBF but with a sharper peak and heavier tails, giving less smooth boundaries.</li>
+    </ul>
+    <p>
+      Kernels are also <strong>composable</strong>: sums, positive scalar multiples and products of valid
+      kernels are valid kernels, which lets you build a kernel that matches known structure in your data.
+    </p>
+
+    <h3 id="kls">Kernel least squares regression</h3>
+
+    <p>The same substitution works for regression. In feature space the objective is</p>
+    \[ \min_\beta \|\mathbf{y} - \phi(\mathbf{X})\beta\|_2^2, \]
+    <p>
+      but rather than solving for \(\beta\) directly we move to the dual, writing the fit as a weighted
+      combination of the training points. With the <strong>kernel matrix</strong>
+      \(\mathbf{K}_{ij} = K(x_i, x_j)\),
+    </p>
+    \[
+    \hat\alpha = (\mathbf{K} + \lambda\mathbf{I})^{-1}\mathbf{y},
+    \qquad
+    \hat{\mathbf{y}} = \mathbf{K}(\mathbf{K} + \lambda\mathbf{I})^{-1}\mathbf{y}.
+    \]
+    <p>
+      This is <strong>kernel ridge regression</strong>. The \(\lambda\) does double duty: it controls
+      overfitting <em>and</em> guarantees the matrix is invertible, exactly as in ordinary
+      <a href="#ridge">ridge regression</a>.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 14c3-8 6 6 9-2s4 2 5 1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Fitting a sine wave with a kernel</p>
+          <p class="playground__sub">A linear kernel cannot bend at all. Switch to RBF, then drive γ up and λ down to make it interpolate the noise exactly — and watch held-out error climb.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="kernel-regression"></div>
+    </div>
+
+    <p><strong>Limitations of kernel methods.</strong></p>
+    <ul>
+      <li><strong>Cost.</strong> The kernel matrix is \(n \times n\): \(\mathcal{O}(n^2)\) memory and \(\mathcal{O}(n^3)\) to invert. This is the binding constraint on large datasets.</li>
+      <li><strong>Overfitting.</strong> Powerful kernels can fit the training set perfectly and generalise terribly.</li>
+      <li><strong>High dimensions.</strong> Kernel matrices become ill-conditioned and similarities lose discriminative power — the <a href="02-data-fundamentals.html#curse">curse of dimensionality</a> again.</li>
+      <li><strong>Hyperparameter sensitivity.</strong> Performance depends sharply on \(\gamma\), \(d\) and \(\lambda\); these must be cross-validated, not guessed.</li>
+    </ul>
+
+    <!-- ==================================================== -->
+    <h2 id="knn">Part 3.5 · k-Nearest Neighbours</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      k-NN is the simplest supervised method there is, and it has no training phase at all. It stores the
+      data and answers each query by looking at what is nearby — <strong>instance-based</strong>,
+      <strong>non-parametric</strong> and <strong>lazy</strong>.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Classification.</strong> Assign the majority label among the \(k\) nearest neighbours:</p>
+      \[ \hat{y}_q = \operatorname{mode}(y_1, y_2, \dots, y_k). \]
+      <p><strong>Regression.</strong> Predict the mean, or a distance-weighted mean:</p>
+      \[
+      \hat{y}_q = \frac{1}{k}\sum_{i=1}^k y_i
+      \qquad\text{or}\qquad
+      \hat{y}_q = \frac{\sum_i w_i y_i}{\sum_i w_i},
+      \qquad w_i = \frac{1}{d(x_q, x_i) + \epsilon},
+      \]
+      <p style="margin-bottom:0">with \(\epsilon\) a small constant preventing division by zero.</p>
+    </div>
+
+    <p>
+      Ties happen — neighbour labels \([0,1,1,0]\) split evenly. Tie-breaking options are random selection
+      (simple but non-repeatable), nearest-neighbour preference (deterministic but noise-sensitive), or
+      distance-weighted voting (most reliable, at slight extra cost).
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">k, the metric, and the bias–variance dial</p>
+          <p class="playground__sub">Click to move the query point. Sweep k from 1 to 25 and watch the leave-one-out error trace out its elbow.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="knn"></div>
+    </div>
+
+    <p><strong>Choosing k.</strong> This is the bias–variance trade-off in its purest form.</p>
+    <ul>
+      <li><strong>Small \(k\)</strong> (1–3): very local boundary, high variance, low bias — it will wrap itself around individual noisy points.</li>
+      <li><strong>Large \(k\)</strong>: smoother boundary, low variance, high bias — it blurs genuine local structure.</li>
+      <li>\(k = 1\) memorises the training set; \(k \to n\) predicts the global majority regardless of input.</li>
+    </ul>
+    <p>
+      The usual heuristic is the <strong>elbow method</strong>: plot validation error against \(k\) and take
+      the point where further increases stop helping.
+    </p>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        k-NN lives or dies by feature scaling
+      </div>
+      <p style="margin-bottom:0">
+        Every distance sums contributions across features, so a feature measured in thousands will dominate
+        one measured in units and the neighbours you find will be determined by that column alone. Revisit
+        the <a href="02-data-fundamentals.html#why-preprocess">normalisation figure</a> — it is the same
+        failure, and it hits k-NN harder than almost any other method.
+      </p>
+    </div>
+
+    <h3 id="complexity">Computational cost</h3>
+
+    <p>
+      Each query compares against every stored sample, so a single prediction costs
+      \(\mathcal{O}(nd)\) and memory is \(\mathcal{O}(nd)\) — k-NN trains instantly and then pays forever.
+      KD-trees give near-logarithmic queries in low dimensions, ball trees handle moderate dimensions, and
+      approximate nearest-neighbour methods (hashing, random projections) are used at scale.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Method</th><th>Training cost</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Perceptron</strong></td><td>\(\mathcal{O}(k n d)\)</td><td>\(k\) epochs over \(n\) samples; finite convergence only when separable.</td></tr>
+          <tr><td><strong>SVM (exact)</strong></td><td>\(\mathcal{O}(n^2 d)\) to \(\mathcal{O}(n^3)\)</td><td>A quadratic program with \(n\) constraints. Linear SVMs via SGD drop to \(\mathcal{O}(nd)\).</td></tr>
+          <tr><td><strong>OLS / WLS / Ridge</strong></td><td>\(\mathcal{O}(n d^2 + d^3)\)</td><td>Closed form, dominated by the \(d \times d\) solve. Fine for moderate \(d\).</td></tr>
+          <tr><td><strong>Lasso / Elastic net</strong></td><td>\(\mathcal{O}(k n d)\) per iteration</td><td>No closed form; coordinate descent until convergence.</td></tr>
+          <tr><td><strong>Kernel methods</strong></td><td>\(\mathcal{O}(n^3)\), \(\mathcal{O}(n^2)\) memory</td><td>Building and inverting the \(n \times n\) kernel matrix. The scalability bottleneck.</td></tr>
+          <tr><td><strong>k-NN</strong></td><td>\(\mathcal{O}(1)\) train, \(\mathcal{O}(nd)\) per query</td><td>No training; all the cost is at prediction time.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The pattern worth remembering: methods that scale with \(d\) (linear models) are fine on wide sparse
+      data; methods that scale with \(n\) (kernels, k-NN) are fine on small dense data. Very few classical
+      methods are comfortable when both are large — which is one of the reasons neural networks took over.
+    </p>
+
+    <!-- ---------- Errata ---------- -->
+    <h3 id="errata">Errata and verification</h3>
+
+    <p>
+      Every numerical claim in this chapter was recomputed independently during conversion: the perceptron
+      trace step by step, the SVM example solved as a quadratic program, and all the regression estimates
+      solved exactly. The perceptron trace and the OLS example checked out precisely. The corrections below
+      have been applied above.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Section</th><th>Original notes</th><th>Corrected to</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a href="#svm-example">SVM worked example</a></td>
+            <td>"linearly separable by, for instance, the line \(w = (-1, 1)\), \(b = 0.5\)", i.e. \(x_2 = x_1 - 0.5\)</td>
+            <td>\(x_1 + x_2 - 0.5 = 0\)</td>
+            <td>
+              The quoted line misclassifies <strong>4 of the 10 points</strong>: \((3, 1.6)\) is positive but
+              scores −0.9, while \((-1,-1)\), \((-2,0)\) and \((-1.4,-1.2)\) are negative but score +0.5,
+              +2.5 and +0.7. The dataset <em>is</em> separable — the replacement line gives every point a
+              margin of at least 1.5 — but the line as printed separates almost nothing.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#ridge">Ridge worked example</a></td>
+            <td>\(\hat\beta_{\text{OLS}} \approx (0.55,\ 1.60,\ -0.60)\)</td>
+            <td>\(\hat\beta_{\text{OLS}} \approx (-1.225,\ 1.500,\ 2.500)\)</td>
+            <td>
+              The stated values do not solve the normal equations: they predict 1.55 for the first
+              observation whose target is 2.8, a residual of 1.25 on data where the correct fit has residuals
+              of 0.025. Verified by direct solve and by least-squares; both agree. The <em>lesson</em>
+              survives — the true OLS coefficients are still large with a sign flip, which is exactly the
+              instability the example is meant to show.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#perceptron-gd">Gradient descent view</a></td>
+            <td>\(L = \max(0, -y_i(w^\top x_i + b))\) called the "hinge loss"</td>
+            <td>Named the <strong>perceptron loss</strong>, with the hinge loss stated separately</td>
+            <td>
+              The hinge loss is \(\max(0, 1 - y f(x))\) — it carries a margin of 1. What is written is the
+              perceptron criterion. The distinction matters here more than usual, because the genuine hinge
+              loss appears a few pages later in the SVM section, and the difference between them is precisely
+              the difference between the two algorithms.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#ridge">Ridge worked example</a></td>
+            <td>"already centered, so no intercept term"</td>
+            <td>Description removed</td>
+            <td>
+              Neither half holds: the first column is all ones, which <em>is</em> an intercept, and the
+              column means are \((1, 0.95, 0.95)\), so the data is not centred either.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#svm-example">SVM solution</a></td>
+            <td>\(w^\star \approx (0.287, 0.458)\), margin ≈ 3.70, "approximate support vectors" within \(\varepsilon = 0.1\)</td>
+            <td>\(w^\star \approx (0.276, 0.448)\), margin ≈ 3.80, three exact support vectors</td>
+            <td>
+              Not an error — the notes correctly describe this as a stochastic subgradient approximation, and
+              the quoted margin is arithmetically consistent with the quoted \(w\). But the exact
+              maximum-margin solution is computable, so it is given here instead, along with the three points
+              that genuinely lie on the margin.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Additions</strong> made during conversion:</p>
+    <ul>
+      <li>
+        The <strong>kernel section restores material the notes had commented out</strong> in Part 1's source
+        — the chapter outline for nonlinear models exists there only as a commented skeleton, with the full
+        treatment living in the Part 2 file. Both are merged here so the linear and kernel stories sit
+        together, which is where they belong: the kernel trick is a footnote on the SVM dual.
+      </li>
+      <li>
+        <strong>Why the dual matters</strong> is now stated explicitly at the point the dual is derived,
+        rather than left for the reader to notice: the data appears only as \(x_i^\top x_j\), and that is
+        the entire opening the kernel trick uses.
+      </li>
+      <li>
+        <strong>The SVM's lack of calibrated probabilities</strong> has been added to its limitations, since
+        it is the practical objection that most often decides against it.
+      </li>
+      <li>
+        A note on <strong>feature scaling for k-NN</strong> links back to Chapter 2, since it is the single
+        most common way k-NN fails silently.
+      </li>
+    </ul>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Worth your confirmation
+      </div>
+      <p style="margin-bottom:0">
+        The SVM figure in the original notes (<span class="u-mono">svm_worked_example_boundary.png</span>)
+        was generated by the same code that produced \(w^\star \approx (0.287, 0.458)\). Since the separating
+        line quoted in the surrounding text is wrong, it is worth checking whether the figure was drawn from
+        the correct fitted parameters or from the erroneous \(w_{\text{true}}\) — the two would look
+        noticeably different, since the latter cuts through four points.
+      </p>
+    </div>
+
+    <p>
+      Found something else? Please report it — email
+      <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a> or raise it in class.
+    </p>
+
+    <nav class="pagenav" aria-label="Chapter navigation">
+      <a href="02-data-fundamentals.html">
+        <small>Previous</small>
+        <b>2 · Data Fundamentals</b>
+      </a>
+      <a href="../notes.html" class="is-next">
+        <small>Next up</small>
+        <b>4 · Trees &amp; Neural Networks — in conversion</b>
+      </a>
+    </nav>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="02-data-fundamentals.html">2 · Data Fundamentals</a></li>
+        <li><a href="03-supervised-linear-kernel.html">3 · Supervised Learning I</a></li>
+        <li><a href="../notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="../syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="../about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script type="module" src="../assets/js/widgets/index.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
