@@ -5,6 +5,9 @@ import { mountWidgets, defineWidget, Plot, C, trackPlot, mat, el } from '../viz.
 import './la.js';
 import './prob.js';
 import './calc.js';
+import './prep.js';
+import './sim.js';
+import './eval.js';
 
 /* ------------------------------------------------------------
    Landing-page hero: an ambient linear transformation that

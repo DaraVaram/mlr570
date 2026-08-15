@@ -14,7 +14,7 @@ as things students can pick up and move.
 | Chapter | State |
 |---|---|
 | 1 · Mathematical Background | Live — 26 interactive figures |
-| 2 · Data Fundamentals | In conversion |
+| 2 · Data Fundamentals | Live — 21 interactive figures |
 | 3 · Supervised Learning | In conversion |
 | 4 · Unsupervised Learning | In conversion |
 
@@ -50,11 +50,15 @@ assets/
     site.js             Theme, nav, scrollspy, anchors, KaTeX
     viz.js              Canvas plotting + interaction library
     linalg.js           SVD, eigendecomposition, RREF, rank, projections
+    ml.js               Scalers, k-means, PCA, binning, metrics, datasets
     widgets/
       index.js          Registration and lazy mounting
       la.js             Linear algebra figures
       prob.js           Probability and statistics figures
       calc.js           Calculus, optimisation and complexity figures
+      prep.js           Data preprocessing figures
+      sim.js            Similarity measure figures
+      eval.js           Model evaluation figures
   img/
 ```
 

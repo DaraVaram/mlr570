@@ -600,6 +600,9 @@ export function slider(label, { min, max, step = .01, value, format = v => fmt(v
   const val = el('span', { class: 'ctrl__value', text: format(value) });
   const input = el('input', {
     type: 'range', min, max, step, value,
+    // Without this the browser restores the previous session's position on
+    // reload, so a shared link would not reproduce the figure it describes.
+    autocomplete: 'off',
     'aria-label': label,
   });
   const api = {
@@ -669,6 +672,7 @@ export function matrixInput(rows, cols, values, { onInput, step = .1, label } = 
     for (let j = 0; j < cols; j++) {
       const inp = el('input', {
         type: 'number', step, value: values[i][j],
+        autocomplete: 'off',
         'aria-label': `row ${i + 1} column ${j + 1}`,
       });
       inp.addEventListener('input', () => onInput?.(api.get(), i, j));

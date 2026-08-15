@@ -1,0 +1,2540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2 · Data Fundamentals — MLR 570</title>
+<meta name="description" content="Data preprocessing, similarity measures and model evaluation for MLR 570 — with interactive figures for every major idea.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235a37d4'/><text y='.9em' x='50' text-anchor='middle' font-size='58' font-family='system-ui' font-weight='bold' fill='white'>M</text></svg>">
+<script>
+  (function () {
+    var t;
+    try { t = localStorage.getItem('mlr570-theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a class="brand" href="../index.html">
+      <span class="brand__mark">570</span>
+      <span class="brand__text">MLR 570 <span>· Advanced ML</span></span>
+    </a>
+    <button class="icon-btn nav__toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="nav__links" id="nav-links">
+      <a class="nav__link" href="../index.html">Home</a>
+      <a class="nav__link" href="../notes.html" aria-current="page">Notes</a>
+      <a class="nav__link" href="../syllabus.html">Syllabus</a>
+      <a class="nav__link" href="../about.html">About</a>
+      <button class="icon-btn nav__theme" id="theme-toggle" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar__mobile-toggle" id="sidebar-toggle" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      On this page
+    </button>
+    <div class="sidebar__body">
+      <div class="sidebar__group">
+        <div class="sidebar__title">2.1 · Data Preprocessing</div>
+        <ul class="toc">
+          <li><a href="#why-preprocess">Why preprocess at all</a></li>
+          <li><a href="#aggregation">Aggregation</a></li>
+          <li><a href="#sampling">Sampling</a></li>
+          <li><a href="#normalization">Normalisation</a></li>
+          <li><a href="#encoding">Encoding</a></li>
+          <li><a href="#discretization">Discretisation</a></li>
+          <li><a href="#dimensionality">Dimensionality reduction</a></li>
+          <li><a href="#pca">Principal component analysis</a></li>
+          <li><a href="#feature-selection">Feature selection</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">2.2 · Similarity Measures</div>
+        <ul class="toc">
+          <li><a href="#similarity">Introduction</a></li>
+          <li><a href="#pearson">Pearson correlation</a></li>
+          <li><a href="#distances">Euclidean &amp; Manhattan</a></li>
+          <li><a href="#curse">The curse of dimensionality</a></li>
+          <li><a href="#cosine">Cosine similarity</a></li>
+          <li><a href="#jaccard">Jaccard similarity</a></li>
+          <li><a href="#compare">Comparative summary</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">2.3 · Model Evaluation</div>
+        <ul class="toc">
+          <li><a href="#splits">Training, validation, testing</a></li>
+          <li><a href="#fitting">Over- and under-fitting</a></li>
+          <li><a href="#kfold">K-fold cross-validation</a></li>
+          <li><a href="#metrics">Classification metrics</a></li>
+          <li><a href="#threshold">The decision threshold</a></li>
+          <li><a href="#fbeta">Weighted F<sub>β</sub></a></li>
+          <li><a href="#regression">Regression metrics</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__title">Reference</div>
+        <ul class="toc">
+          <li><a href="#errata">Errata &amp; verification</a></li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content" id="main">
+
+    <div class="chapter-head">
+      <div class="chapter-head__crumb">
+        <a href="../index.html">Home</a> › <a href="../notes.html">Notes</a> › Chapter 2
+      </div>
+      <h1>Data Fundamentals</h1>
+      <p class="chapter-head__lede">
+        Everything that happens <em>before</em> you fit a model, and everything that happens
+        <em>after</em>. Preparing raw data so a model can learn from it, measuring how similar two things
+        are, and — hardest of all — honestly judging whether what you built actually works.
+      </p>
+      <div class="chapter-head__stats">
+        <span class="pill pill--live">Verified</span>
+        <span class="pill pill--play">21 interactive figures</span>
+        <span class="pill pill--brand">3 parts</span>
+      </div>
+    </div>
+
+    <div class="callout callout--tip">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5V5a1.5 1.5 0 0 1 3 0v6"/><path d="M12 11V4a1.5 1.5 0 0 1 3 0v7"/><path d="M15 11V6a1.5 1.5 0 0 1 3 0v9a6 6 0 0 1-6 6h-2a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0v1.5"/></svg>
+        This chapter is where most real projects are won or lost
+      </div>
+      <p style="margin-bottom:0">
+        Model architectures get the attention, but in practice the difference between a working system and a
+        broken one is usually a scaling bug, a leaked test set, or a metric that flattered a useless
+        classifier. Every figure below computes its numbers live — push them into the failure cases
+        deliberately and watch what breaks.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="preprocessing">Part 2.1 · Data Preprocessing</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Raw data collected from sensors, databases or user inputs is usually incomplete, noisy, and presented
+      at wildly different scales and formats. Feeding it straight into a model leads to poor performance,
+      biased predictions, or training that simply will not converge.
+    </p>
+    <p>Preprocessing turns raw data into something a model can actually learn from. Done well, it lets models:</p>
+    <ul>
+      <li>learn meaningful patterns efficiently;</li>
+      <li>generalise better to unseen data;</li>
+      <li>converge faster during training, reducing computational cost;</li>
+      <li>avoid problems such as feature dominance and class imbalance.</li>
+    </ul>
+
+    <p>The components covered here are:</p>
+    <ul>
+      <li><strong>Aggregation</strong> — combining and summarising data points to reduce complexity and expose higher-level trends, such as turning hourly temperatures into daily averages.</li>
+      <li><strong>Sampling</strong> — selecting a representative subset when the full dataset is too large, or rebalancing one that is skewed.</li>
+      <li><strong>Normalisation</strong> — rescaling numeric features so they have comparable ranges, preventing income (in thousands) from swamping age (in tens).</li>
+      <li><strong>Encoding</strong> — converting categorical variables into numbers without accidentally inventing an ordering that was never there.</li>
+      <li><strong>Discretisation</strong> — turning continuous variables into a finite set of bins.</li>
+      <li><strong>Dimensionality reduction and feature selection</strong> — cutting the number of features down, either by building new ones or by discarding old ones.</li>
+    </ul>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Garbage in, garbage out
+      </div>
+      <p style="margin-bottom:0">
+        The oldest cliché in computing is still the most reliable one. No architecture rescues bad inputs,
+        and high-quality preprocessing routinely makes more difference than a better model.
+      </p>
+    </div>
+
+    <!-- ---------- Why preprocess ---------- -->
+    <h3 id="why-preprocess">Why preprocess at all?</h3>
+
+    <p>
+      Consider a dataset with three well-separated classes and two features, where the first feature happens
+      to be measured on a scale a thousand times larger than the second — say income in dirhams against a
+      satisfaction rating from 1 to 5. Nothing about the <em>structure</em> of the data has changed, only the
+      units. Yet a distance-based method will fall apart.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><circle cx="9" cy="9" r="2"/><circle cx="16" cy="7" r="2"/><circle cx="14" cy="16" r="2"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The case for normalisation, in one slider</p>
+          <p class="playground__sub">Stretch feature 1 up to 1000× and watch k-means stop finding the clusters that are plainly visible. Then switch on a scaler and watch it recover.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="scaling-demo"></div>
+    </div>
+
+    <p>
+      This is not a subtle effect. Euclidean distance sums the squared differences of every feature, so a
+      feature whose numbers are a thousand times bigger contributes a million times more to the squared
+      distance. The clustering is then determined almost entirely by that one column, and the other feature
+      might as well not exist.
+    </p>
+
+    <!-- ---------- Aggregation ---------- -->
+    <h3 id="aggregation">Aggregation</h3>
+
+    <p>
+      Aggregation summarises or combines data points to reduce size and complexity — particularly useful for
+      time series and for data that can be viewed at several levels of granularity.
+    </p>
+
+    <p><strong>Common techniques.</strong></p>
+    <ul>
+      <li><strong>Sum:</strong> \(\sum(x_1, \dots, x_n)\).</li>
+      <li><strong>Mean:</strong> \(\frac{1}{n}\sum_{i=1}^n x_i\).</li>
+      <li><strong>Median:</strong> robust to outliers.</li>
+      <li><strong>Windowed:</strong> e.g. a rolling mean over a time window.</li>
+      <li><strong>Spatial:</strong> e.g. population density per region.</li>
+    </ul>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Technique</th><th>Advantages</th><th>Disadvantages</th></tr></thead>
+        <tbody>
+          <tr><td>Mean</td><td>Simple, efficient for symmetric data</td><td>Sensitive to outliers</td></tr>
+          <tr><td>Median</td><td>Robust to outliers</td><td>Loses fine-grained variation</td></tr>
+          <tr><td>Windowed</td><td>Tracks trends over time</td><td>Introduces lag in real-time systems</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4 id="rolling">Rolling (windowed) aggregation</h4>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        Let \(\{x_t\}_{t=1}^T\) be a univariate time series. A <em>rolling</em> aggregation over a fixed
+        window of size \(w\) summarises the last \(w\) observations at each timestamp:
+      </p>
+      \[
+      \bar{x}_t = \frac{1}{w}\sum_{i=0}^{w-1} x_{t-i}, \qquad
+      \tilde{x}_t = \operatorname{median}\big(x_{t-w+1}, \dots, x_t\big).
+      \]
+      <p style="margin-bottom:0">
+        Unless stated otherwise the window is <strong>right-aligned</strong> — it uses only the past, never
+        future samples. This matters: a centred window would leak information from the future, which is
+        catastrophic in forecasting.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 15c2-6 4 2 6-3s4 3 6-2"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Mean, median and EWMA on a noisy signal</p>
+          <p class="playground__sub">Add outlier spikes and watch the mean get dragged around while the median holds steady. Widen the window to trade noise for lag.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="rolling-agg"></div>
+    </div>
+
+    <p>What the figure shows:</p>
+    <ul>
+      <li>
+        <strong>The first \(w-1\) outputs are undefined</strong> (NaN), because the window is not yet full.
+        That is a direct consequence of right-alignment.
+      </li>
+      <li>
+        <strong>Noise reduction and trend extraction.</strong> Averaging over the last \(w\) samples
+        suppresses high-frequency noise and exposes the low-frequency trend. The median does the same with
+        greater robustness.
+      </li>
+      <li>
+        <strong>Lag on monotone segments.</strong> Because the window only looks backwards, both curves lag
+        the current level on a rising trend and sit above it on a falling one. This is the bias–variance
+        trade-off made visible: larger \(w\) means stronger smoothing (lower variance) but larger lag
+        (higher bias).
+      </li>
+      <li>
+        <strong>Outlier sensitivity.</strong> The mean has <em>unbounded influence</em> — one extreme value
+        can shift it arbitrarily far. The median has <em>bounded influence</em> and is unaffected by the
+        magnitude of outliers as long as fewer than half the window is corrupted.
+      </li>
+    </ul>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Which one in practice?
+      </div>
+      <p style="margin-bottom:0">
+        In noisy sensing or transactional streams where spikes occur — faults, data-entry errors, rare
+        events — a rolling <strong>median</strong> usually describes local central tendency better. The
+        rolling <strong>mean</strong> is preferable when outliers are rare and you want the more efficient
+        estimator under Gaussian-like noise.
+      </p>
+    </div>
+
+    <h4>Weighted windows and the EWMA</h4>
+
+    <p>
+      A flat window gives each of the last \(w\) samples equal weight. More generally we can weight them:
+    </p>
+    \[
+    \bar{x}_t^{(w)} = \frac{\sum_{i=0}^{w-1} \alpha_i\, x_{t-i}}{\sum_{i=0}^{w-1}\alpha_i}, \qquad \alpha_i \ge 0.
+    \]
+    <p>
+      Choosing \(\alpha_i = \lambda^i\) with \(0 &lt; \lambda &lt; 1\) gives the
+      <strong>exponentially weighted moving average</strong>, which has a neat recursive form:
+    </p>
+    \[ \bar{x}_t^{(\lambda)} = (1-\lambda)\,x_t + \lambda\,\bar{x}_{t-1}^{(\lambda)}. \]
+    <ul>
+      <li><strong>Recency bias:</strong> recent samples count for more.</li>
+      <li><strong>Faster adaptation:</strong> reacts to level shifts more quickly than a flat mean.</li>
+      <li><strong>Smoothness parameter:</strong> \(\lambda\) is a "forgetting factor" — closer to 1 means slower decay, so smoother but laggier.</li>
+    </ul>
+    <p>
+      Exponential smoothing is widely used in forecasting because it updates <em>online</em> with
+      \(\mathcal{O}(1)\) memory and computation — you never need to store the window at all.
+    </p>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Watch the convention when you reach for a library
+      </div>
+      <p style="margin-bottom:0">
+        Pandas parameterises the EWMA the other way round. Its <span class="u-mono">adjust=False</span> form is
+        \(y_t = \alpha x_t + (1-\alpha) y_{t-1}\), so <strong>pandas' \(\alpha\) is our \(1-\lambda\)</strong>.
+        With <span class="u-mono">span=s</span> it uses \(\alpha = 2/(s+1)\). Same algorithm, mirrored symbol —
+        a very easy way to get smoothing backwards.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import pandas as pd
+
+# Right-aligned rolling window of size 10 (the default)
+df['roll_mean']   = df['y'].rolling(window=10).mean()
+df['roll_median'] = df['y'].rolling(window=10).median()
+
+# Exponentially weighted moving average
+df['ewm'] = df['y'].ewm(span=10, adjust=False).mean()
+
+# Centred window -- fine for exploratory analysis, NEVER for forecasting
+df['centred'] = df['y'].rolling(window=10, center=True).mean()</code></pre>
+    </div>
+
+    <h4>Choosing the window size</h4>
+    <p>The window \(w\) is a genuine hyperparameter:</p>
+    <ul>
+      <li><strong>Small \(w\):</strong> preserves short-term fluctuations and reacts quickly, but suppresses less noise.</li>
+      <li><strong>Large \(w\):</strong> stronger smoothing and better trend extraction, but more lag and loss of fine temporal detail.</li>
+      <li><strong>Context-dependent:</strong> in finance, 5-, 20- and 200-day averages carry entirely different meanings. In environmental studies a 7-day rolling mean removes the day-of-week cycle.</li>
+    </ul>
+    <p>
+      There is no universally optimal \(w\) — it depends on the signal-to-noise ratio, domain convention, and
+      what you intend to do next. The rule of thumb: large enough to suppress noise, small enough not to hide
+      the dynamics you care about.
+    </p>
+
+    <!-- ---------- Sampling ---------- -->
+    <h3 id="sampling">Sampling</h3>
+
+    <p>
+      Sampling selects a subset of data from a larger population — to reduce computational cost, to make
+      analysis tractable, or to correct a bias such as class imbalance. A good strategy keeps the subset
+      representative while remaining cheap to work with.
+    </p>
+
+    <h4>Common techniques</h4>
+    <p>
+      <strong>Random sampling.</strong> Every data point has an equal chance of selection. Simplest strategy,
+      and it works well for large homogeneous datasets. <em>Example:</em> taking 5,000 tweets at random from
+      a corpus of 5 million for exploratory analysis.
+    </p>
+    <p>
+      <strong>Stratified sampling.</strong> Divide the data into strata by some categorical variable and
+      sample proportionally within each, preserving the class proportions. <em>Example:</em> on a medical
+      dataset where 5% of patients have a rare condition, stratified sampling guarantees both the training
+      and validation splits contain 5% positives rather than leaving it to chance.
+    </p>
+    <p>
+      <strong>Oversampling and undersampling.</strong> Used for imbalanced classification. Oversampling
+      duplicates or synthesises minority-class samples; undersampling discards majority-class ones.
+      <em>Example:</em> in fraud detection where 0.1% of transactions are fraudulent, SMOTE can synthesise
+      minority samples while undersampling keeps the dataset manageable.
+    </p>
+    <p>
+      <strong>Systematic sampling.</strong> Take every \(k^{\text{th}}\) point from an ordered dataset after
+      a random start. Simple and evenly spread, but it goes badly wrong if the data has a period that
+      resonates with \(k\). <em>Example:</em> quality control on every 100<sup>th</sup> item off an assembly
+      line.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Imbalance, and the two ways to fix it</p>
+          <p class="playground__sub">Watch what "90% accuracy" is worth when 90% of the data is one class — then see exactly what oversampling invents and what undersampling throws away.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="sampling"></div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Oversampling is not free
+      </div>
+      <p style="margin-bottom:0">
+        Synthesising minority-class samples means <strong>inventing data that was never observed</strong>. In
+        a domain like healthcare, a synthetic patient interpolated between two real ones may be
+        physiologically impossible — and a model trained to recognise it has learned something false. Use
+        oversampling when you genuinely understand the data distribution; otherwise prefer collecting more
+        data, reweighting the loss, or changing the metric.
+      </p>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Method</th><th>Advantages</th><th>Disadvantages</th></tr></thead>
+        <tbody>
+          <tr><td>Random</td><td>Easy, unbiased</td><td>May miss rare subgroups</td></tr>
+          <tr><td>Stratified</td><td>Preserves subgroup structure</td><td>Requires known strata labels</td></tr>
+          <tr><td>Oversampling</td><td>Addresses minority imbalance</td><td>Risk of overfitting; invents data</td></tr>
+          <tr><td>Undersampling</td><td>Reduces dataset size</td><td>Discards potentially useful data</td></tr>
+          <tr><td>Systematic</td><td>Simple, evenly spread</td><td>Biased if the data is periodic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Where each tends to apply:</p>
+    <ul>
+      <li><strong>Image datasets:</strong> stratified sampling keeps each object class proportional across train, validation and test.</li>
+      <li><strong>Surveys:</strong> pollsters stratify by demographics — age, gender, region.</li>
+      <li><strong>Streaming data:</strong> systematic sampling suits sensor monitoring, e.g. every 10<sup>th</sup> reading from an IoT device.</li>
+      <li><strong>Imbalanced tabular data:</strong> over- or undersampling to make learning feasible.</li>
+    </ul>
+
+    <h4>Further reading · advanced strategies</h4>
+    <ul>
+      <li><strong>Importance sampling:</strong> draw with probability proportional to a point's importance for the estimate. Central to Monte Carlo methods, reinforcement learning and Bayesian inference.</li>
+      <li><strong>Cluster sampling:</strong> sample whole groups rather than individuals — common in survey statistics when the population is geographically distributed.</li>
+      <li><strong>Reservoir sampling:</strong> obtain a uniform random sample from a stream of unknown length in one pass, with fixed memory.</li>
+      <li><strong>Adaptive sampling:</strong> let the strategy respond to intermediate results, concentrating effort on informative regions — the idea behind active learning.</li>
+      <li><strong>Synthetic data generation:</strong> rather than duplicating minority samples, generate new ones with SMOTE or a GAN.</li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import pandas as pd
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("dataset.csv")
+
+# Simple random sample
+sample_df = df.sample(frac=0.1, random_state=42)
+
+# Stratified split -- keeps the class balance in both halves
+train, test = train_test_split(
+    df, test_size=0.2, stratify=df['label'], random_state=42
+)</code></pre>
+    </div>
+
+    <!-- ---------- Normalisation ---------- -->
+    <h3 id="normalization">Normalisation</h3>
+
+    <p>
+      Normalisation rescales features to comparable ranges so that those with larger magnitudes do not
+      dominate learning. It is critical for distance-based models (k-NN, SVMs, k-means) and for
+      gradient-based optimisers, where feature scale directly affects how fast — and whether — training
+      converges.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Min–max normalisation</strong> rescales each feature into a fixed interval, usually \([0,1]\):</p>
+      \[ x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}} \]
+      <p><strong>Z-score normalisation</strong> (standardisation) centres to mean 0 and unit variance:</p>
+      \[ x' = \frac{x - \mu_x}{\sigma_x} \]
+      <p style="margin-bottom:0">
+        <strong>Robust scaling</strong> replaces the mean and standard deviation with the median and
+        interquartile range, so outliers stop dictating the transformation:
+      </p>
+      \[ x' = \frac{x - \operatorname{median}(x)}{\mathrm{IQR}(x)} \]
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Four features, four very different scales</p>
+          <p class="playground__sub">Age, income, credit score and monthly spend. Switch scalers and watch four incomparable distributions become four comparable ones.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="normalization"></div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Technique</th><th>Advantages</th><th>Disadvantages</th><th>When to use</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Min–max</td>
+            <td>Simple; guarantees a bounded \([0,1]\) range</td>
+            <td>Highly sensitive to outliers, which compress everything else</td>
+            <td>Bounded data without significant outliers — e.g. pixel intensities</td>
+          </tr>
+          <tr>
+            <td>Z-score</td>
+            <td>Handles positive and negative values symmetrically; no fixed bound</td>
+            <td>Less intuitive to interpret; still affected by outliers</td>
+            <td>Approximately normal data; the default before PCA</td>
+          </tr>
+          <tr>
+            <td>Robust</td>
+            <td>Outliers barely move the median or IQR</td>
+            <td>Ignores the tails entirely, which may matter</td>
+            <td>Heavy-tailed or contaminated data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Real-world examples</h4>
+    <ul>
+      <li><strong>Image data (0–255 pixel values):</strong> min–max into \([0,1]\) improves numerical stability in neural networks.</li>
+      <li><strong>Financial data:</strong> stock returns take both signs, so z-score normalisation makes stocks of different volatilities comparable.</li>
+      <li><strong>Sensor data:</strong> temperature, humidity and pressure need rescaling so no single measurement dominates a clustering.</li>
+    </ul>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Fit on training data only — this is a real source of data leakage
+      </div>
+      <p style="margin-bottom:0">
+        Always fit the scaler on the <strong>training set</strong> and apply that same transformation to
+        validation and test data. Fitting on the whole dataset lets the test set's minimum, maximum or mean
+        influence the training inputs, which leaks information and produces optimistic results that
+        evaporate in deployment. In scikit-learn: <span class="u-mono">fit_transform</span> on train,
+        <span class="u-mono">transform</span> on everything else.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
+
+scaler = StandardScaler()
+X_train_s = scaler.fit_transform(X_train)   # fit AND transform on train
+X_test_s  = scaler.transform(X_test)        # transform only -- never re-fit
+
+# Safer still: put it in a pipeline so leakage becomes impossible
+from sklearn.pipeline import make_pipeline
+from sklearn.svm import SVC
+model = make_pipeline(StandardScaler(), SVC())
+model.fit(X_train, y_train)</code></pre>
+    </div>
+
+    <h4>Further reading · advanced techniques</h4>
+    <ul>
+      <li><strong>Log and power transforms:</strong> reduce skewness and stabilise variance for heavy-tailed distributions.</li>
+      <li><strong>Unit vector (\(\ell_2\)) normalisation:</strong> rescale each sample to unit norm — standard in text processing with TF–IDF.</li>
+      <li><strong>Batch and layer normalisation:</strong> neural-network methods that normalise <em>activations</em> rather than raw features, to stabilise training.</li>
+      <li><strong>Whitening:</strong> transform correlated features into uncorrelated ones with unit variance, e.g. PCA whitening.</li>
+    </ul>
+
+    <!-- ---------- Encoding ---------- -->
+    <h3 id="encoding">Encoding</h3>
+
+    <p>
+      Most models require numeric input, so categorical features must be converted. The scheme you choose
+      affects both interpretability and performance — and one of them quietly introduces a falsehood.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">One column, four encodings</p>
+          <p class="playground__sub">Add categories and watch one-hot grow linearly while binary grows logarithmically — and see exactly what false ordering label encoding introduces.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="encoding"></div>
+    </div>
+
+    <h4>Label encoding</h4>
+    <p>Assign each category a unique integer:</p>
+    \[ \{\text{Red}, \text{Green}, \text{Blue}\} \;\longrightarrow\; \{0, 1, 2\} \]
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        The invented ordering
+      </div>
+      <p style="margin-bottom:0">
+        Mapping to 0, 1, 2 tells any model that reads numeric magnitude that <em>Blue &gt; Green &gt; Red</em>,
+        and that Red is twice as far from Blue as from Green. Neither statement is true. This actively
+        misleads linear models and distance-based methods. It is <em>harmless</em> for tree-based models,
+        which only ever compare thresholds — which is why label encoding survives at all.
+      </p>
+    </div>
+
+    <h4>One-hot encoding</h4>
+    <p>Create one binary column per category, with a 1 where the category is present:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Colour</th><th>Red</th><th>Green</th><th>Blue</th></tr></thead>
+        <tbody>
+          <tr><td>Red</td><td class="u-mono">1</td><td class="u-mono">0</td><td class="u-mono">0</td></tr>
+          <tr><td>Green</td><td class="u-mono">0</td><td class="u-mono">1</td><td class="u-mono">0</td></tr>
+          <tr><td>Blue</td><td class="u-mono">0</td><td class="u-mono">0</td><td class="u-mono">1</td></tr>
+          <tr><td>Red</td><td class="u-mono">1</td><td class="u-mono">0</td><td class="u-mono">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      No false ordering, and every pair of categories is equidistant. Works well for low-cardinality nominal
+      variables. The limitation is width: thousands of categories produce a very sparse, very
+      high-dimensional matrix.
+    </p>
+
+    <h4>Frequency encoding</h4>
+    <p>Replace each category with how often it occurs. With fruits Apple ×3, Banana ×1, Orange ×1:</p>
+    \[ [\text{Apple}, \text{Banana}, \text{Apple}, \text{Orange}, \text{Apple}] \;\longrightarrow\; [3, 1, 3, 1, 3] \]
+    <p>
+      One column regardless of cardinality, which is attractive for high-cardinality features. But it
+      assumes frequency carries information about the target — often false — and it makes two equally
+      common categories <strong>indistinguishable</strong>: Banana and Orange both become 1.
+    </p>
+
+    <h4>Binary encoding</h4>
+    <p>Map categories to integers, then write those integers in binary and split the bits into columns:</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Category</th><th>Integer</th><th>Binary</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td class="u-mono">1</td><td class="u-mono">001</td></tr>
+          <tr><td>B</td><td class="u-mono">2</td><td class="u-mono">010</td></tr>
+          <tr><td>C</td><td class="u-mono">3</td><td class="u-mono">011</td></tr>
+          <tr><td>D</td><td class="u-mono">4</td><td class="u-mono">100</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      This needs \(\lceil \log_2(k+1) \rceil\) columns for \(k\) categories instead of one-hot's \(k\) — a
+      dramatic saving at high cardinality. The cost is interpretability: an individual bit column means
+      nothing on its own.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+df = pd.DataFrame({'Color': ['Red', 'Green', 'Blue', 'Red']})
+
+# Label encoding
+df['LabelEnc'] = LabelEncoder().fit_transform(df['Color'])
+
+# One-hot encoding
+df_onehot = pd.get_dummies(df, columns=['Color'])
+
+# Frequency encoding
+df['FreqEnc'] = df['Color'].map(df['Color'].value_counts())
+
+# Binary encoding (pip install category_encoders)
+import category_encoders as ce
+df_binary = ce.BinaryEncoder(cols=['Color']).fit_transform(df['Color'])</code></pre>
+    </div>
+
+    <h4>Real-world examples</h4>
+    <ul>
+      <li><strong>Retail:</strong> encoding product categories for a recommendation system.</li>
+      <li><strong>NLP:</strong> encoding tokens before they reach an embedding layer — one-hot into a dense embedding.</li>
+      <li><strong>Healthcare:</strong> encoding diagnosis codes, which are extremely high-cardinality.</li>
+      <li><strong>Web analytics:</strong> encoding device types, browsers, regions.</li>
+    </ul>
+
+    <!-- ---------- Discretisation ---------- -->
+    <h3 id="discretization">Discretisation</h3>
+
+    <p>Discretisation converts continuous variables into discrete bins. It is useful when you want to:</p>
+    <ul>
+      <li>use models that expect categorical input (e.g. Naïve Bayes);</li>
+      <li>reduce sensitivity to small variations and noise;</li>
+      <li>make outputs more interpretable — grouping ages into "20–29", "30–39".</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M6 20V9M11 20V5M16 20v-8M21 20v-4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Three ways to cut the same ten scores</p>
+          <p class="playground__sub">Equal width, equal frequency, and k-means — with the bin edges, counts and within-bin variance computed live.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="discretization"></div>
+    </div>
+
+    <h4>Equal-width binning</h4>
+    <p>Divide the range into \(k\) intervals of identical width:</p>
+    \[ \text{bin}(x) = \left\lfloor \frac{x - \min(x)}{\big(\max(x)-\min(x)\big)/k} \right\rfloor \]
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>
+          Ten exam scores \(\{15, 22, 35, 41, 46, 53, 67, 72, 85, 93\}\), with \(\min = 15\), \(\max = 93\)
+          and \(k = 4\). Each bin has width \((93-15)/4 = 19.5\).
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Bin</th><th>Interval</th><th>Scores</th><th>Count</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td class="u-mono">[15, 34.5)</td><td>15, 22</td><td>2</td></tr>
+              <tr><td>2</td><td class="u-mono">[34.5, 54)</td><td>35, 41, 46, 53</td><td>4</td></tr>
+              <tr><td>3</td><td class="u-mono">[54, 73.5)</td><td>67, 72</td><td>2</td></tr>
+              <tr><td>4</td><td class="u-mono">[73.5, 93]</td><td>85, 93</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:1em">
+          The bins are evenly spaced but the counts are not: 2, 4, 2, 2. That unevenness is the defining
+          characteristic of equal-width binning — and on skewed data it gets much worse, with most points
+          crowding into one bin and others left nearly empty.
+        </p>
+      </div>
+    </div>
+
+    <h4>Equal-frequency binning</h4>
+    <p>
+      Also called <em>quantile binning</em>: sort the values and place approximately the same number of
+      samples in each bin, whatever that does to the widths.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        "Approximately" is doing real work in that sentence
+      </div>
+      <p style="margin-bottom:0">
+        With 10 points and 4 bins, exactly equal counts are <strong>arithmetically impossible</strong> —
+        10 does not divide by 4. Equal-frequency binning can only balance the counts as evenly as the
+        arithmetic allows, here 3, 2, 2, 3. Ties make it worse still: if many points share a value they
+        cannot be split across bins, and <span class="u-mono">pd.qcut</span> will raise an error or silently
+        produce fewer bins than you asked for.
+      </p>
+    </div>
+
+    <p>
+      Applying <span class="u-mono">pd.qcut</span> with \(k = 4\) to the same scores gives quartile edges at
+      36.5, 49.5 and 70.75, producing bins of 3, 2, 2 and 3 scores. Bin 1 spans \([15, 36.5]\) — a width of
+      21.5 — while bin 2 spans just \((36.5, 49.5]\), a width of 13. <strong>Balanced counts, unbalanced
+      widths</strong>: exactly the opposite trade-off from equal-width binning.
+    </p>
+
+    <h4>K-means binning</h4>
+    <p>
+      Rather than fixing widths or counts, partition the values into \(k\) clusters that minimise the
+      within-cluster variance. The bin assignments are then the cluster memberships.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>For the same ten scores with \(k = 3\), k-means converges to:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Cluster</th><th>Scores</th><th>Centroid</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>15, 22</td><td class="u-mono">18.50</td></tr>
+              <tr><td>2</td><td>35, 41, 46, 53</td><td class="u-mono">43.75</td></tr>
+              <tr><td>3</td><td>67, 72, 85, 93</td><td class="u-mono">79.25</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Total within-cluster sum of squares: <strong>624.0</strong>. You can confirm this is a fixed point
+          of Lloyd's algorithm — the midpoint between centroids 18.5 and 43.75 is 31.1, and between 43.75 and
+          79.25 is 61.5, so reassigning each score to its nearest centroid reproduces exactly these three
+          groups.
+        </p>
+        <p style="margin-bottom:1em">
+          Notice the cuts land in the two largest <em>gaps</em> in the data — between 22 and 35, and between
+          53 and 67. That is the whole appeal: k-means puts boundaries where the data is already sparse
+          rather than at arbitrary round numbers.
+        </p>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Method</th><th>Equalises</th><th>Strength</th><th>Weakness</th></tr></thead>
+        <tbody>
+          <tr><td>Equal width</td><td>Bin widths</td><td>Simple and interpretable; bins are round numbers</td><td>Counts can be wildly uneven on skewed data</td></tr>
+          <tr><td>Equal frequency</td><td>Bin counts (approximately)</td><td>Balanced categories; robust to skew</td><td>Widths vary, hurting interpretability; breaks on ties</td></tr>
+          <tr><td>k-means</td><td>Neither — minimises within-bin variance</td><td>Adapts to the actual distribution</td><td>Requires clustering; edges are not round numbers</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import pandas as pd
+from sklearn.preprocessing import KBinsDiscretizer
+
+scores = pd.DataFrame({'score': [15, 22, 35, 41, 46, 53, 67, 72, 85, 93]})
+
+scores['equal_width'] = pd.cut(scores['score'], bins=4)     # equal width
+scores['equal_freq']  = pd.qcut(scores['score'], q=4)       # equal frequency
+
+# k-means binning
+kb = KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='kmeans')
+scores['kmeans_bin'] = kb.fit_transform(scores[['score']]).astype(int)</code></pre>
+    </div>
+
+    <h4>Real-world examples</h4>
+    <ul>
+      <li><strong>Healthcare:</strong> age discretised into bands for epidemiological studies.</li>
+      <li><strong>Finance:</strong> credit scores or income grouped into risk bands.</li>
+      <li><strong>Retail:</strong> purchase amounts grouped into basket sizes.</li>
+      <li><strong>Data compression:</strong> continuous signals quantised into fewer levels.</li>
+    </ul>
+
+    <!-- ---------- Dimensionality reduction ---------- -->
+    <h3 id="dimensionality">Dimensionality reduction</h3>
+
+    <p>Dimensionality reduction maps high-dimensional data into a lower-dimensional space. It helps with:</p>
+    <ul>
+      <li><strong>Efficiency:</strong> lower computation and storage cost.</li>
+      <li><strong>Noise reduction:</strong> suppressing uninformative variation.</li>
+      <li><strong>Visualisation:</strong> making high-dimensional data legible in 2-D or 3-D.</li>
+      <li><strong>Generalisation:</strong> reducing overfitting by discarding redundant features.</li>
+    </ul>
+
+    <p>Common techniques include:</p>
+    <ul>
+      <li><strong>PCA</strong> — linear projection maximising variance.</li>
+      <li><strong>LDA</strong> — supervised projection maximising class separation.</li>
+      <li><strong>t-SNE</strong> — non-linear embedding, for visualisation.</li>
+      <li><strong>UMAP</strong> — manifold-based embedding, efficient at scale.</li>
+      <li><strong>Random projection</strong> — a simple linear projection with the Johnson–Lindenstrauss guarantee.</li>
+    </ul>
+    <p>
+      This course covers <strong>PCA</strong> and feature selection. The others are left as further reading.
+    </p>
+
+    <!-- ---------- PCA ---------- -->
+    <h3 id="pca">Principal component analysis</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        PCA finds a new set of orthogonal axes — the <strong>principal components</strong> — such that the
+        projected data retains as much variance as possible. Given \(\mathbf{X} \in \mathbb{R}^{n \times d}\)
+        with \(n\) samples and \(d\) features, PCA finds \(k &lt; d\) orthogonal directions
+        \(\mathbf{W}_k \in \mathbb{R}^{d \times k}\) so that \(\mathbf{Y} = \mathbf{X}_c\mathbf{W}_k\)
+        has maximum variance.
+      </p>
+      <p style="margin-bottom:0">The procedure:</p>
+      <ol style="margin-bottom:0">
+        <li><strong>Centre:</strong> subtract each feature's mean, \(\mathbf{X}_c = \mathbf{X} - \mu\).</li>
+        <li><strong>Covariance:</strong> compute \(\Sigma = \frac{1}{n-1}\mathbf{X}_c^T\mathbf{X}_c \in \mathbb{R}^{d\times d}\).</li>
+        <li><strong>Eigendecomposition:</strong> solve \(\Sigma v_i = \lambda_i v_i\). Each \(v_i\) is a principal component and \(\lambda_i\) the variance along it.</li>
+        <li><strong>Project:</strong> take the top-\(k\) eigenvectors by eigenvalue to form \(\mathbf{W}_k\) and compute \(\mathbf{Y} = \mathbf{X}_c\mathbf{W}_k\).</li>
+      </ol>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4"/><circle cx="8" cy="15" r="1.5"/><circle cx="13" cy="11" r="1.5"/><circle cx="17" cy="8" r="1.5"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">PCA in two dimensions</p>
+          <p class="playground__sub">Drag the points and watch the components re-orient. Squash the cloud onto a line and PC1 takes 100%; spread it into a disc and neither direction wins.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="pca-explorer"></div>
+    </div>
+
+    <h4>Via the SVD</h4>
+    <p>Rather than forming the covariance matrix explicitly, PCA is usually computed from the SVD of the centred data:</p>
+    \[ \mathbf{X}_c = \mathbf{U}\mathbf{S}\mathbf{V}^T, \]
+    <p>
+      where the columns of \(\mathbf{V}\) are the principal components. This is numerically more stable —
+      forming \(\mathbf{X}_c^T\mathbf{X}_c\) squares the condition number, so small singular values get lost
+      to rounding. The relationship to the eigenvalues is
+      \(\lambda_i = \sigma_i^2/(n-1)\), which connects directly back to
+      <a href="01-mathematical-background.html#svd">Chapter 1's SVD</a>.
+    </p>
+
+    <h4>Two equivalent views</h4>
+    <ul>
+      <li>
+        <strong>Variance maximisation:</strong>
+        \[ \max_{\mathbf{W} \in \mathbb{R}^{d\times k}} \operatorname{tr}(\mathbf{W}^T\Sigma\mathbf{W}) \quad \text{s.t. } \mathbf{W}^T\mathbf{W} = \mathbf{I}. \]
+      </li>
+      <li>
+        <strong>Reconstruction error minimisation:</strong>
+        \[ \min_{\mathbf{W} \in \mathbb{R}^{d\times k}} \lVert \mathbf{X}_c - \mathbf{X}_c\mathbf{W}\mathbf{W}^T \rVert_F^2. \]
+      </li>
+    </ul>
+    <p>
+      These give the same answer. Keeping the directions of greatest spread <em>is</em> the same thing as
+      discarding the directions you can most afford to lose — which is exactly the Eckart–Young statement
+      from Chapter 1, seen from the other side.
+    </p>
+
+    <h4>Explained variance and choosing \(k\)</h4>
+    <p>Each eigenvalue is the variance captured by its component:</p>
+    \[ \text{explained variance ratio}_i = \frac{\lambda_i}{\sum_j \lambda_j}. \]
+    <p>Common heuristics for choosing \(k\):</p>
+    <ul>
+      <li><strong>Elbow method:</strong> plot the explained variance per component and look for the point where it flattens.</li>
+      <li><strong>Variance threshold:</strong> keep enough components to reach, say, 95% of the total.</li>
+      <li><strong>Cross-validation:</strong> pick the \(k\) that performs best on the downstream task — the only criterion that is really about your problem.</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 17V8M12 17v-5M17 17v-2"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The scree plot — and why standardisation changes everything</p>
+          <p class="playground__sub">Toggle standardisation and watch the explained-variance split transform. On raw data PC1 looks dominant; that is units talking, not structure.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="pca-scree"></div>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Standardise first, or PCA will just find your largest unit
+      </div>
+      <p style="margin-bottom:.6em">
+        PCA maximises <em>variance</em>, and variance is not unit-free. Measure a length in millimetres
+        instead of metres and its variance grows by \(10^6\) — so it will dominate PC1 regardless of whether
+        it carries any real information. On a dataset mixing income in thousands with age in tens, an
+        unstandardised PCA will report that PC1 explains almost everything. That number is describing the
+        income column's units.
+      </p>
+      <p style="margin-bottom:0">
+        The one legitimate exception is when all features are already in the <em>same</em> units and their
+        relative scales are meaningful — pixel intensities, or all-in-dirhams financial columns. Otherwise,
+        standardise.
+      </p>
+    </div>
+
+    <h4>Geometric interpretation</h4>
+    <ul>
+      <li>The first principal component is the direction of maximum variance in feature space.</li>
+      <li>The second is orthogonal to the first and captures the next most, and so on.</li>
+      <li>PCA rotates the coordinate system to align with the directions the data actually spreads in.</li>
+    </ul>
+
+    <h4>Limitations</h4>
+    <ul>
+      <li><strong>Linear only:</strong> PCA captures linear correlations. Data on a curved manifold needs Kernel PCA, t-SNE or UMAP.</li>
+      <li><strong>Interpretability:</strong> components are linear combinations of all original features, so "PC1" rarely has a clean meaning.</li>
+      <li><strong>Outlier sensitivity:</strong> variance is dominated by extreme points, which can drag a component onto a handful of samples.</li>
+      <li><strong>Scale dependence:</strong> as above — results change entirely with the units unless you standardise.</li>
+      <li><strong>Unsupervised:</strong> PCA never looks at the labels, so the direction of greatest variance may not be the direction that separates your classes. LDA is the supervised alternative.</li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+
+# Standardise, then reduce -- in a pipeline so the scaler is fitted on train only
+pipe = make_pipeline(StandardScaler(), PCA(n_components=2))
+X_pca = pipe.fit_transform(X_train)
+
+pca = pipe.named_steps['pca']
+print("explained variance ratio:", pca.explained_variance_ratio_)
+print("cumulative:", pca.explained_variance_ratio_.cumsum())
+
+# How many components to reach 95% of the variance?
+full = PCA().fit(StandardScaler().fit_transform(X_train))
+import numpy as np
+k95 = np.searchsorted(full.explained_variance_ratio_.cumsum(), 0.95) + 1</code></pre>
+    </div>
+
+    <h4>Applications</h4>
+    <ul>
+      <li><strong>Image compression:</strong> reduce pixel intensities to a few components.</li>
+      <li><strong>Finance:</strong> extract the market factors driving correlated returns.</li>
+      <li><strong>Genomics:</strong> summarise genetic variation across populations.</li>
+      <li><strong>NLP:</strong> reduce word-embedding dimensionality before clustering.</li>
+      <li><strong>Visualisation:</strong> plot high-dimensional embeddings in 2-D or 3-D.</li>
+    </ul>
+
+    <!-- ---------- Feature selection ---------- -->
+    <h3 id="feature-selection">Feature selection</h3>
+
+    <p>
+      Feature selection identifies the most relevant subset of the <em>original</em> features. This is the
+      key difference from dimensionality reduction: PCA <strong>builds new synthetic features</strong>, while
+      feature selection <strong>keeps a subset of the ones you started with</strong> — so the survivors are
+      still interpretable, still named, and still measurable in the real world.
+    </p>
+    <p>Motivations:</p>
+    <ul>
+      <li><strong>Generalisation:</strong> removing irrelevant or noisy features reduces variance and overfitting.</li>
+      <li><strong>Efficiency:</strong> smaller feature sets train and infer faster.</li>
+      <li><strong>Interpretability:</strong> the selected features are direct insight into the problem — and if a feature is expensive to collect, dropping it saves real money.</li>
+    </ul>
+    <p>Methods fall into three families: <em>filter</em>, <em>wrapper</em> and <em>embedded</em>.</p>
+
+    <h4>Filter methods</h4>
+    <p>
+      Filter methods score features by a statistical criterion, independently of any model. They are fast,
+      interpretable, and usually applied as a first pass.
+    </p>
+    <ul>
+      <li>
+        <strong>Variance threshold:</strong> drop features that barely vary.
+        \[ \operatorname{Var}(\mathbf{X}_j) = \frac{1}{n}\sum_{i=1}^n (\mathbf{X}_{ij} - \mu_j)^2 \]
+        Note this never looks at the target, so it can only tell you a feature is <em>constant</em>, never that it is <em>useful</em>.
+      </li>
+      <li>
+        <strong>Correlation coefficient:</strong> measures linear association with the target.
+        \[ \rho(\mathbf{X}_j, y) = \frac{\operatorname{Cov}(\mathbf{X}_j, y)}{\sigma_{\mathbf{X}_j}\sigma_y}, \qquad -1 \le \rho \le 1 \]
+      </li>
+      <li>
+        <strong>Mutual information:</strong> the reduction in uncertainty about \(y\) given \(\mathbf{X}_j\), capturing linear <em>and</em> non-linear dependence.
+        \[ I(\mathbf{X}_j; y) = \sum_{x,y} p(x,y)\log\frac{p(x,y)}{p(x)p(y)} \]
+      </li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Three criteria, three different answers</p>
+          <p class="playground__sub">Five features with known roles — including pure noise and a redundant duplicate. Watch which criteria get fooled by which.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="feature-selection"></div>
+    </div>
+
+    <p><strong>Pros:</strong> simple, fast, scalable to very high dimensions, model-independent.</p>
+    <p><strong>Cons:</strong> ignores feature <em>interactions</em>, and happily selects redundant features — two columns that both correlate with the target will both score highly even if one is a copy of the other.</p>
+
+    <h4>Wrapper methods</h4>
+    <p>
+      Wrapper methods evaluate feature <em>subsets</em> by actually training a model on them. This captures
+      interactions and redundancy that filters miss, at considerable computational cost.
+    </p>
+    <ul>
+      <li>
+        <strong>Recursive feature elimination (RFE):</strong> train on all features, rank them by importance,
+        drop the weakest, and repeat until the desired number remains.
+      </li>
+      <li><strong>Forward selection:</strong> start empty and repeatedly add whichever feature most improves cross-validated performance.</li>
+      <li><strong>Backward elimination:</strong> start with everything and repeatedly remove the least useful.</li>
+    </ul>
+    <p><strong>Pros:</strong> accounts for interactions; tailored to the model you will actually use.</p>
+    <p><strong>Cons:</strong> expensive — evaluating all subsets of \(d\) features is \(2^d\) model fits, so these are greedy approximations. Prone to overfitting the selection itself unless the search is wrapped in cross-validation.</p>
+
+    <h4>Embedded methods</h4>
+    <p>
+      Embedded methods fold feature selection into training itself, by penalising the model for relying on
+      too many features.
+    </p>
+    <ul>
+      <li>
+        <strong>Lasso (\(\ell_1\) regularisation):</strong> adds a penalty proportional to the absolute value of the coefficients,
+        \[ \min_\mathbf{w} \frac{1}{2n}\lVert \mathbf{X}\mathbf{w} - \mathbf{y}\rVert_2^2 + \lambda\lVert \mathbf{w}\rVert_1. \]
+        Larger \(\lambda\) shrinks coefficients, driving some to <em>exactly</em> zero — that is feature elimination as a side effect of fitting. The reason \(\ell_1\) does this and \(\ell_2\) does not is the diamond-shaped unit ball with corners on the axes, which you can see in <a href="01-mathematical-background.html#norms">Chapter 1's norms figure</a>.
+      </li>
+      <li><strong>Trees and ensembles:</strong> random forests and gradient-boosted trees rank features by impurity decrease as a by-product of training.</li>
+      <li>
+        <strong>Elastic net:</strong> combines \(\ell_1\) sparsity with \(\ell_2\) stability,
+        \[ \min_\mathbf{w} \frac{1}{2n}\lVert \mathbf{X}\mathbf{w} - \mathbf{y}\rVert_2^2 + \alpha\big(\lambda_1\lVert\mathbf{w}\rVert_1 + \lambda_2\lVert\mathbf{w}\rVert_2^2\big), \]
+        which behaves better than plain Lasso when features are strongly correlated.
+      </li>
+    </ul>
+    <p><strong>Pros:</strong> far cheaper than wrappers, considers interactions, integrated with training.</p>
+    <p><strong>Cons:</strong> model-dependent — the selection reflects what that particular regulariser favours.</p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Practical considerations
+      </div>
+      <ul style="margin-bottom:0">
+        <li><strong>Redundancy:</strong> strongly correlated features all look important individually. Check a correlation matrix and drop duplicates before trusting any filter ranking.</li>
+        <li><strong>Selection is part of the model:</strong> if you pick features using the whole dataset and <em>then</em> cross-validate, you have already leaked. Feature selection belongs inside the cross-validation loop.</li>
+        <li><strong>Scalability:</strong> for genomics or text, start with filters; wrappers are infeasible at \(d = 10^5\).</li>
+        <li><strong>Hybrid:</strong> filter aggressively first, then apply a wrapper or embedded method to the survivors.</li>
+      </ul>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>from sklearn.feature_selection import VarianceThreshold, mutual_info_classif, RFE
+from sklearn.linear_model import LogisticRegression, LassoCV
+from sklearn.datasets import load_iris
+
+X, y = load_iris(return_X_y=True)
+
+# Filter: variance threshold and mutual information
+X_var = VarianceThreshold(threshold=0.1).fit_transform(X)
+mi = mutual_info_classif(X, y, random_state=0)
+
+# Wrapper: recursive feature elimination
+rfe = RFE(LogisticRegression(max_iter=500), n_features_to_select=3).fit(X, y)
+print("kept:", rfe.support_)
+
+# Embedded: Lasso drives coefficients to exactly zero
+lasso = LassoCV(cv=5, random_state=0).fit(X, y)
+import numpy as np
+print("non-zero coefficients:", np.flatnonzero(lasso.coef_))</code></pre>
+    </div>
+
+    <h4>Applications</h4>
+    <ul>
+      <li><strong>Healthcare:</strong> selecting biomarkers from genomic or clinical data.</li>
+      <li><strong>Finance:</strong> identifying the variables that actually drive credit default risk.</li>
+      <li><strong>Text classification:</strong> choosing informative words for spam or sentiment models.</li>
+      <li><strong>IoT and edge ML:</strong> cutting the number of active sensors to the essential subset, which directly reduces cost and power draw.</li>
+    </ul>
+
+    <!-- ==================================================== -->
+    <h2 id="similarity">Part 2.2 · Similarity Measures</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      A great deal of machine learning reduces to one question: <em>how alike are these two things?</em>
+      Clustering groups points that are similar; k-NN classifies by looking at nearby examples;
+      recommenders find users with similar taste; retrieval finds documents close to a query. Each of those
+      needs a number that quantifies similarity — and the number you choose changes the answer.
+    </p>
+    <p>This part covers the five measures used in this course:</p>
+    <ul>
+      <li>Pearson correlation</li>
+      <li>Euclidean distance</li>
+      <li>Manhattan distance</li>
+      <li>Cosine similarity</li>
+      <li>Jaccard similarity</li>
+    </ul>
+    <p>
+      This is not an exhaustive list — Mahalanobis, Hamming, edit distance, earth mover's distance and many
+      others exist, and are worth exploring if your data calls for them.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Similarity, distance, and what makes a metric
+      </div>
+      <p style="margin-bottom:.6em">
+        <strong>Similarity</strong> is large when things are alike; <strong>distance</strong> is small. They
+        are usually convertible, but not always cleanly.
+      </p>
+      <p style="margin-bottom:0">
+        A distance \(d\) is a true <strong>metric</strong> when it satisfies four conditions:
+        \(d(a,b) \ge 0\); \(d(a,b) = 0\) exactly when \(a = b\); symmetry \(d(a,b) = d(b,a)\); and the
+        <em>triangle inequality</em> \(d(a,c) \le d(a,b) + d(b,c)\). That last one is what lets algorithms
+        prune search space safely, so it is a practical property and not just a formality. Euclidean and
+        Manhattan distances are metrics. Cosine <em>distance</em> is not.
+      </p>
+    </div>
+
+    <!-- ---------- Pearson ---------- -->
+    <h3 id="pearson">Pearson correlation</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>The Pearson correlation coefficient measures the <strong>linear</strong> relationship between two variables:</p>
+      \[ \rho_{A,B} = \frac{\operatorname{cov}(A,B)}{\sigma_A \sigma_B} \]
+      <p style="margin-bottom:0">
+        It is bounded in \([-1, 1]\), and it is scale-invariant — multiplying either variable by a positive
+        constant leaves \(\rho\) unchanged.
+      </p>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        The word "linear" is the whole warning
+      </div>
+      <p style="margin-bottom:0">
+        Pearson can only see straight-line association. If your data is related non-linearly, \(\rho\) may be
+        exactly zero while the relationship is <em>perfect and deterministic</em>. A correlation of 0 means
+        "no linear relationship", never "no relationship".
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 16 18 7"/><circle cx="9" cy="14" r="1.4"/><circle cx="14" cy="10" r="1.4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Where correlation succeeds, and where it lies</p>
+          <p class="playground__sub">Five patterns including a perfect parabola with r = 0 and a single outlier manufacturing a correlation. Drag any point.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="pearson-explore"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · a perfect linear relationship
+      </div>
+      <div class="example__body">
+        <p>Let \(A = [1,2,3,4,5]\) and \(B = [2,4,6,8,10]\), so \(B = 2A\). Using the population convention (dividing by \(n\)):</p>
+        <ol>
+          <li>\(\bar{A} = 3\), \(\bar{B} = 6\).</li>
+          <li>\(\operatorname{Cov}(A,B) = \frac{1}{5}\sum(A_i - \bar{A})(B_i - \bar{B}) = \frac{1}{5}(8 + 2 + 0 + 2 + 8) = 4\).</li>
+          <li>\(\sigma_A = \sqrt{\frac{1}{5}(4+1+0+1+4)} = \sqrt{2}\), \quad \(\sigma_B = \sqrt{\frac{1}{5}(16+4+0+4+16)} = \sqrt{8}\).</li>
+          <li>\(\rho_{A,B} = \dfrac{4}{\sqrt{2}\cdot\sqrt{8}} = \dfrac{4}{4} = 1\).</li>
+        </ol>
+        <p style="margin-bottom:1em">
+          Note that \(\rho = 1\) tells you the points lie exactly on <em>a</em> straight line — it says nothing
+          about the slope. \(B = 2A\) and \(B = 100A\) both give \(\rho = 1\).
+        </p>
+      </div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · a perfect <em>non-linear</em> relationship
+      </div>
+      <div class="example__body">
+        <p>Now let \(A = [-5, -4, \dots, 4, 5]\) and \(B = A^2 = [25, 16, 9, 4, 1, 0, 1, 4, 9, 16, 25]\). Here \(n = 11\).</p>
+        <ul>
+          <li>\(\bar{A} = 0\) by symmetry, and \(\bar{B} = \frac{110}{11} = 10\).</li>
+          <li>
+            \(\operatorname{Cov}(A,B) = \frac{1}{11}\sum (A_i - 0)(B_i - 10) = \frac{1}{11}\sum A_i^3 = 0\),
+            because the cubes cancel in pairs: \((-5)^3 + 5^3 = 0\), and so on.
+          </li>
+          <li>Therefore \(\rho_{A,B} = 0\).</li>
+        </ul>
+        <p style="margin-bottom:1em">
+          <strong>\(B\) is a perfect, deterministic function of \(A\)</strong> — and Pearson reports no
+          relationship whatsoever. Every point on the left of the parabola contributes a negative product,
+          every point on the right contributes an equal positive one, and they cancel exactly. Load the
+          "Parabola" preset above to watch the violet and red points balance out.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Applications.</strong> Feature selection (dropping features highly correlated with one
+      another), and analysing relationships in regression.
+    </p>
+    <p>
+      <strong>Limitations.</strong> Blind to non-linear relationships, and sensitive to outliers — as the
+      "One outlier" preset shows, a single point can create the appearance of correlation where none exists.
+      When you suspect either problem, <strong>Spearman's rank correlation</strong> is a useful companion: it
+      correlates the <em>ranks</em> rather than the values, so it detects any monotonic relationship and
+      shrugs off outliers. It still returns 0 on the symmetric parabola, because that relationship is not
+      monotonic either.
+    </p>
+
+    <!-- ---------- Distances ---------- -->
+    <h3 id="distances">Euclidean and Manhattan distance</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Euclidean (\(\ell_2\))</strong> — the straight-line distance between two points in \(\mathbb{R}^n\):</p>
+      \[ d(A,B) = \sqrt{\sum_{i=1}^n (A_i - B_i)^2} \]
+      <p><strong>Manhattan (\(\ell_1\))</strong> — distance measured along axes at right angles:</p>
+      \[ d(A,B) = \sum_{i=1}^n |A_i - B_i| \]
+      <p style="margin-bottom:0">
+        Both are special cases of the Minkowski distance
+        \(d_p(A,B) = \big(\sum_i |A_i - B_i|^p\big)^{1/p}\), with \(p = 2\) and \(p = 1\) respectively.
+        Taking \(p \to \infty\) gives the <strong>Chebyshev</strong> distance \(\max_i |A_i - B_i|\).
+      </p>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example
+      </div>
+      <div class="example__body">
+        <p>With \(A = [1,2,3]\) and \(B = [4,5,6]\), each coordinate differs by 3:</p>
+        \[ d_{\text{Euclidean}} = \sqrt{(-3)^2 + (-3)^2 + (-3)^2} = \sqrt{27} \approx 5.196 \]
+        \[ d_{\text{Manhattan}} = |{-3}| + |{-3}| + |{-3}| = 9 \]
+        <p style="margin-bottom:1em">
+          The Manhattan distance is larger, as it always is when more than one coordinate differs — the
+          straight line is a shortcut past the staircase.
+        </p>
+      </div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 20 4"/><path d="M4 20h10v-10"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Straight line versus city blocks</p>
+          <p class="playground__sub">Drag the endpoints and compare all three metrics. Switch on the equal-distance sets to recover the unit balls from Chapter 1.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="distance-metrics"></div>
+    </div>
+
+    <p><strong>Interpretation.</strong></p>
+    <ul>
+      <li><strong>Euclidean:</strong> "as the crow flies". The natural choice when movement in any direction is equally possible.</li>
+      <li><strong>Manhattan:</strong> movement restricted to the axes, like navigating a city grid — appropriate whenever diagonal movement is impossible or meaningless.</li>
+    </ul>
+
+    <p><strong>Applications.</strong> Euclidean distance underpins k-NN classification and k-means clustering. Manhattan distance suits grid pathfinding, image processing, and settings where features should be treated independently.</p>
+
+    <p><strong>When Manhattan is preferable.</strong></p>
+    <ul>
+      <li>
+        <strong>More robust to outliers.</strong> Euclidean distance squares each coordinate difference, so a
+        single wildly-wrong dimension dominates. Manhattan grows only linearly with that difference.
+      </li>
+      <li>
+        <strong>More stable in high dimensions.</strong> Distances concentrate as dimension grows — the
+        subject of the next section — and lower-order norms concentrate more slowly, so \(\ell_1\) retains
+        discriminative power a little longer than \(\ell_2\).
+      </li>
+    </ul>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        Both are wrecked by unscaled features
+      </div>
+      <p style="margin-bottom:0">
+        Every distance in this section adds contributions across features, so any feature with a large
+        numeric range dominates the sum. Return to the
+        <a href="#why-preprocess">normalisation figure</a> if this needs reinforcing — it is the single most
+        common way distance-based methods fail silently.
+      </p>
+    </div>
+
+    <!-- ---------- Curse of dimensionality ---------- -->
+    <h3 id="curse">The curse of dimensionality</h3>
+
+    <p>
+      Distance-based methods rest on an assumption that is easy to overlook: that "near" and "far" are
+      meaningfully different. In high dimensions, that assumption quietly fails.
+    </p>
+    <p>
+      Take a random query point, draw a cloud of random points around it, and compute the ratio of the
+      <em>nearest</em> distance to the <em>farthest</em>. If that ratio is small, the nearest neighbour is
+      genuinely distinctive. If it approaches 1, everything is about equally far away and the nearest
+      neighbour is no longer meaningfully nearer than anything else.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M6 17c5-1 8-6 14-8"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Everything becomes equally far away</p>
+          <p class="playground__sub">Nearest/farthest distance ratio against dimension, computed live for both metrics. By d = 1000 the ratio is close to 1.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="curse-dimensionality"></div>
+    </div>
+
+    <p>What the figure shows:</p>
+    <ol>
+      <li>
+        <strong>Low dimensions (2–10).</strong> The ratio is small. The nearest neighbour is much closer than
+        the farthest, so distances carry real information and k-NN or k-means behave sensibly.
+      </li>
+      <li>
+        <strong>High dimensions (100–1000).</strong> The ratio climbs steadily toward 1. Nearest and farthest
+        neighbours sit at almost the same distance — intuitively, <em>everything looks equally far</em>.
+      </li>
+      <li>
+        <strong>Euclidean versus Manhattan.</strong> Both converge toward 1, but Euclidean concentrates
+        slightly faster. This reflects how they scale with dimension: for random points, expected Euclidean
+        distance grows like \(\sqrt{d}\) while the spread of distances grows more slowly, so the
+        <em>relative</em> contrast shrinks.
+      </li>
+    </ol>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Why this matters
+      </div>
+      <p style="margin-bottom:0">
+        This is the concrete reason distance-based methods degrade on high-dimensional data, and the reason
+        <a href="#pca">dimensionality reduction</a> and <a href="#feature-selection">feature selection</a>
+        are not merely efficiency tricks — they are often what makes the method work at all. It is also why
+        cosine similarity is preferred for high-dimensional embeddings: by discarding magnitude and keeping
+        only angle, it sidesteps some of this concentration.
+      </p>
+    </div>
+
+    <!-- ---------- Cosine ---------- -->
+    <h3 id="cosine">Cosine similarity</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>Cosine similarity is the cosine of the angle between two vectors:</p>
+      \[ \text{cosine}(A,B) = \frac{A \cdot B}{\lVert A\rVert\,\lVert B\rVert} \]
+      <p style="margin-bottom:0">
+        It ranges over \([-1, 1]\) in general, and over \([0, 1]\) when all components are non-negative — as
+        they are for word counts, TF–IDF vectors and most feature histograms.
+      </p>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Examples
+      </div>
+      <div class="example__body">
+        <p><strong>1.</strong> With \(A = [1,2,3]\) and \(B = [4,5,6]\):</p>
+        \[ A \cdot B = 4 + 10 + 18 = 32, \qquad \lVert A\rVert = \sqrt{14}, \qquad \lVert B\rVert = \sqrt{77} \]
+        \[ \text{cosine}(A,B) = \frac{32}{\sqrt{14}\sqrt{77}} = \frac{32}{\sqrt{1078}} \approx 0.9746 \]
+        <p><strong>2 · perfect alignment.</strong> With \(A = [1,2,3]\) and \(C = [2,4,6] = 2A\):</p>
+        \[ \text{cosine}(A,C) = 1 \]
+        <p style="margin-bottom:1em">
+          The vectors point in exactly the same direction, so the angle is zero, whatever their lengths.
+          Note the contrast: the Euclidean distance between \(A\) and \(C\) is
+          \(\sqrt{1+4+9} = \sqrt{14} \approx 3.74\), which is not small at all.
+        </p>
+      </div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20 18 6M4 20l14 2"/><path d="M9 20a7 7 0 0 0 2-5"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Direction matters, length does not</p>
+          <p class="playground__sub">Scale B up and down its own ray: Euclidean distance changes enormously, cosine similarity does not move at all.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="cosine-sim"></div>
+    </div>
+
+    <p><strong>Applications.</strong></p>
+    <ul>
+      <li><strong>Document similarity:</strong> bag-of-words and TF–IDF vectors, where document length varies wildly.</li>
+      <li><strong>Recommender systems:</strong> comparing users by rating patterns rather than by how much they rate.</li>
+      <li><strong>Embeddings:</strong> word2vec, sentence and image embeddings — the default similarity in modern retrieval and RAG systems.</li>
+    </ul>
+
+    <p>
+      <strong>Advantages.</strong> Captures orientation regardless of magnitude, which makes it robust to
+      differences in scale and to the length of documents. It also behaves better than raw Euclidean distance
+      in the high-dimensional sparse settings where text lives.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        On "cosine is not a true metric"
+      </div>
+      <p style="margin-bottom:.6em">
+        Worth stating precisely, because it is easy to garble. Cosine <em>similarity</em> is not a distance at
+        all — it gets <em>larger</em> as things become more alike, so the metric axioms do not even apply to
+        it.
+      </p>
+      <p style="margin-bottom:0">
+        The derived <strong>cosine distance</strong> \(1 - \cos\theta\) <em>is</em> a distance, and it
+        genuinely fails the triangle inequality. But the <strong>angular distance</strong>
+        \(\theta = \arccos(\cos\theta)\) <em>is</em> a proper metric. So the honest statement is: cosine
+        distance is not a metric, though a metric closely related to it exists.
+      </p>
+    </div>
+
+    <p>
+      <strong>Limitation.</strong> Cosine similarity discards magnitude entirely. If magnitude carries
+      information — total spend, signal strength, how many times a user actually watched something — that
+      information is thrown away. Two customers who buy the same products in a 1:2:3 ratio look identical
+      even if one spends a hundred times more.
+    </p>
+
+    <!-- ---------- Jaccard ---------- -->
+    <h3 id="jaccard">Jaccard similarity</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>Jaccard similarity measures the overlap between two sets:</p>
+      \[ J(A,B) = \frac{|A \cap B|}{|A \cup B|} \]
+      <p style="margin-bottom:0">
+        It ranges from 0 (disjoint) to 1 (identical). The complement \(1 - J(A,B)\) is the
+        <strong>Jaccard distance</strong>, which — unlike cosine distance — <em>is</em> a true metric.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Overlap, as a Venn diagram you control</p>
+          <p class="playground__sub">Toggle words in and out of each set and watch the intersection, union and ratio update.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="jaccard"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Examples
+      </div>
+      <div class="example__body">
+        <p><strong>1 · sets.</strong> \(A = \{1,2,3,4,5\}\), \(B = \{4,5,6,7\}\):</p>
+        \[ A \cap B = \{4,5\}, \qquad A \cup B = \{1,2,3,4,5,6,7\} \]
+        \[ J(A,B) = \frac{2}{7} \approx 0.286 \]
+        <p><strong>2 · text.</strong> Two documents as sets of words:</p>
+        <ul>
+          <li>Doc1 = {machine, learning, is, amazing}</li>
+          <li>Doc2 = {deep, learning, is, amazing}</li>
+        </ul>
+        <p>The intersection is {learning, is, amazing} and the union has 5 distinct words, so \(J = \frac{3}{5} = 0.6\).</p>
+        <p><strong>3 · binary vectors.</strong> \(A = [1,0,1,0,1]\), \(B = [1,1,0,0,1]\). Treating each as the set of positions holding a 1, \(A = \{1,3,5\}\) and \(B = \{1,2,5\}\):</p>
+        \[ J = \frac{|\{1,5\}|}{|\{1,2,3,5\}|} = \frac{2}{4} = 0.5 \]
+        <p style="margin-bottom:1em">
+          Note that position 4 is 0 in both vectors and contributes to neither the intersection nor the
+          union. Jaccard deliberately ignores joint absences — which is the right behaviour for sparse data,
+          where almost everything is absent from almost everything.
+        </p>
+      </div>
+    </div>
+
+    <p><strong>Applications.</strong> Document similarity in text mining, clustering categorical data, comparing binary feature vectors, near-duplicate detection (via MinHash), and measuring overlap between user or tag sets.</p>
+    <p><strong>Advantages.</strong> Robust to document length, intuitive, and naturally suited to set-valued data where no numeric magnitude exists.</p>
+    <p><strong>Limitation.</strong> It ignores frequency entirely: a document mentioning "learning" fifty times and one mentioning it once are treated identically. When counts matter, use cosine similarity over count vectors instead.</p>
+
+    <!-- ---------- Comparative ---------- -->
+    <h3 id="compare">Comparative summary</h3>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Measure</th><th>Formula</th><th>Strengths</th><th>Limitations</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Pearson correlation</strong></td>
+            <td>\(\rho = \frac{\operatorname{cov}(A,B)}{\sigma_A\sigma_B}\)</td>
+            <td>Captures linear dependence; scale-invariant; interpretable in \([-1,1]\)</td>
+            <td>Blind to non-linear relationships; sensitive to outliers</td>
+          </tr>
+          <tr>
+            <td><strong>Euclidean distance</strong></td>
+            <td>\(\sqrt{\sum (A_i - B_i)^2}\)</td>
+            <td>Intuitive straight-line distance; a true metric; effective in low dimensions</td>
+            <td>Sensitive to feature scaling; concentrates badly in high dimensions</td>
+          </tr>
+          <tr>
+            <td><strong>Manhattan distance</strong></td>
+            <td>\(\sum |A_i - B_i|\)</td>
+            <td>More robust to outliers; a true metric; concentrates more slowly than \(\ell_2\); natural for grid data</td>
+            <td>Less intuitive geometrically; still scale-sensitive</td>
+          </tr>
+          <tr>
+            <td><strong>Cosine similarity</strong></td>
+            <td>\(\frac{A \cdot B}{\lVert A\rVert \lVert B\rVert}\)</td>
+            <td>Direction not magnitude; robust to scaling and document length; strong for sparse high-dimensional data</td>
+            <td>Discards magnitude; cosine <em>distance</em> is not a metric</td>
+          </tr>
+          <tr>
+            <td><strong>Jaccard similarity</strong></td>
+            <td>\(\frac{|A \cap B|}{|A \cup B|}\)</td>
+            <td>Simple set comparison; robust to length; ideal for categorical and binary data; \(1-J\) is a metric</td>
+            <td>Ignores frequency entirely; unstable when both sets are tiny</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        How to choose
+      </div>
+      <p style="margin-bottom:0">
+        Ask what "similar" is supposed to mean for <em>your</em> data. If magnitude is meaningful, use a
+        distance. If only proportion or direction matters, use cosine. If the data is set-valued or binary,
+        use Jaccard. If you care whether two variables <em>move together</em> rather than whether they are
+        close, use correlation. And whichever you pick, <strong>scale your features first</strong> unless the
+        measure is explicitly scale-invariant.
+      </p>
+    </div>
+
+    <!-- ==================================================== -->
+    <h2 id="evaluation">Part 2.3 · Model Evaluation</h2>
+    <!-- ==================================================== -->
+
+    <p>
+      Building a model is the easy part. Knowing whether it works — <em>honestly</em>, on data it has never
+      seen, measured by something that reflects what you actually care about — is where most of the
+      difficulty lives.
+    </p>
+
+    <!-- ---------- Splits ---------- -->
+    <h3 id="splits">Training, validation and testing</h3>
+
+    <p>Model development requires the dataset to be separated into distinct subsets:</p>
+    <ul>
+      <li>
+        <strong>Training set.</strong> Used to fit the model's parameters by minimising the
+        <strong>training error</strong>. This is what the model actually learns patterns from.
+      </li>
+      <li>
+        <strong>Validation set.</strong> Used for hyperparameter tuning and monitoring. The
+        <strong>validation error</strong> estimates how well the model generalises beyond what it was
+        trained on, and is what you use to make choices.
+      </li>
+      <li>
+        <strong>Test set.</strong> Used <em>once</em>, after all training and selection is complete, to give
+        an unbiased estimate of final performance.
+      </li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="1"/><path d="M11 8v8M16 8v8"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Splitting 1000 samples three ways</p>
+          <p class="playground__sub">Every share you give one set is taken from another. Push the test set below 10% and see why the final number becomes unreliable.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="data-split"></div>
+    </div>
+
+    <p>
+      A typical split of 1000 samples is 70% (700) for training, 15% (150) for validation and 15% (150) for
+      testing. There is a genuine balance to strike: more training data means the model learns more, but
+      leaves less to evaluate it with, and a performance estimate from 50 samples is close to worthless.
+    </p>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        The test set is not a validation set you check more often
+      </div>
+      <p style="margin-bottom:0">
+        Every time you look at test performance and then change something — a hyperparameter, a feature, an
+        architecture — you have used the test set to make a decision, and it has stopped being an unbiased
+        estimate. Do that twenty times and your reported test score is optimistic by a margin you cannot
+        measure. This is one of the most common and least visible failures in applied machine learning.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_iris
+
+X, y = load_iris(return_X_y=True)
+
+# 70% train, 15% validation, 15% test -- stratified to preserve class balance
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.3, stratify=y, random_state=42)
+X_val, X_test, y_val, y_test = train_test_split(
+    X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
+
+print(len(X_train), len(X_val), len(X_test))   # 105 22 23</code></pre>
+    </div>
+
+    <!-- ---------- Fitting ---------- -->
+    <h3 id="fitting">Over- and under-fitting</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>
+        <strong>Under-fitting.</strong> The model is too simple to capture the structure in the data, so
+        <em>both</em> training and test error are high. Causes: a model that is not expressive enough for the
+        problem, or one that simply has not been trained long enough.
+      </p>
+      <p style="margin-bottom:0">
+        <strong>Over-fitting.</strong> The model is too complex and has captured noise in the training data,
+        so training error is <em>low</em> while validation and test error are <em>high</em>. Causes: an
+        over-parameterised model, too little data, or training for too long.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 15c3-9 5 4 7-4s4 6 7-3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Watch the U-curve appear</p>
+          <p class="playground__sub">Raise the polynomial degree. Training error only ever falls; validation error falls, bottoms out, then climbs. The inset tracks both.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="overfitting"></div>
+    </div>
+
+    <p><strong>The role of the validation set.</strong></p>
+    <ul>
+      <li><strong>Early stopping:</strong> halt training when validation error stops improving.</li>
+      <li><strong>Model selection:</strong> choose the configuration with the lowest validation error.</li>
+      <li><strong>Tuning:</strong> compare hyperparameter settings on a like-for-like basis.</li>
+    </ul>
+    <p>
+      The ideal operating point is where validation error is minimised. Training beyond it keeps reducing
+      training error while validation error rises — the model is no longer learning the signal, it is
+      memorising the sample.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · selecting a model from a table
+      </div>
+      <div class="example__body">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Model</th><th>Training error (%)</th><th>Validation error (%)</th><th>Gap</th></tr></thead>
+            <tbody>
+              <tr style="background:var(--ok-soft)"><td><strong>Model 1</strong></td><td class="u-mono">12</td><td class="u-mono"><strong>11</strong></td><td class="u-mono">−1</td></tr>
+              <tr><td>Model 2</td><td class="u-mono">17</td><td class="u-mono">18</td><td class="u-mono">+1</td></tr>
+              <tr style="background:var(--warn-soft)"><td>Model 3</td><td class="u-mono"><strong>6</strong></td><td class="u-mono">19</td><td class="u-mono">+13</td></tr>
+              <tr><td>Model 4</td><td class="u-mono">23</td><td class="u-mono">23.5</td><td class="u-mono">+0.5</td></tr>
+              <tr style="background:var(--warn-soft)"><td>Model 5</td><td class="u-mono">11</td><td class="u-mono">17</td><td class="u-mono">+6</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>Model 3</strong> has by far the lowest training error at 6% — and it is the worst model in
+          the table, with a validation error of 19%. That 13-point gap is the signature of over-fitting.
+          Model 5 shows a milder version of the same problem.
+        </p>
+        <p>
+          <strong>Model 1</strong> has the lowest validation error and is the one to pick. <strong>Model 4</strong>
+          is under-fitting: both errors are high and close together, which says the model is too simple
+          rather than over-trained.
+        </p>
+        <p style="margin-bottom:1em">
+          The lesson generalises: <strong>never select on training error</strong>. It rewards exactly the
+          behaviour you are trying to avoid.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Further reading · is over-training always bad?
+      </div>
+      <p style="margin-bottom:0">
+        Modern deep learning complicates the classical U-curve. Heavily over-parameterised networks often
+        keep improving well past the point of interpolating the training set — the "double descent"
+        phenomenon. Students interested in this should read
+        <em>Prevalence of neural collapse during the terminal phase of deep learning training</em>
+        (Papyan et al., PNAS 2020) and <em>NeRV: Neural Representations for Videos</em>
+        (Chen et al., NeurIPS 2021), where memorisation is the entire objective.
+      </p>
+    </div>
+
+    <!-- ---------- K-fold ---------- -->
+    <h3 id="kfold">K-fold cross-validation</h3>
+
+    <p>
+      A single train/validation split has a problem: the estimate depends on <em>which</em> points happened
+      to land in the validation set. With limited data, an unlucky split can mislead you badly. K-fold
+      cross-validation removes that dependence.
+    </p>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p>Split the data into \(K\) folds. Train the model \(K\) times:</p>
+      <ul style="margin-bottom:.6em">
+        <li>each time, use \(K-1\) folds for training and the remaining fold for validation;</li>
+        <li>rotate which fold is held out.</li>
+      </ul>
+      <p style="margin-bottom:0">The reported performance is the <strong>average across all \(K\) folds</strong>.</p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The validation block rotates</p>
+          <p class="playground__sub">Step through the rounds one at a time. Every point trains in K−1 rounds and validates in exactly one.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="kfold"></div>
+    </div>
+
+    <p><strong>Advantages.</strong></p>
+    <ul>
+      <li>More reliable estimates — every point contributes to both training and validation.</li>
+      <li>Reduces the risk of being fooled by one unlucky split, though it does not eliminate over-fitting.</li>
+      <li>Especially valuable when the dataset is small, where holding out 15% would be painful.</li>
+      <li>The spread across folds is itself informative: consistent scores suggest genuine generalisation, wildly varying ones suggest instability.</li>
+    </ul>
+
+    <p>
+      The trade-off is cost and fold size. More folds means each model trains on more data (lower bias) but
+      each validation set is smaller, making the per-fold estimates noisier — and you pay \(K\) training
+      runs. \(K = 5\) or \(K = 10\) is the usual compromise. Taking \(K = n\) gives
+      <strong>leave-one-out</strong> cross-validation, which uses the maximum training data but is expensive
+      and can have high variance.
+    </p>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Stratify, and mind the leakage
+      </div>
+      <p style="margin-bottom:0">
+        For classification, use <strong>stratified</strong> folds so each fold preserves the class balance —
+        otherwise a rare class may be absent from some folds entirely. And remember that any preprocessing
+        fitted on data (scalers, feature selection, imputation) must be fitted <em>inside</em> each fold, not
+        once beforehand. Use a scikit-learn <span class="u-mono">Pipeline</span> and this becomes automatic.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+
+# The scaler is re-fitted inside every fold -- no leakage
+pipe = make_pipeline(StandardScaler(), SVC())
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+scores = cross_val_score(pipe, X, y, cv=cv, scoring='f1_macro')
+print(f"{scores.mean():.3f} +/- {scores.std():.3f}")</code></pre>
+    </div>
+
+    <!-- ---------- Classification metrics ---------- -->
+    <h3 id="metrics">Classification metrics</h3>
+
+    <p>Throughout this section:</p>
+    <ul>
+      <li><strong>TP</strong> — true positives, correctly predicted positive cases;</li>
+      <li><strong>TN</strong> — true negatives, correctly predicted negative cases;</li>
+      <li><strong>FP</strong> — false positives, incorrectly predicted positive cases;</li>
+      <li><strong>FN</strong> — false negatives, incorrectly predicted negative cases.</li>
+    </ul>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">The confusion matrix, and everything it produces</p>
+          <p class="playground__sub">Edit the four counts and watch every metric respond. Try "Always positive" to see recall hit 1.0 on a model that has learned nothing.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="confusion-matrix"></div>
+    </div>
+
+    <h4>Accuracy</h4>
+    \[ \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN} \]
+    <p>
+      The fraction of predictions that are correct. Intuitive, and <strong>badly misleading on imbalanced
+      data</strong> — as the <a href="#sampling">sampling figure</a> showed, a model that always predicts
+      the majority class scores 90% on a 90/10 split while being useless.
+    </p>
+
+    <h4>Precision</h4>
+    \[ \text{Precision} = \frac{TP}{TP + FP} \]
+    <p>
+      Of everything the model <em>flagged as positive</em>, what fraction really was? High precision means
+      false alarms are rare. This is what you optimise when acting on a positive prediction is costly:
+      flagging a legitimate email as spam, or an unnecessary surgical intervention.
+    </p>
+
+    <h4>Recall (sensitivity)</h4>
+    \[ \text{Recall} = \frac{TP}{TP + FN} \]
+    <p>
+      Of everything that <em>actually was positive</em>, what fraction did the model catch? High recall means
+      few misses. This is what you optimise when missing a positive is costly: screening for a treatable
+      disease, or detecting fraud.
+    </p>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z"/></svg>
+        Remembering which is which
+      </div>
+      <p style="margin-bottom:0">
+        Both have \(TP\) on top; only the denominator differs. <strong>Precision</strong> divides by
+        everything you <em>predicted</em> positive — it reads down the predicted-positive column.
+        <strong>Recall</strong> divides by everything that <em>was</em> positive — it reads across the
+        actual-positive row. Precision is about the quality of your alarms; recall is about your coverage.
+      </p>
+    </div>
+
+    <h4>F₁ score</h4>
+    \[ F_1 = \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}} \]
+    <p>The harmonic mean of precision and recall, which penalises a large imbalance between the two.</p>
+
+    <h4>Why the harmonic mean?</h4>
+    <p>
+      Because it refuses to be fooled by one good number. Take a model with Precision = 0.1 and Recall = 0.9:
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Mean</th><th>Formula</th><th>Value</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Arithmetic</td>
+            <td>\(\frac{P + R}{2}\)</td>
+            <td class="u-mono">\(\frac{0.1 + 0.9}{2} = 0.50\)</td>
+            <td>Suggests balanced performance — badly misleading</td>
+          </tr>
+          <tr>
+            <td>Geometric</td>
+            <td>\(\sqrt{P \cdot R}\)</td>
+            <td class="u-mono">\(\sqrt{0.09} = 0.30\)</td>
+            <td>Better, but still does not punish the 0.1 enough</td>
+          </tr>
+          <tr style="background:var(--ok-soft)">
+            <td><strong>Harmonic</strong></td>
+            <td>\(\frac{2PR}{P+R}\)</td>
+            <td class="u-mono">\(\frac{0.18}{1.0} = 0.18\)</td>
+            <td>Correctly reflects that the model is poor</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>It always holds that</p>
+    \[ \text{harmonic mean} \;\le\; \text{geometric mean} \;\le\; \text{arithmetic mean}, \]
+    <p>
+      with equality only when Precision = Recall. The harmonic mean is therefore the most conservative of the
+      three: it stays low unless <em>both</em> inputs are reasonably high, which is exactly the behaviour you
+      want from a single summary number.
+    </p>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Three worked confusion matrices
+      </div>
+      <div class="example__body">
+        <p><strong>1 · balanced.</strong> \(TP=50\), \(FN=10\), \(FP=10\), \(TN=50\):</p>
+        \[ \text{Accuracy} = \tfrac{100}{120} = 0.833, \quad P = \tfrac{50}{60} = 0.833, \quad R = \tfrac{50}{60} = 0.833, \quad F_1 = 0.833 \]
+        <p>With precision and recall equal, all four metrics agree.</p>
+
+        <p><strong>2 · high precision, low recall.</strong> \(TP=10\), \(FN=40\), \(FP=2\), \(TN=48\):</p>
+        \[ \text{Accuracy} = 0.58, \quad P = \tfrac{10}{12} = 0.833, \quad R = \tfrac{10}{50} = 0.200, \quad F_1 = 0.323 \]
+        <p>
+          The model is right when it speaks, but it misses 80% of the positives. Precision alone would have
+          looked excellent — this is the danger of quoting one number.
+        </p>
+
+        <p><strong>3 · high recall, low precision.</strong> \(TP=45\), \(FN=5\), \(FP=40\), \(TN=10\):</p>
+        \[ \text{Accuracy} = 0.55, \quad P = \tfrac{45}{85} = 0.529, \quad R = \tfrac{45}{50} = 0.900, \quad F_1 = 0.667 \]
+        <p style="margin-bottom:1em">
+          The mirror image: almost every positive is caught, but nearly half the alarms are false. Note that
+          accuracy is <em>lower</em> here than in example 2 while \(F_1\) is twice as high — the two metrics
+          disagree about which model is better, and \(F_1\) is the one paying attention to the positive class.
+        </p>
+      </div>
+    </div>
+
+    <!-- ---------- Threshold ---------- -->
+    <h3 id="threshold">The decision threshold, ROC and PR curves</h3>
+
+    <p>
+      All of the above assumes the predictions are already hard class labels. But most classifiers output a
+      <strong>score</strong> — a probability, or something monotonically related to one — and the label only
+      appears once you choose a cut-off. That choice is a decision you make, not something the model gives
+      you, and it moves precision and recall in opposite directions.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M5 18c3-1 4-10 7-10s5 8 7 6"/><path d="M13 3v18"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">One model, every operating point</p>
+          <p class="playground__sub">Slide the threshold and watch the confusion matrix, the ROC point and the PR point all move together. Then drop prevalence to 5% and see which curve tells the truth.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="threshold-roc"></div>
+    </div>
+
+    <ul>
+      <li>
+        <strong>ROC curve.</strong> True positive rate (recall) against false positive rate, as the threshold
+        sweeps. <strong>AUC</strong> — the area under it — summarises performance across <em>all</em>
+        thresholds, and equals the probability that a randomly chosen positive is scored above a randomly
+        chosen negative. AUC = 0.5 is random guessing; AUC = 1 is perfect.
+      </li>
+      <li>
+        <strong>Precision–recall curve.</strong> Precision against recall over the same sweep. Its baseline
+        is the positive-class prevalence, not 0.5.
+      </li>
+    </ul>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        ROC flatters imbalanced problems
+      </div>
+      <p style="margin-bottom:0">
+        Drop the prevalence slider to 5% and watch: the ROC curve barely changes while the PR curve
+        collapses. The reason is that the false positive rate divides by the number of true negatives, and
+        when negatives are abundant even a large number of false alarms produces a small FPR. Precision
+        divides by the false positives directly and so feels every one of them. <strong>On imbalanced data,
+        report the precision–recall curve.</strong>
+      </p>
+    </div>
+
+    <!-- ---------- F-beta ---------- -->
+    <h3 id="fbeta">Weighted F<sub>β</sub></h3>
+
+    <p>\(F_1\) weights precision and recall equally. When your application does not, generalise it:</p>
+    \[ F_\beta = \frac{(1+\beta^2)\,(\text{Precision} \cdot \text{Recall})}{\beta^2 \cdot \text{Precision} + \text{Recall}} \]
+    <p>
+      Setting \(\beta = 1\) recovers \(F_1\). The parameter has a clean interpretation: \(\beta\) is how many
+      times more important recall is than precision. So \(\beta = 2\) weights recall roughly twice as
+      heavily, and \(\beta = 0.5\) weights precision twice as heavily.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 8v8M17 8v8"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Sliding the weight between precision and recall</p>
+          <p class="playground__sub">F<sub>β</sub> as a continuous function of β, with precision and recall as its two asymptotes. Note which direction it moves.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="fbeta"></div>
+    </div>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · working F₂ through carefully
+      </div>
+      <div class="example__body">
+        <p>Take \(TP=45\), \(FN=40\), \(FP=5\), \(TN=10\). First the components:</p>
+        \[ P = \frac{45}{45+5} = \frac{45}{50} = 0.900, \qquad R = \frac{45}{45+40} = \frac{45}{85} \approx 0.529 \]
+        \[ F_1 = \frac{2(0.900)(0.529)}{0.900 + 0.529} = \frac{0.953}{1.429} \approx 0.667 \]
+        <p>Now with \(\beta = 2\), so \(\beta^2 = 4\):</p>
+        \[
+        F_2 = \frac{(1 + 4)(0.900)(0.529)}{4(0.900) + 0.529}
+            = \frac{5 \times 0.4765}{3.600 + 0.529}
+            = \frac{2.382}{4.129}
+            \approx 0.577
+        \]
+        <div class="callout callout--warn" style="margin-top:1.2em">
+          <div class="callout__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            The direction is the point
+          </div>
+          <p style="margin-bottom:0">
+            \(F_2 = 0.577\) is <strong>lower</strong> than \(F_1 = 0.667\), and it must be. Raising \(\beta\)
+            shifts weight onto <em>recall</em>, and here recall (0.529) is the <em>weaker</em> of the two
+            numbers — so leaning on it drags the score down. If you ever compute an \(F_2\) above your
+            \(F_1\) when recall is the smaller value, you have swapped precision and recall somewhere. This
+            example is the corrected version of one that appeared in the original notes; see the
+            <a href="#errata">errata</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Choosing \(\beta\) is a statement about relative cost. Cancer screening uses \(\beta &gt; 1\), because a
+      missed tumour is far worse than an unnecessary follow-up scan. A spam filter uses \(\beta &lt; 1\),
+      because a lost job offer is far worse than a spam message reaching the inbox.
+    </p>
+
+    <!-- ---------- Regression ---------- -->
+    <h3 id="regression">Regression metrics</h3>
+
+    <div class="defn">
+      <div class="defn__label">Definition</div>
+      <p><strong>Mean squared error.</strong></p>
+      \[ \text{MSE} = \frac{1}{N}\sum_{i=1}^N (y_i - \hat{y}_i)^2 \]
+      <p><strong>Mean absolute error.</strong></p>
+      \[ \text{MAE} = \frac{1}{N}\sum_{i=1}^N |y_i - \hat{y}_i| \]
+      <p style="margin-bottom:0">
+        <strong>Root mean squared error</strong>, \(\text{RMSE} = \sqrt{\text{MSE}}\), returns the result to
+        the original units — which makes it far easier to interpret and to compare against MAE.
+      </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div class="playground__icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="9" width="5" height="5"/><path d="M15 12h4"/></svg>
+        </div>
+        <div class="playground__titles">
+          <p class="playground__title">Squared error, drawn as an actual square</p>
+          <p class="playground__sub">Drag one prediction away from its target. The shaded area <em>is</em> the squared error — double the gap and the area quadruples.</p>
+        </div>
+        <span class="playground__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18l15-9z"/></svg>
+          Play
+        </span>
+      </div>
+      <div class="playground__body" data-widget="mse-mae"></div>
+    </div>
+
+    <h4>Mean squared error</h4>
+    <ul>
+      <li><strong>Advantages.</strong> Strongly penalises large errors, which is right when big deviations are disproportionately costly. Smooth and differentiable everywhere, which makes it convenient for gradient-based optimisation.</li>
+      <li><strong>Limitations.</strong> Highly sensitive to outliers — a single large error can dominate the total. Its units are <em>squared</em> (predicting house prices in dirhams gives an MSE in dirhams²), so the raw number is hard to interpret.</li>
+      <li><strong>When to use.</strong> When large errors are genuinely costly, or when you need a smooth objective for optimisation. Minimising MSE estimates the conditional <em>mean</em>.</li>
+    </ul>
+
+    <h4>Mean absolute error</h4>
+    <ul>
+      <li><strong>Advantages.</strong> Robust to outliers, since errors contribute linearly. Directly interpretable: an MAE of 5 dirhams means predictions are off by 5 dirhams on average.</li>
+      <li><strong>Limitations.</strong> Less sensitive to large deviations, which may under-penalise serious mistakes. Not differentiable at zero, though sub-gradient methods handle this routinely.</li>
+      <li><strong>When to use.</strong> When robustness to outliers matters, or when interpretability in the original units is important. Minimising MAE estimates the conditional <em>median</em>.</li>
+    </ul>
+
+    <div class="example">
+      <div class="example__head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4M9 11V4h6v7M9 11h6"/></svg>
+        Example · what one outlier does
+      </div>
+      <div class="example__body">
+        <p><strong>1 · no large errors.</strong> \(y = [3, 0.5, 2, 7]\), \(\hat{y} = [2.5, 0, 2, 8]\), so the errors are \([0.5,\, 0.5,\, 0,\, -1]\):</p>
+        \[ \text{MSE} = \frac{0.25 + 0.25 + 0 + 1}{4} = 0.375, \qquad \text{MAE} = \frac{0.5 + 0.5 + 0 + 1}{4} = 0.5 \]
+        <p><strong>2 · one outlier added.</strong> \(y = [3, 0.5, 2, 7, 100]\), \(\hat{y} = [2.5, 0, 2, 8, 8]\), so one error is 92:</p>
+        \[ \text{MSE} = \frac{0.25 + 0.25 + 0 + 1 + 8464}{5} = 1693.1, \qquad \text{MAE} = \frac{0.5 + 0.5 + 0 + 1 + 92}{5} = 18.8 \]
+        <p style="margin-bottom:1em">
+          One point multiplied the MSE by more than 4500× while the MAE grew about 38×. That single error
+          accounts for <strong>99.98%</strong> of the total squared error — MSE has effectively stopped
+          measuring the other four predictions at all.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Do not compare MSE against MAE directly
+      </div>
+      <p style="margin-bottom:0">
+        In the first example MSE (0.375) is smaller than MAE (0.5), which might look like MSE is
+        "performing better". It is not a meaningful comparison — the two are in different units. MSE is
+        smaller here purely because squaring numbers below 1 makes them smaller. If you want a like-for-like
+        comparison, use <strong>RMSE</strong>: \(\sqrt{0.375} \approx 0.61\), which is now in the same units
+        as the MAE of 0.5, and correctly larger because RMSE always exceeds MAE when errors vary.
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-block__label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+        Python
+      </div>
+<pre><code>import numpy as np
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score, fbeta_score,
+    confusion_matrix, classification_report, roc_auc_score,
+    average_precision_score, mean_squared_error, mean_absolute_error,
+)
+
+# Classification -- classification_report gives everything at once
+print(classification_report(y_true, y_pred, digits=3))
+print(confusion_matrix(y_true, y_pred))
+
+f2 = fbeta_score(y_true, y_pred, beta=2)     # weights recall more heavily
+auc = roc_auc_score(y_true, y_score)         # needs scores, not labels
+ap  = average_precision_score(y_true, y_score)   # PR-curve summary
+
+# Regression
+mse  = mean_squared_error(y_true, y_pred)
+rmse = np.sqrt(mse)                          # back in the original units
+mae  = mean_absolute_error(y_true, y_pred)</code></pre>
+    </div>
+
+    <!-- ---------- Errata ---------- -->
+    <h3 id="errata">Errata and verification</h3>
+
+    <p>
+      Every numerical claim in this chapter was recomputed independently during conversion — the binning
+      examples, the correlation calculations, all four confusion matrices, and both regression examples. Most
+      checked out exactly. The corrections below have been applied to the text above and are recorded here so
+      that anyone working from an older PDF knows what changed.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Section</th><th>Original notes</th><th>Corrected to</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#fbeta">Weighted F<sub>β</sub>, example 4</a></td>
+            <td>\(F_2 = 0.789\)</td>
+            <td>\(F_2 = 0.577\)</td>
+            <td>
+              The confusion matrix given (\(TP{=}45\), \(FN{=}40\), \(FP{=}5\)) yields \(P = 0.900\) and
+              \(R = 0.529\). Substituting these gives 0.577. The value 0.789 is what you get with \(P\) and
+              \(R\) <em>swapped</em> — i.e. using example 3's numbers, whose confusion matrix has \(FP\) and
+              \(FN\) the other way round. This matters because it inverts the lesson: since recall is the
+              weaker metric here, weighting it more must <em>lower</em> the score, not raise it.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#discretization">K-means binning</a></td>
+            <td>Clusters {15,22}, {35,41,46,53,67,72}, {85,93} with centroids ≈ 25, 50, 80</td>
+            <td>Clusters {15,22}, {35,41,46,53}, {67,72,85,93} with centroids 18.5, 43.75, 79.25</td>
+            <td>
+              The published partition is not what k-means converges to. Its within-cluster sum of squares is
+              1127.8 against 624.0 for the optimum — nearly twice as large — so Lloyd's algorithm would move
+              away from it immediately. The quoted centroids (25, 50, 80) also match neither partition: the
+              published grouping actually has means 18.5, 52.3 and 89.0. Verified by exhaustive search over
+              all contiguous 3-partitions.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#discretization">Equal-frequency binning</a></td>
+            <td>"Each bin has the same number of students" (table shows 2, 3, 3, 2)</td>
+            <td>"Approximately the same number", with the arithmetic explained</td>
+            <td>
+              The sentence contradicts the table directly beneath it. With 10 points and 4 bins, exactly
+              equal counts are impossible. The published table also does not match what
+              <span class="u-mono">pd.qcut</span> produces on this data, which is 3, 2, 2, 3.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#pearson">Pearson, non-linear example</a></td>
+            <td>\(\operatorname{Cov}(A,B) = \frac{1}{10}\sum(\dots)\) with \(n = 11\)</td>
+            <td>\(\frac{1}{11}\sum(\dots)\)</td>
+            <td>
+              \(A\) runs from −5 to 5 inclusive, so \(n = 11\), not 10. The preceding linear example uses the
+              population convention \(1/n\), so this one should too. The conclusion \(\rho = 0\) is
+              unaffected, since the sum itself is zero.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#sampling">Sampling figures</a></td>
+            <td>900 points at 90%/10%, with captions "oversampled to 718" and "undersampled to 82"</td>
+            <td>Replaced with a live figure whose counts always reconcile</td>
+            <td>
+              The numbers do not add up: 90/10 of 900 is 810/90, and 718 + 82 = 800, not 900. The figure
+              appears to have been generated from a different (800-point) sample than the one described in
+              the text.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#jaccard">Jaccard, set example</a></td>
+            <td>\(2/7 \approx 0.285\)</td>
+            <td>\(\approx 0.286\)</td>
+            <td>\(2/7 = 0.2857\ldots\), which rounds up at three decimal places.</td>
+          </tr>
+          <tr>
+            <td><a href="#cosine">Cosine similarity, summary table</a></td>
+            <td>"not a true metric (violates triangle inequality)"</td>
+            <td>Distinction between cosine similarity, cosine distance and angular distance</td>
+            <td>
+              Cosine <em>similarity</em> is not a distance, so the metric axioms do not apply to it at all.
+              Cosine <em>distance</em> \(1-\cos\theta\) does violate the triangle inequality, but the closely
+              related angular distance \(\arccos(\cos\theta)\) is a genuine metric.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="#regression">Regression, example 1</a></td>
+            <td>"MSE is slightly lower, reflecting the fact that there are no large errors"</td>
+            <td>Explanation of why the comparison is not meaningful, plus RMSE</td>
+            <td>
+              MSE and MAE are in different units, so comparing their magnitudes says nothing. MSE is smaller
+              here simply because squaring values below 1 shrinks them. RMSE (≈ 0.61) is the comparable
+              quantity.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Restorations and additions</strong> made during conversion:</p>
+    <ul>
+      <li>
+        The <strong>curse of dimensionality</strong> section has been restored. The notes promise it
+        explicitly ("we will cover this in more detail after the section on Manhattan distance") but the
+        material sits inside a commented-out block, so the promise is never kept in the compiled PDF.
+      </li>
+      <li>
+        <strong>Embedded feature selection methods</strong> (Lasso, tree importances, elastic net) have been
+        restored for the same reason — the text states that methods divide into filter, wrapper and embedded,
+        then covers only the first two because the third is commented out. Practical considerations and
+        applications for feature selection were in the same block.
+      </li>
+      <li>
+        <strong>Robust scaling</strong> is now presented alongside min–max and z-score rather than mentioned
+        only in further reading, since it is the standard answer to the outlier sensitivity that the same
+        section raises.
+      </li>
+      <li>
+        <strong>The decision threshold, ROC and precision–recall curves</strong> are new. The notes cover
+        precision and recall as fixed quantities, but they are functions of a threshold you choose, and
+        the imbalanced-data behaviour of ROC versus PR is too important to omit.
+      </li>
+      <li>
+        <strong>RMSE</strong>, <strong>specificity</strong>, and the note that MSE estimates the conditional
+        mean while MAE estimates the conditional median have been added.
+      </li>
+      <li>
+        The <strong>EWMA convention clash with pandas</strong> is now flagged. The notes define
+        \(\bar{x}_t = (1-\lambda)x_t + \lambda\bar{x}_{t-1}\) and then show pandas code where the
+        corresponding parameter is \(\alpha = 1 - \lambda\) — an easy way to get smoothing backwards.
+      </li>
+      <li>
+        <strong>Data leakage</strong> warnings have been added where the relevant operations are introduced:
+        fitting scalers on the full dataset, and performing feature selection outside the cross-validation
+        loop.
+      </li>
+    </ul>
+
+    <div class="callout callout--note">
+      <div class="callout__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>
+        Two things worth your confirmation
+      </div>
+      <ul style="margin-bottom:0">
+        <li>
+          <strong>The PCA figures.</strong> The notes state that two components explain "nearly 98%" of the
+          Iris dataset and that the breast cancer data can drop from 30 dimensions to 2. Both figures are
+          consistent with PCA on <em>unstandardised</em> data — but the same section correctly instructs
+          students to standardise first, and standardising changes those numbers substantially. Worth
+          re-running your iLearn notebook to confirm which the figures were generated from, since the
+          conclusion drawn from them depends on it.
+        </li>
+        <li>
+          <strong>Figure assets.</strong> The LaTeX source references a <span class="u-mono">figures/</span>
+          directory that was not present alongside <span class="u-mono">main.tex</span>, so the original
+          images could not be checked against their captions. Every figure in this chapter has been rebuilt
+          as a live computation instead.
+        </li>
+      </ul>
+    </div>
+
+    <p>
+      Found something else? Please report it — email
+      <a href="mailto:mialhajri@aus.edu">mialhajri@aus.edu</a> or raise it in class. That includes the
+      interactive figures: if one gives a result you cannot reproduce by hand, that is a bug worth hearing
+      about.
+    </p>
+
+    <!-- ---------- Page nav ---------- -->
+    <nav class="pagenav" aria-label="Chapter navigation">
+      <a href="01-mathematical-background.html">
+        <small>Previous</small>
+        <b>1 · Mathematical Background</b>
+      </a>
+      <a href="../notes.html" class="is-next">
+        <small>Next up</small>
+        <b>3 · Supervised Learning — in conversion</b>
+      </a>
+    </nav>
+
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div>
+      <h4>MLR 570</h4>
+      <p style="margin:0;font-size:.9rem">
+        Advanced Machine Learning<br>
+        Department of Computer Science &amp; Engineering<br>
+        American University of Sharjah
+      </p>
+    </div>
+    <div>
+      <h4>Notes</h4>
+      <ul>
+        <li><a href="01-mathematical-background.html">1 · Mathematical Background</a></li>
+        <li><a href="02-data-fundamentals.html">2 · Data Fundamentals</a></li>
+        <li><a href="../notes.html">All chapters</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Course</h4>
+      <ul>
+        <li><a href="../syllabus.html">Syllabus &amp; schedule</a></li>
+        <li><a href="../about.html">About &amp; contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>Course notes by Dara Varam · Instructor Dr. Mohamed I. AlHajri</span>
+    <span>Built to be played with.</span>
+  </div>
+</footer>
+
+<script type="module" src="../assets/js/widgets/index.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
