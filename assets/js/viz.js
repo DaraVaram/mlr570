@@ -411,6 +411,68 @@ export class Plot {
     ctx.restore();
   }
 
+  /**
+   * Keyed legend on a solid panel, so curves can pass behind it without
+   * colliding with the text. `items` is [[colour, label], ...].
+   * `corner` is 'tl' | 'tr' | 'bl' | 'br'; `title` is an optional caption line.
+   */
+  legend(items, opts = {}) {
+    const { ctx } = this;
+    const size = opts.size || 10.5;
+    const rowH = size + 4.5;
+    const padX = 9, padY = 7, swatch = 18, gap = 7;
+    ctx.save();
+    ctx.font = `600 ${size}px ${css('--font-sans')}`;
+    let w = 0;
+    items.forEach(([, l]) => { w = Math.max(w, ctx.measureText(l).width); });
+    let titleW = 0;
+    if (opts.title) {
+      ctx.font = `500 ${size}px ${css('--font-sans')}`;
+      titleW = ctx.measureText(opts.title).width;
+    }
+    const bw = Math.max(swatch + gap + w, titleW) + padX * 2;
+    const bh = items.length * rowH + (opts.title ? rowH + 2 : 0) + padY * 2 - 4.5;
+    const m = opts.margin ?? 10;
+    const corner = opts.corner || 'tl';
+    const bx = corner[1] === 'l' ? m : this.w - bw - m;
+    const by = corner[0] === 't' ? m : this.h - bh - m;
+
+    const r = 7;
+    ctx.beginPath();
+    ctx.moveTo(bx + r, by);
+    ctx.arcTo(bx + bw, by, bx + bw, by + bh, r);
+    ctx.arcTo(bx + bw, by + bh, bx, by + bh, r);
+    ctx.arcTo(bx, by + bh, bx, by, r);
+    ctx.arcTo(bx, by, bx + bw, by, r);
+    ctx.closePath();
+    ctx.fillStyle = opts.bg || C.raised;
+    ctx.globalAlpha = opts.alpha ?? .94;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.stroke();
+
+    let y = by + padY + size * .5;
+    if (opts.title) {
+      ctx.font = `500 ${size}px ${css('--font-sans')}`;
+      ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(opts.title, bx + padX, y);
+      y += rowH + 2;
+    }
+    ctx.font = `600 ${size}px ${css('--font-sans')}`;
+    items.forEach(([col, label, dash]) => {
+      ctx.strokeStyle = col; ctx.lineWidth = 2.6;
+      ctx.setLineDash(dash || []);
+      ctx.beginPath();
+      ctx.moveTo(bx + padX, y); ctx.lineTo(bx + padX + swatch, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, bx + padX + swatch + gap, y);
+      y += rowH;
+    });
+    ctx.restore();
+  }
+
   /** Small pill-shaped label with background — good for annotations. */
   badge(p, str, opts = {}) {
     const { ctx } = this;
@@ -798,7 +860,9 @@ const livePlots = new Set();
 export function trackPlot(p) { livePlots.add(p); return p; }
 window.addEventListener('themechange', () => {
   invalidateThemeCache();
-  livePlots.forEach(p => p.render());
+  // renderNow, not render: a queued rAF never fires while the tab is hidden,
+  // which would leave the canvas painted in the previous theme on return.
+  livePlots.forEach(p => p.renderNow());
 });
 
 /* Convenience: build a canvas inside a wrapper with an optional hint. */
