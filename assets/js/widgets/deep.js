@@ -1581,7 +1581,7 @@ defineWidget('arch-evolution', node => {
    The three sequence supervision patterns
    ============================================================ */
 defineWidget('seq-types', node => {
-  const { right, canvas } = split(node, { wide: true });
+  const { left, right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.39, equal: false, pad: 0 }));
 
   const PATTERNS = {
@@ -1598,6 +1598,12 @@ defineWidget('seq-types', node => {
 
   const pCtl = segmented(Object.entries(PATTERNS).map(([k, v]) => ({ label: v.label, value: k })),
     { value: 'm2m', label: 'Pattern', onChange: v => { key = v; refresh(); } });
+  const keyRow = el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;padding:.15rem .1rem 0' });
+  left.appendChild(keyRow);
+  const keyItem = (col, label) => el('span', {
+    style: 'display:inline-flex;align-items:center;gap:.42em;font-size:.78rem;color:var(--ink-muted)',
+  }, el('span', { style: `width:18px;height:0;border-top:3px solid ${col};border-radius:2px;flex:none` }), label);
+
   const out = readout([['task', 0], ['inputs', 0], ['outputs', 0], ['lengths must match', 0], ['loss is summed over', 0]]);
   const st = status('');
   right.append(pCtl.root, out.root, st.root);
@@ -1610,6 +1616,8 @@ defineWidget('seq-types', node => {
       key === 'm2o' ? 'the final step only' : `all ${P.outs} output steps`,
     ]);
     st.set(`${INFO}<span><strong>${P.label} — ${P.task}.</strong> ${P.why}</span>`, 'info');
+    keyRow.innerHTML = '';
+    keyRow.append(keyItem(C.c5, 'input xₜ'), keyItem(C.c1, 'hidden state sₜ'), keyItem(C.c3, 'output ŷₜ'));
     plot.render();
   }
 
@@ -1684,8 +1692,7 @@ defineWidget('seq-types', node => {
       p.text([P.ins / 2 - .6, -1.2], 'encoder', { align: 'center', size: 10.5, color: C.muted });
       p.text([P.ins + 1.4, -1.2], 'decoder', { align: 'center', size: 10.5, color: C.muted });
     }
-    p.legend([[C.c5, 'input xₜ'], [C.c1, 'hidden state sₜ'], [C.c3, 'output ŷₜ']],
-      { corner: 'tl', title: PATTERNS[key].label });
+    p.title(PATTERNS[key].label);
   });
 
   refresh();
@@ -1704,7 +1711,7 @@ defineWidget('seq-types', node => {
    Rolled, unrolled, and one set of weights everywhere
    ============================================================ */
 defineWidget('rnn-sharing', node => {
-  const { right, canvas } = split(node, { wide: true });
+  const { left, right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.39, equal: false, pad: 0 }));
 
   let view = 'unrolled', T = 4, hi = null, inside = false;
@@ -1715,6 +1722,14 @@ defineWidget('rnn-sharing', node => {
   const hCtl = segmented([
     { label: 'none', value: '' }, { label: 'U', value: 'U' }, { label: 'W', value: 'W' }, { label: 'V', value: 'V' },
   ], { value: '', label: 'Highlight a shared matrix', onChange: v => { hi = v || null; plot.render(); } });
+  const colFor = k => (hi === k ? C.c2 : (k === 'U' ? C.c5 : k === 'W' ? C.c1 : C.c3));
+
+  const keyRow = el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;padding:.15rem .1rem 0' });
+  left.appendChild(keyRow);
+  const keyItem = (col, label) => el('span', {
+    style: 'display:inline-flex;align-items:center;gap:.42em;font-size:.78rem;color:var(--ink-muted)',
+  }, el('span', { style: `width:18px;height:0;border-top:3px solid ${col};border-radius:2px;flex:none` }), label);
+
   const out = readout([['U — reads the input', 0], ['W — carries the state', 0], ['V — reads out', 0], ['total parameters', 0], ['if each step had its own', 0]]);
   const st = status('');
   right.append(vCtl.root, tCtl.root, iCtl.root, hCtl.root, out.root, st.root);
@@ -1736,6 +1751,10 @@ defineWidget('rnn-sharing', node => {
           ? `${INFO}<span>The rolled view is the honest one: there is a single cell with a self-loop. Unroll it to see why backpropagation works.</span>`
           : `${INFO}<span>Unrolled, an RNN is just a deep feedforward network of depth T — whose layers happen to share every weight. Highlight U, W or V to see the sharing.</span>`,
       hi ? 'ok' : 'info');
+    keyRow.innerHTML = '';
+    keyRow.append(keyItem(colFor('U'), 'U — input → state'),
+                  keyItem(colFor('W'), 'W — state → state'),
+                  keyItem(colFor('V'), 'V — state → output'));
     plot.render();
   }
 
@@ -1784,7 +1803,6 @@ defineWidget('rnn-sharing', node => {
         p.ctx.restore();
       }
     };
-    const colFor = k => (hi === k ? C.c2 : (k === 'U' ? C.c5 : k === 'W' ? C.c1 : C.c3));
     const lwFor = k => (hi === k ? 3.4 : 1.8);
 
     if (view === 'rolled') {
@@ -1814,19 +1832,19 @@ defineWidget('rnn-sharing', node => {
       p.o.xmin = -1.1; p.o.xmax = T + .3; p.o.ymin = -1.6; p.o.ymax = 2.75;
       p._computeScale();
       const sub = '₀₁₂₃₄₅₆₇₈₉';
-      drawBox(-.62, 0, .55, .5, 's₀', C.muted, false);
+      drawBox(-.66, 0, .5, .5, 's₀', C.muted, false);
       for (let t = 0; t < T; t++) {
-        drawBox(t, 0, .78, .62, inside ? '' : `s${sub[t + 1]}`, C.c1, true, hi === 'W' ? 3.4 : 2);
+        drawBox(t, 0, .58, .62, inside ? '' : `s${sub[t + 1]}`, C.c1, true, hi === 'W' ? 3.4 : 2);
         if (inside) p.text([t, 0], 'tanh', { align: 'center', size: 9, color: C.muted });
-        drawBox(t, -1.1, .62, .46, `x${sub[t + 1]}`, C.c5, false);
-        drawBox(t, 1.15, .62, .46, `ŷ${sub[t + 1]}`, C.c3, false);
+        drawBox(t, -1.1, .58, .46, `x${sub[t + 1]}`, C.c5, false);
+        drawBox(t, 1.15, .58, .46, `ŷ${sub[t + 1]}`, C.c3, false);
         arrow([t, -.86], [t, -.34], colFor('U'), lwFor('U'), 'U');
         arrow([t, .34], [t, .9], colFor('V'), lwFor('V'), 'V');
-        arrow([t - 1 + (t === 0 ? .66 : .42), 0], [t - .42, 0], colFor('W'), lwFor('W'), 'W');
+        arrow([t - 1 + (t === 0 ? .62 : .32), 0], [t - .32, 0], colFor('W'), lwFor('W'), 'W');
       }
     }
-    p.legend([[colFor('U'), 'U — input → state'], [colFor('W'), 'W — state → state'], [colFor('V'), 'V — state → output']],
-      { corner: 'tl', title: hi ? `${hi} is one matrix, reused` : 'the same three matrices at every step' });
+    p.title(hi ? `${hi} is one matrix, reused at every step`
+      : 'the same three matrices at every step');
   });
 
   refresh();
@@ -1847,7 +1865,7 @@ defineWidget('rnn-sharing', node => {
    Inside an LSTM and a GRU cell
    ============================================================ */
 defineWidget('gate-cell', node => {
-  const { right, canvas } = split(node, { wide: true });
+  const { left, right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.23, equal: false, pad: 0 }));
 
   let kind = 'lstm', f = .9, i = .4, o = .7, z = .3, r = .8, cPrev = .6, cand = .5;
@@ -1864,6 +1882,12 @@ defineWidget('gate-cell', node => {
     button('Remember', () => { f = 1; i = 0; z = 0; g1.set(1); g2.set(0); g4.set(0); refresh(); }),
     button('Overwrite', () => { f = 0; i = 1; z = 1; g1.set(0); g2.set(1); g4.set(1); refresh(); }),
     button('Blend', () => { f = .6; i = .5; z = .5; g1.set(.6); g2.set(.5); g4.set(.5); refresh(); }));
+  const keyRow = el('div', { style: 'display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;padding:.15rem .1rem 0' });
+  left.appendChild(keyRow);
+  const keyItem = (col, label) => el('span', {
+    style: 'display:inline-flex;align-items:center;gap:.42em;font-size:.78rem;color:var(--ink-muted)',
+  }, el('span', { style: `width:18px;height:0;border-top:3px solid ${col};border-radius:2px;flex:none` }), label);
+
   const out = readout([['carried through', 0], ['written in', 0], ['new state', 0], ['∂ new / ∂ old', 0], ['after 20 steps', 0]]);
   const st = status('');
   right.append(kCtl.root, g1.root, g2.root, g3.root, g4.root, g5.root, g6.root, g7.root, presets, out.root, st.root);
@@ -1894,6 +1918,11 @@ defineWidget('gate-cell', node => {
           ? `${WARN}<span>The gate is nearly shut: only ${fmt(deriv * 100, 0)}% of the old state survives each step, so information from 20 steps back is scaled by ${after < 1e-4 ? after.toExponential(2) : fmt(after, 5)}. Useful when you <em>want</em> to forget — fatal when you do not.</span>`
           : `${INFO}<span>Partly open. The cell is mixing old state and new candidate; the derivative along the carry path is ${fmt(deriv, 3)}.</span>`,
       deriv > .95 ? 'ok' : deriv < .2 ? 'warn' : 'info');
+    keyRow.innerHTML = '';
+    keyRow.append(keyItem(C.c3, 'carry path — no weights, no tanh'),
+                  keyItem(C.c4, kind === 'lstm' ? 'forget gate' : 'carry gate (1 − z)'),
+                  keyItem(C.c1, kind === 'lstm' ? 'input gate' : 'update gate z'),
+                  keyItem(C.c5, 'candidate'));
     plot.render();
   }
 
@@ -2417,10 +2446,13 @@ defineWidget('transformer-arch', node => {
     const r = [];
     let y = 12;
     r.push({ key: 'embed', y }); y += 12.6;
-    r.push({ key: 'pos', y, plus: true }); y += 14.5;
-    const blockTop = y - 5.2;
-    r.push({ key: 'attn', y }); y += 11.4;
-    if (causal) { y -= 2.6; r.push({ key: 'mask', y, nested: true }); y += 11.0; }
+    // wide gap here: the plate's top edge and its tab sit in this space
+    r.push({ key: 'pos', y, plus: true }); y += 23;
+    // the plate must clear the tallest box it contains, and the attention card
+    // grows when the mask zone is present
+    const attnH = causal ? BH * 1.72 : BH;
+    const blockTop = y - attnH / 2 - 5.4;
+    r.push({ key: 'attn', y, card: causal }); y += attnH / 2 + 7.6;
     r.push({ key: 'add1', y, plus: true }); y += 13.2;
     r.push({ key: 'ff', y }); y += 12.6;
     r.push({ key: 'add2', y, plus: true }); y += 8.4;
@@ -2488,26 +2520,22 @@ defineWidget('transformer-arch', node => {
     ctx.stroke();
     ctx.setLineDash([]);
     // "× N" tab on the plate
-    const tabW = U(13), tabH = V(6.4);
+    const tabW = U(30), tabH = V(6.4);
     const tabX = plateX + plateW - tabW - U(2), tabY = plateY - tabH / 2;
     roundedPath(ctx, tabX, tabY, tabW, tabH, 7);
     ctx.fillStyle = C.raised; ctx.fill();
     ctx.strokeStyle = withA(C.ink, .35); ctx.lineWidth = 1.4; ctx.stroke();
-    ctx.font = `700 ${Math.max(10, V(3.4))}px ${css('--font-sans')}`;
+    ctx.font = `700 ${Math.max(10, V(3.3))}px ${css('--font-sans')}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillStyle = C.ink;
-    ctx.fillText(`× ${N}`, tabX + tabW / 2, tabY + tabH / 2);
-    ctx.font = `600 ${Math.max(9, V(2.9))}px ${css('--font-sans')}`;
-    ctx.fillStyle = C.muted;
-    ctx.textAlign = 'left';
-    ctx.fillText('one decoder block', plateX + U(2.5), plateY - V(4.4));
+    ctx.fillText(`${causal ? 'decoder' : 'encoder'} block  × ${N}`, tabX + tabW / 2, tabY + tabH / 2);
 
     /* connector arrows down the spine, drawn between consecutive boxes */
     const list = L.list;
     for (let i = 0; i < list.length - 1; i++) {
       const a = list[i], b = list[i + 1];
-      if (b.nested) continue;                    // nested boxes are tied, not arrowed
-      const y0 = Y((a.nested ? a.y + BH * .41 : a.y + BH / 2)), y1 = Y(b.y - BH / 2);
+      const aH = a.card ? BH * 1.72 : BH, bH = b.card ? BH * 1.72 : BH;
+      const y0 = Y(a.y + aH / 2), y1 = Y(b.y - bH / 2);
       const x = X(CX);
       ctx.strokeStyle = withA(C.ink, .5);
       ctx.lineWidth = 1.8;
@@ -2568,26 +2596,12 @@ defineWidget('transformer-arch', node => {
     resid('pos', 'add1');
     resid('add1', 'add2');
 
-    /* a nested box hangs off its parent, so join them with a short tie
-       rather than an arrow — it is a part of that stage, not the next one */
-    for (let i = 1; i < list.length; i++) {
-      if (!list[i].nested) continue;
-      const par = list[i - 1], kid = list[i];
-      const yA = Y(par.y + BH / 2), yB = Y(kid.y - BH * .41);
-      ctx.strokeStyle = withA(colFor(PARTS[kid.key].kind), .55);
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(X(CX), yA);
-      ctx.lineTo(X(CX), yB);
-      ctx.stroke();
-    }
-
     /* the boxes themselves */
     for (const r of list) {
       const P = PARTS[r.key];
-      const isSel = r.key === sel;
+      const isSel = r.key === sel || (r.card && sel === 'mask');
       const col = colFor(P.kind);
-      const w = U(r.nested ? BW * .74 : BW), h = V(r.nested ? BH * .82 : BH);
+      const w = U(BW), h = V(r.card ? BH * 1.72 : BH);
       const x = X(CX) - w / 2, y = Y(r.y) - h / 2;
 
       if (isSel) {                                   // selection halo
@@ -2612,15 +2626,35 @@ defineWidget('transformer-arch', node => {
       }
 
       const tSize = Math.max(10.5, V(3.5));
-      ctx.font = `${isSel ? 700 : 640} ${tSize}px ${css('--font-sans')}`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      ctx.fillStyle = C.ink;
-      ctx.fillText(P.label, x + w / 2, y + h / 2 - (P.sub ? V(.4) : -tSize * .34));
-      if (P.sub) {
-        ctx.font = `500 ${Math.max(8.5, V(2.7))}px ${css('--font-sans')}`;
-        ctx.fillStyle = C.muted;
-        ctx.textBaseline = 'top';
-        ctx.fillText(P.sub, x + w / 2, y + h / 2 + V(1.0));
+      const sSize = Math.max(8.5, V(2.7));
+      // a zone is one labelled band of a box; a plain box has exactly one
+      const zone = (key, top, height, strong) => {
+        const Z = PARTS[key];
+        const cy = top + height / 2;
+        ctx.font = `${strong ? 700 : 640} ${tSize}px ${css('--font-sans')}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = C.ink;
+        ctx.fillText(Z.label, x + w / 2, cy - (Z.sub ? V(.4) : -tSize * .34));
+        if (Z.sub) {
+          ctx.font = `500 ${sSize}px ${css('--font-sans')}`;
+          ctx.fillStyle = C.muted;
+          ctx.textBaseline = 'top';
+          ctx.fillText(Z.sub, x + w / 2, cy + V(1.0));
+        }
+      };
+      if (r.card) {
+        // the mask is drawn inside attention, because that is where it happens
+        const hTop = h * .56;
+        zone('attn', y, hTop, sel === 'attn');
+        ctx.strokeStyle = withA(col, .45);
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x + U(3), y + hTop); ctx.lineTo(x + w - U(3), y + hTop);
+        ctx.stroke(); ctx.setLineDash([]);
+        zone('mask', y + hTop, h - hTop, sel === 'mask');
+      } else {
+        zone(r.key, y, h, isSel);
       }
 
       // ⊕ node on the left edge for the two adds and the positional sum
@@ -2656,12 +2690,17 @@ defineWidget('transformer-arch', node => {
     const py = (e.clientY - r.top) / r.height;
     const L = rows();
     const yv = py * plot.o.ymax;
-    let best = null, bd = Infinity;
+    let best = null, bd = Infinity, bestRow = null;
     for (const row of L.list) {
+      const half = (row.card ? BH * 1.72 : BH) / 2;
       const d = Math.abs(row.y - yv);
-      if (d < bd) { bd = d; best = row.key; }
+      if (d < bd && d < half + 1.5) { bd = d; best = row.key; bestRow = row; }
     }
-    if (best && bd < BH) { sel = best; refresh(); }
+    if (!best) return;
+    // the attention card holds two selectable zones
+    if (bestRow.card && yv > bestRow.y - BH * .86 + BH * 1.72 * .56) best = 'mask';
+    sel = best;
+    refresh();
   });
   canvas.style.cursor = 'pointer';
 

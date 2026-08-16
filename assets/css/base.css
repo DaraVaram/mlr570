@@ -101,7 +101,10 @@
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Consolas",
                "Liberation Mono", monospace;
 
-  --measure: 68ch;
+  /* Prose spans the full content column, matching the figures. A narrower
+     measure reads better but made the text look arbitrarily clipped beside
+     the full-width playgrounds. */
+  --measure: none;
 
   /* --- Layout ----------------------------------------------- */
   --nav-h: 60px;

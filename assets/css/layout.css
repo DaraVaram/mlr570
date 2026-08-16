@@ -100,7 +100,7 @@
   margin: 0 auto;
   padding: clamp(2rem, 5vw, 3.6rem) clamp(1rem, 3vw, 2rem) 5rem;
 }
-.page--narrow { max-width: 880px; }
+.page--narrow { max-width: 1080px; }
 
 /* Chapter shell: sidebar + content */
 .shell {

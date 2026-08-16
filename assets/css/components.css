@@ -140,7 +140,7 @@
 .pill--brand  { background: var(--brand-soft); color: var(--brand); border-color: color-mix(in srgb, var(--brand) 26%, transparent); }
 
 /* --- Section headers ------------------------------------------- */
-.section-head { margin: clamp(3rem, 6vw, 4.6rem) 0 1.6rem; max-width: 62ch; }
+.section-head { margin: clamp(3rem, 6vw, 4.6rem) 0 1.6rem; }
 .section-head__label {
   font-size: .76rem; font-weight: 700; letter-spacing: .1em;
   text-transform: uppercase; color: var(--accent);
@@ -545,7 +545,7 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px 
 .chapter-head__crumb a { color: var(--ink-muted); text-decoration: none; }
 .chapter-head__crumb a:hover { color: var(--brand); text-decoration: underline; }
 .chapter-head h1 { margin-bottom: .3em; }
-.chapter-head__lede { font-size: 1.09rem; color: var(--ink-muted); max-width: 60ch; margin-bottom: 1.1rem; }
+.chapter-head__lede { font-size: 1.09rem; color: var(--ink-muted); margin-bottom: 1.1rem; }
 .chapter-head__stats { display: flex; flex-wrap: wrap; gap: .5rem; }
 
 /* --- Prev / next ------------------------------------------------- */
