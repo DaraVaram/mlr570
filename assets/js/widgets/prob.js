@@ -197,7 +197,7 @@ defineWidget('distributions', node => {
       // mean marker
       const m = d.mean(P);
       p.line([m, 0], [m, 1], { color: C.c4, lw: 1.6, dash: [5, 4] });
-      p.badge([m, .97], `E[X] = ${fmt(m, 2)}`, { color: C.c4, align: 'center' });
+      p.badge([m, .97], `E[X] = ${fmt(m, 2)}`, { color: C.c4, align: 'center', dy: 14 });
     } else {
       const [lo, hi] = d.range(P);
       let mx = 1e-9;
@@ -450,7 +450,7 @@ defineWidget('lln', node => {
     paths.forEach((path, i) => p.path(path, { color: cols[i % cols.length], lw: 1.5, alpha: .85 }));
 
     p.axes(); p.ticks(.25);
-    p.badge([N * .02, p0], `p = ${fmt(p0, 2)}`, { color: C.c4 });
+    p.badge([N * .35, p0], `p = ${fmt(p0, 2)}`, { color: C.c4, align: 'center', dy: -13 });
     p.text({ px: 12, py: 11 }, 'running average of coin tosses', { color: C.muted, size: 11 });
   });
 

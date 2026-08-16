@@ -769,7 +769,7 @@ defineWidget('fbeta', node => {
 defineWidget('mse-mae', node => {
   const { right, canvas } = split(node, { hint: 'Drag any point', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.5, xmax: 5.5, ymin: -1, ymax: 12, aspect: 1.4, equal: false, pad: 0,
+    xmin: -.5, xmax: 5.5, ymin: -1.75, ymax: 15.5, aspect: 1.4, equal: false, pad: 0,
   }));
 
   const truth = [3, 0.5, 2, 7, 4];
@@ -817,7 +817,7 @@ defineWidget('mse-mae', node => {
 
   plot.onDraw(p => {
     p.grid(1, { color: C.grid });
-    p.axes({ ticks: 1 });
+    p.axes(); p.ticks(1, { stepX: 1e9, stepY: 5 });
     truth.forEach((t, i) => {
       const e = pred[i] - t;
       // the squared error, drawn literally as a square
@@ -834,11 +834,10 @@ defineWidget('mse-mae', node => {
       p.line([i, t], [i, pred[i]], { color: C.c4, lw: 2, dash: [4, 3] });
       p.dot([i, t], { r: 5.5, color: C.c3, ring: true });
       p.handle([i, pred[i]], { color: C.c1, r: 6 });
-      p.text([i, -.62], `e=${fmt(pred[i] - t, 2)}`,
+      p.text([i, -1.25], `e=${fmt(pred[i] - t, 2)}`,
         { align: 'center', size: 10, color: C.muted, mono: true, halo: true, haloWidth: 3.5 });
     });
-    p.text({ px: 12, py: 11 }, 'teal = actual · violet = prediction (drag) · shaded square = squared error',
-      { color: C.muted, size: 10.5 });
+    p.title('teal = actual · violet = prediction (drag) · shaded square = squared error', { size: 10.5 });
   });
 
   refresh();

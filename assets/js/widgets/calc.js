@@ -111,7 +111,7 @@ function hexRgb(h) {
 defineWidget('derivative-limit', node => {
   const { right, canvas } = split(node, { aspect: 1.5, hint: 'Drag the point a' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -1, xmax: 4.2, ymin: -2, ymax: 14, aspect: 1.5, equal: false, pad: 0,
+    xmin: -1, xmax: 4.2, ymin: -2, ymax: 16.5, aspect: 1.5, equal: false, pad: 0,
   }));
 
   const FS = {
@@ -197,8 +197,10 @@ defineWidget('derivative-limit', node => {
     p.dot([a + h, fah], { r: 5, color: C.c4, ring: true });
     p.handle([a, fa], { color: C.c1, r: 6 });
 
-    p.text({ px: 12, py: 18 }, label, { color: C.ink, size: 12, weight: 700 });
-    p.text({ px: 12, py: 35 }, d, { color: C.muted, size: 11 });
+    p.title(label, { size: 12, weight: 700, color: C.ink });
+    p.text({ px: 12, py: 24 }, d,
+      { color: C.muted, size: 11, baseline: 'top', halo: true, haloWidth: 4 });
+    p.reserveTop = 38;
   });
   sync();
 
@@ -762,12 +764,11 @@ defineWidget('bigo', node => {
     });
 
     p.line([n, 0], [n, 1.08], { color: C.c2, lw: 1.8, dash: [5, 4] });
-    p.badge([n, 1.03], `n = ${n}`, { color: C.c2, align: 'center', dy: -12 });
+    p.badge([n, 0], `n = ${n}`, { color: C.c2, align: 'center', dy: -24 });
 
     p.axes(); p.ticks(N / 5);
-    p.text({ px: 12, py: 16 },
-      logScale ? 'operations (log scale)' : 'operations (linear scale)',
-      { color: C.muted, size: 11 });
+    // curve labels live on the right, where the fastest-growing curve ends
+    p.title(logScale ? 'operations (log scale)' : 'operations (linear scale)');
   });
 
   refresh();

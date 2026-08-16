@@ -6,8 +6,8 @@ and Engineering, American University of Sharjah.
 - **Instructor:** Dr. Mohamed I. AlHajri
 - **Teaching Assistant / notes author:** Dara Varam
 
-The notes began as LaTeX. This site keeps the mathematics exactly as written and rebuilds the figures
-as things students can pick up and move.
+The notes began as LaTeX. This site keeps the mathematics exactly as written, rebuilds the figures as
+things students can pick up and move, and reproduces the original hand-drawn diagrams alongside them.
 
 ## Status
 

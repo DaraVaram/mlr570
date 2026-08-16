@@ -228,7 +228,7 @@ defineWidget('distance-metrics', node => {
 defineWidget('cosine-sim', node => {
   const { right, canvas } = split(node, { hint: 'Drag either arrow', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -5.5, xmax: 5.5, ymin: -4, ymax: 4, aspect: 1.3, pad: 8,
+    xmin: -5.5, xmax: 5.5, ymin: -4, ymax: 4.9, aspect: 1.3, pad: 8,
   }));
 
   let A = [3, 1], B = [1.4, 2.8];
@@ -550,11 +550,12 @@ defineWidget('curse-dimensionality', node => {
     p.ctx.stroke();
     [1, 10, 100, 1000].forEach(d => {
       const x = Math.log10(d);
-      p.text({ px: p.X(x), py: p.h - (p.reserveBottom || 16) - 3 }, String(d),
+      p.text({ px: clamp(p.X(x), 12, p.w - 16), py: p.h - (p.reserveBottom || 16) - 3 }, String(d),
         { align: 'center', baseline: 'bottom', size: 11, color: C.muted, weight: 500 });
     });
     [0, .25, .5, .75, 1].forEach(v => {
-      p.text({ px: 30, py: p.Y(v) }, fmt(v, 2),
+      const py = clamp(p.Y(v), 8, p.h - (p.reserveBottom || 16) - 8);
+      p.text({ px: 32, py }, fmt(v, 2),
         { align: 'right', size: 11, color: C.muted, halo: true, haloWidth: 3.5 });
     });
     p.xlabel('dimension d (log scale)', { size: 11 });

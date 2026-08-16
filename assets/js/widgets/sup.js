@@ -621,7 +621,7 @@ defineWidget('ols-wls', node => {
 defineWidget('ridge', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.2, xmax: 1.1, ymin: -2, ymax: 3, aspect: 1.5, equal: false, pad: 0,
+    xmin: -3.2, xmax: 1.45, ymin: -2, ymax: 3, aspect: 1.5, equal: false, pad: 0,
   }));
 
   // the notes' worked example
@@ -686,17 +686,21 @@ defineWidget('ridge', node => {
     }
     paths.forEach((pa, k) => {
       p.path(pa, { color: cols[k], lw: 2.6 });
-      const last = pa[0];
-      // the path ends at the right edge, so anchor the label inside it
-      p.text({ px: Math.min(p.X(last[0]) + 4, p.w - 16), py: clamp(p.Y(last[1]) - 8, 10, p.h - 10) },
-        `β${['₁', '₂', '₃'][k]}`, { color: cols[k], size: 11, weight: 700 });
+      // Label at the low-lambda end, where the three paths are still apart.
+      // At high lambda every coefficient is shrunk to ~0 and the labels would
+      // land on top of one another. pa[0] is off-plot at log10(lambda) = -6,
+      // so take the first point inside the drawn range.
+      const end = pa.find(q => q[0] >= p.o.xmin) || pa[0];
+      p.text({ px: clamp(p.X(end[0]) + 6, 4, p.w - 20), py: clamp(p.Y(end[1]) - 9, 14, p.h - 16) },
+        `β${['₁', '₂', '₃'][k]}`,
+        { color: cols[k], size: 11, weight: 700, halo: true, haloWidth: 3.5 });
     });
     p.line([logLam, -2], [logLam, 3], { color: C.c4, lw: 1.8, dash: [5, 4] });
     beta.forEach((b, k) => p.dot([logLam, b], { r: 5, color: cols[k], ring: true }));
     p.line([-3.2, 0], [1.1, 0], { color: C.axis, lw: 1.2 });
     p.axes(); p.ticks(1);
     p.xlabel('log₁₀ λ  (left = no regularisation)', { size: 10.5 });
-    p.text({ px: 10, py: 11 }, 'coefficient value', { size: 10.5, color: C.muted });
+    p.title('coefficient value', { size: 10.5 });
   });
 
   refresh();
@@ -1044,7 +1048,7 @@ defineWidget('kernel-regression', node => {
     train.forEach(t => p.dot(t, { r: 4.2, color: C.c5, ring: true, ringLw: 1.6 }));
     p.fn(predict, { color: C.c1, lw: 3, from: -.3, to: 6.6, samples: 420 });
     p.axes({ ticks: 1 });
-    p.text({ px: 12, py: 11 }, 'dashed: true sin(x) · violet: kernel fit · faint: held-out test points',
+    p.title('dashed: true sin(x) · violet: kernel fit · faint: held-out test points',
       { color: C.muted, size: 10.5 });
   });
 

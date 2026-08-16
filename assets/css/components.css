@@ -717,3 +717,56 @@ pre:hover .code-copy, .code-copy:focus-visible { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .playground__body[data-widget]:not([data-mounted])::after { animation: none; }
 }
+
+/* ============================================================
+   Figures from the original lecture notes
+
+   These are the author's own diagrams, exported from the LaTeX
+   sources. They are line art drawn in dark ink on transparency, so
+   they always sit on a light ground — a dark page would swallow them.
+   ============================================================ */
+.srcfig { margin: 1.5rem 0; }
+.srcfig__frame {
+  background: #fdfdfc;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: .95rem 1rem;
+  overflow-x: auto;
+}
+[data-theme="dark"] .srcfig__frame { border-color: color-mix(in srgb, var(--rule) 60%, transparent); }
+.srcfig__frame img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.srcfig figcaption {
+  margin-top: .6rem;
+  font-size: .845rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+.srcfig figcaption strong { color: var(--ink); font-weight: 650; }
+.srcfig__tag {
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: .68rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: .45rem;
+}
+.srcfig__tag::before {
+  content: ""; width: 14px; height: 1.5px; background: currentColor; border-radius: 1px;
+}
+/* two or three diagrams that belong side by side */
+.srcfig--row .srcfig__frame {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: .9rem;
+  align-items: center;
+}
+.srcfig--row .srcfig__frame > figure { margin: 0; }
+.srcfig--row .srcfig__frame > figure > figcaption {
+  margin-top: .4rem; font-size: .76rem; text-align: center; color: var(--ink-faint);
+}
+/* portrait diagrams should not run the full column width */
+.srcfig--tall .srcfig__frame img { max-width: min(100%, 340px); }
+.srcfig--mid .srcfig__frame img  { max-width: min(100%, 560px); }

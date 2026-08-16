@@ -265,6 +265,7 @@ export class Plot {
     const M = 3;                                   // keep this far from the edge
     // space claimed by a bottom caption, so ticks never sit on top of it
     const B = opts.bottom ?? this.reserveBottom ?? 0;
+    const T = opts.top ?? this.reserveTop ?? 0;
 
     // ---- x labels, normally below the horizontal axis ----
     ctx.textAlign = 'center';
@@ -272,12 +273,13 @@ export class Plot {
     const yBase = clamp(0, o.ymin, o.ymax);
     const axisY = this.Y(yBase);
     const below = axisY + 5 + size <= this.h - M - B;
+    // when x labels flip above the axis they must clear the title band too
     ctx.textBaseline = below ? 'top' : 'bottom';
     // flipping above the axis must still clear the caption band, otherwise
     // an axis flush with the bottom edge puts labels straight onto the caption
     const ly = below
       ? Math.min(axisY + 5, this.h - M - B - size)
-      : clamp(Math.min(axisY - 5, this.h - B - 4), M + size, this.h - M);
+      : clamp(Math.min(axisY - 5, this.h - B - 4), T + M + size, this.h - M);
     for (let x = Math.ceil(o.xmin / stepX) * stepX; x <= o.xmax + 1e-9; x += stepX) {
       if (Math.abs(x) < 1e-9) continue;
       const label = fmt(x, 2);
@@ -315,6 +317,8 @@ export class Plot {
       // When there is no gutter the labels sit inside the plot, where the
       // top-left corner is conventionally used for the figure's caption.
       // Dropping one tick there beats printing two strings on top of each other.
+      if (cy - size / 2 < T + 2) continue;
+      if (cy + size / 2 > this.h - B - 2) continue;
       if (!leftFits && cy < (opts.topCaption ?? 30)) continue;
       lastY = cy;
       put(fmt(y, 2), lx, cy);
@@ -326,6 +330,25 @@ export class Plot {
    * Caption centred along the bottom edge, always fully inside the canvas.
    * Use instead of hand-positioning text at `py: h - 4`, which clips descenders.
    */
+  /**
+   * Caption along the top edge. Claims a band that ticks() then avoids, which
+   * is the only reliable way to stop axis labels landing on it — nudging the
+   * bounds just moves a different tick into the same place.
+   */
+  title(str, opts = {}) {
+    const size = opts.size || 11;
+    const need = size + 8;
+    if (!this.reserveTop || this.reserveTop < need) {
+      this.reserveTop = need;
+      this.render();
+    }
+    const align = opts.align || 'left';
+    const px = align === 'right' ? this.w - (opts.margin ?? 10)
+      : align === 'center' ? this.w / 2 : (opts.margin ?? 10);
+    this.text({ px, py: 4 }, str,
+      { align, baseline: 'top', size, color: C.muted, weight: 500, ...opts });
+  }
+
   xlabel(str, opts = {}) {
     const need = (opts.size || 10.5) + 6;
     // ticks() runs before this on the same frame, so the very first paint would

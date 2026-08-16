@@ -877,7 +877,7 @@ defineWidget('feature-selection', node => {
 
   plot.onDraw(p => {
     const mx = Math.max(...scores, 1e-9);
-    p.o.xmin = 0; p.o.xmax = mx * 1.28; p.o.ymin = -.5; p.o.ymax = 5;
+    p.o.xmin = -mx * .06; p.o.xmax = mx * 1.30; p.o.ymin = -.5; p.o.ymax = 5.25;
     p._computeScale();
     const cols = [C.c1, C.c3, C.c4, C.muted, C.c2];
     scores.forEach((s, i) => {

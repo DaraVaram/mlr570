@@ -131,6 +131,7 @@
       <div class="chapter-head__stats">
         <span class="pill pill--live">Verified</span>
         <span class="pill pill--play">13 interactive figures</span>
+        <span class="pill pill--brand">10 diagrams from the notes</span>
         <span class="pill pill--brand">5 parts</span>
       </div>
     </div>
@@ -662,6 +663,15 @@
       <strong>noise</strong> instead of being forced into a cluster they do not belong to.
     </p>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/density-clustering.webp" width="1500" height="856"
+             loading="lazy" decoding="async" alt="Data that only density-based clustering handles well: clusters of different shapes with scattered points between them that belong to nothing.">
+      </div>
+      <figcaption>Data that only density-based clustering handles well: clusters of different shapes with scattered points between them that belong to nothing.</figcaption>
+    </figure>
+
     <h3 id="dbscan">DBSCAN</h3>
 
     <p>
@@ -692,6 +702,15 @@
         convention throughout.
       </p>
     </div>
+
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/dbscan-core-border-noise.webp" width="1013" height="801"
+             loading="lazy" decoding="async" alt="Core, border and noise points in DBSCAN">
+      </div>
+      <figcaption>Core, border and noise points. A core point has at least minPts neighbours within ε; a border point does not, but lies inside some core point’s neighbourhood. <em>After Garrett Poppe’s lecture notes.</em></figcaption>
+    </figure>
 
     <h3 id="reachability">Density-reachability</h3>
 
@@ -1100,6 +1119,15 @@
       the axes are chosen. Autoencoders learn the mapping instead.
     </p>
 
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-manifold.webp" width="1182" height="933"
+             loading="lazy" decoding="async" alt="The motivation for dimensionality reduction: a Swiss roll drawn in a high-dimensional space but controlled by only two underlying degrees of freedom.">
+      </div>
+      <figcaption>The motivation for dimensionality reduction: a Swiss roll drawn in a high-dimensional space but controlled by only two underlying degrees of freedom.</figcaption>
+    </figure>
+
     <h3 id="ae-basic">Architecture and objective</h3>
 
     <div class="defn">
@@ -1146,6 +1174,31 @@
       "9", so those digits stay blurry at low \(k\) longer than more distinctive ones do.
     </p>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-general.webp" width="1500" height="623"
+             loading="lazy" decoding="async" alt="The autoencoder in schematic form — encoder, bottleneck code, decoder.">
+      </div>
+      <figcaption>The autoencoder in schematic form — encoder, bottleneck code, decoder.</figcaption>
+    </figure>
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-network.webp" width="1500" height="1350"
+             loading="lazy" decoding="async" alt="The same thing drawn as a network. The bottleneck layer is narrower than the input, which is what forces the network to choose what to keep.">
+      </div>
+      <figcaption>The same thing drawn as a network. The bottleneck layer is narrower than the input, which is what forces the network to choose what to keep.</figcaption>
+    </figure>
+    <figure class="srcfig srcfig--tall">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-mnist.webp" width="854" height="1500"
+             loading="lazy" decoding="async" alt="MNIST digits reconstructed at increasing latent dimension. Note how long 2 and 4 stay ambiguous — they are the digits most easily confused with 8 and 9.">
+      </div>
+      <figcaption>MNIST digits reconstructed at increasing latent dimension. Note how long 2 and 4 stay ambiguous — they are the digits most easily confused with 8 and 9.</figcaption>
+    </figure>
+
     <h3 id="ae-linear">Linear autoencoders and PCA</h3>
 
     <p>
@@ -1185,6 +1238,15 @@
         orthogonality unless you impose them.
       </p>
     </div>
+
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-vs-pca.webp" width="790" height="490"
+             loading="lazy" decoding="async" alt="Reconstruction error against latent dimension for a linear autoencoder, PCA and SVD. The three curves coincide, which is the equivalence stated above.">
+      </div>
+      <figcaption>Reconstruction error against latent dimension for a linear autoencoder, PCA and SVD. The three curves coincide, which is the equivalence stated above.</figcaption>
+    </figure>
 
     <h3 id="ae-nonlin">What nonlinearity buys</h3>
 
@@ -1228,6 +1290,15 @@
       manifold it lies on.
     </p>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-denoising.webp" width="1500" height="409"
+             loading="lazy" decoding="async" alt="The denoising pipeline: corrupt the input, encode and decode, then score the result against the clean original.">
+      </div>
+      <figcaption>The denoising pipeline: corrupt the input, encode and decode, then score the result against the <em>clean</em> original.</figcaption>
+    </figure>
+
     <h3 id="sae">Sparse autoencoders</h3>
 
     <p>
@@ -1263,6 +1334,15 @@
       doing the constraining, this is one of the few settings where an <em>overcomplete</em> latent layer is
       useful.
     </p>
+
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-sparse.webp" width="1112" height="1021"
+             loading="lazy" decoding="async" alt="Sparse autoencoder activations. Most latent units stay near zero for any given input and a few respond strongly.">
+      </div>
+      <figcaption>Sparse autoencoder activations. Most latent units stay near zero for any given input and a few respond strongly.</figcaption>
+    </figure>
 
     <h3 id="vae">Variational autoencoders</h3>
 
@@ -1366,6 +1446,15 @@
     </div>
 
     <!-- ==================================================== -->
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/ae-vae.webp" width="1500" height="977"
+             loading="lazy" decoding="async" alt="The variational autoencoder. The encoder emits a mean and a variance rather than a point, a sample is drawn using the reparameterisation trick, and the decoder maps it back.">
+      </div>
+      <figcaption>The variational autoencoder. The encoder emits a mean and a variance rather than a point, a sample is drawn using the reparameterisation trick, and the decoder maps it back.</figcaption>
+    </figure>
+
     <h2 id="errata">Errata and verification</h2>
 
     <p>

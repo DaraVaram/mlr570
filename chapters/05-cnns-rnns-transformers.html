@@ -119,6 +119,7 @@
       <div class="chapter-head__stats">
         <span class="pill pill--live">Verified</span>
         <span class="pill pill--play">21 interactive figures</span>
+        <span class="pill pill--brand">28 diagrams from the notes</span>
         <span class="pill pill--brand">3 parts</span>
       </div>
     </div>
@@ -225,6 +226,15 @@
       <div class="playground__body" data-widget="conv-demo"></div>
     </div>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/conv-sample.webp" width="1500" height="817"
+             loading="lazy" decoding="async" alt="The convolution operation as drawn in the notes: a small kernel slides across the input and each position contributes one dot product to the feature map.">
+      </div>
+      <figcaption>The convolution operation as drawn in the notes: a small kernel slides across the input and each position contributes one dot product to the feature map.</figcaption>
+    </figure>
+
     <h3 id="conv-arith">Output size arithmetic</h3>
 
     <p>
@@ -299,6 +309,23 @@
       </div>
       <div class="playground__body" data-widget="padding-modes"></div>
     </div>
+
+    <figure class="srcfig srcfig--row">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <figure>
+          <img src="../assets/img/notes/conv-valid.webp" width="1500" height="681"
+               loading="lazy" decoding="async" alt="Valid — no padding">
+          <figcaption>Valid — no padding</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/conv-same.webp" width="1500" height="602"
+               loading="lazy" decoding="async" alt="Same — zero-padded">
+          <figcaption>Same — zero-padded</figcaption>
+        </figure>
+      </div>
+      <figcaption>Valid padding uses only positions where the kernel fits entirely inside the image, so the map shrinks. Same padding adds a ring of zeros and keeps the spatial size fixed.</figcaption>
+    </figure>
 
     <h3 id="channels">Channels and filter banks</h3>
 
@@ -384,6 +411,23 @@
         connected head that made AlexNet and VGG so parameter-heavy.
       </p>
     </div>
+
+    <figure class="srcfig srcfig--row">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <figure>
+          <img src="../assets/img/notes/pool-max.webp" width="1500" height="740"
+               loading="lazy" decoding="async" alt="Max pooling">
+          <figcaption>Max pooling</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/pool-avg.webp" width="1500" height="740"
+               loading="lazy" decoding="async" alt="Average pooling">
+          <figcaption>Average pooling</figcaption>
+        </figure>
+      </div>
+      <figcaption>Pooling downsamples with a fixed, parameter-free rule — the maximum or the mean of each window.</figcaption>
+    </figure>
 
     <h3 id="rf">Receptive fields</h3>
 
@@ -557,6 +601,28 @@
       <div class="playground__body" data-widget="arch-evolution"></div>
     </div>
 
+    <figure class="srcfig srcfig--row">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <figure>
+          <img src="../assets/img/notes/features-low.webp" width="428" height="415"
+               loading="lazy" decoding="async" alt="Layer 1 — oriented edges and colour blobs">
+          <figcaption>Layer 1 — oriented edges and colour blobs</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/features-mid.webp" width="424" height="413"
+               loading="lazy" decoding="async" alt="Middle layers — corners, textures, parts">
+          <figcaption>Middle layers — corners, textures, parts</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/features-high.webp" width="424" height="412"
+               loading="lazy" decoding="async" alt="Deep layers — class-specific structure">
+          <figcaption>Deep layers — class-specific structure</figcaption>
+        </figure>
+      </div>
+      <figcaption>Features actually learned by a trained network, layer by layer. Nobody designs this hierarchy; it falls out of stacking local operations.</figcaption>
+    </figure>
+
     <h4>Residual connections</h4>
 
     <p>
@@ -577,6 +643,64 @@
       does. Keep that structure in mind — <a href="#gru">the GRU's carry path</a> is the same trick applied
       along time instead of depth.
     </p>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-lenet.webp" width="1500" height="413"
+             loading="lazy" decoding="async" alt="LeNet-5 (1998). Alternating convolution and subsampling layers feeding a small dense head — the blueprint every later architecture varies.">
+      </div>
+      <figcaption><strong>LeNet-5 (1998).</strong> Alternating convolution and subsampling layers feeding a small dense head — the blueprint every later architecture varies.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-lenet-features.webp" width="1500" height="412"
+             loading="lazy" decoding="async" alt="LeNet-5 feature extraction">
+      </div>
+      <figcaption>LeNet-5 seen as a feature extractor: the convolution and pooling stack harvests local structure, and only the final dense layers do the classifying.</figcaption>
+    </figure>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-alexnet.webp" width="1500" height="177"
+             loading="lazy" decoding="async" alt="AlexNet (2012). The same blueprint at ImageNet scale: five convolutional layers, three fully connected, ReLU throughout, dropout in the tail.">
+      </div>
+      <figcaption><strong>AlexNet (2012).</strong> The same blueprint at ImageNet scale: five convolutional layers, three fully connected, ReLU throughout, dropout in the tail.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-inception.webp" width="1500" height="1051"
+             loading="lazy" decoding="async" alt="The Inception module (2014). Parallel 1×1, 3×3 and 5×5 branches plus pooling, concatenated along channels, with 1×1 convolutions as bottlenecks before the expensive branches.">
+      </div>
+      <figcaption><strong>The Inception module (2014).</strong> Parallel 1×1, 3×3 and 5×5 branches plus pooling, concatenated along channels, with 1×1 convolutions as bottlenecks before the expensive branches.</figcaption>
+    </figure>
+    <figure class="srcfig srcfig--tall">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-resnet.webp" width="719" height="1500"
+             loading="lazy" decoding="async" alt="The residual block (2015). The identity shortcut carries the input past the weight layers, so the block only has to learn a correction.">
+      </div>
+      <figcaption><strong>The residual block (2015).</strong> The identity shortcut carries the input past the weight layers, so the block only has to learn a correction.</figcaption>
+    </figure>
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/revolution-of-depth.webp" width="1120" height="705"
+             loading="lazy" decoding="async" alt="The revolution of depth. Layer count and top-5 ImageNet error, 2010–2015. ResNet reached 3.57% with 152 layers where earlier winners had fewer than 25.">
+      </div>
+      <figcaption><strong>The revolution of depth.</strong> Layer count and top-5 ImageNet error, 2010–2015. ResNet reached 3.57% with 152 layers where earlier winners had fewer than 25.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-efficientnet.webp" width="1500" height="633"
+             loading="lazy" decoding="async" alt="EfficientNet (2019). Compound scaling grows depth, width and resolution together rather than one at a time.">
+      </div>
+      <figcaption><strong>EfficientNet (2019).</strong> Compound scaling grows depth, width and resolution together rather than one at a time.</figcaption>
+    </figure>
 
     <h4>Depthwise separable convolutions</h4>
 
@@ -687,6 +811,36 @@
       <div class="playground__body" data-widget="seq-types"></div>
     </div>
 
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/rnn-standard-nn.webp" width="1500" height="1292"
+             loading="lazy" decoding="async" alt="A standard feedforward network for comparison: a fixed-size input, no recurrence, and no way to handle a sequence whose length is not known in advance.">
+      </div>
+      <figcaption>A standard feedforward network for comparison: a fixed-size input, no recurrence, and no way to handle a sequence whose length is not known in advance.</figcaption>
+    </figure>
+    <figure class="srcfig srcfig--row">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <figure>
+          <img src="../assets/img/notes/rnn-one-to-many.webp" width="1500" height="729"
+               loading="lazy" decoding="async" alt="One-to-many">
+          <figcaption>One-to-many</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/rnn-many-to-one.webp" width="1500" height="736"
+               loading="lazy" decoding="async" alt="Many-to-one">
+          <figcaption>Many-to-one</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/rnn-many-to-many.webp" width="1500" height="1194"
+               loading="lazy" decoding="async" alt="Many-to-many">
+          <figcaption>Many-to-many</figcaption>
+        </figure>
+      </div>
+      <figcaption>The three canonical supervision patterns — image captioning, sentiment analysis and translation respectively. The cell is identical in each; only the wiring changes.</figcaption>
+    </figure>
+
     <h3 id="rnn-form">The vanilla RNN</h3>
 
     <div class="defn">
@@ -738,6 +892,31 @@
         avoids the squashing altogether.
       </p>
     </div>
+
+    <figure class="srcfig srcfig--tall">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/rnn-rolled-unrolled.webp" width="1174" height="1500"
+             loading="lazy" decoding="async" alt="Rolled and unrolled views of the same network. Unrolling reveals a depth-T feedforward graph whose layers happen to share every weight.">
+      </div>
+      <figcaption>Rolled and unrolled views of the same network. Unrolling reveals a depth-<em>T</em> feedforward graph whose layers happen to share every weight.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/rnn-parameter-sharing.webp" width="1500" height="897"
+             loading="lazy" decoding="async" alt="The same three matrices at every step: U reads the input, W carries the state, V reads out. Only the inputs and states vary with t.">
+      </div>
+      <figcaption>The same three matrices at every step: <strong>U</strong> reads the input, <strong>W</strong> carries the state, <strong>V</strong> reads out. Only the inputs and states vary with t.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/rnn-inside-cell.webp" width="1500" height="1354"
+             loading="lazy" decoding="async" alt="Inside the vanilla cell: the input and the previous state are combined, passed through tanh, and the result is both the new state and the basis for the output.">
+      </div>
+      <figcaption>Inside the vanilla cell: the input and the previous state are combined, passed through tanh, and the result is both the new state and the basis for the output.</figcaption>
+    </figure>
 
     <h3 id="rnn-worked">A worked forward pass</h3>
 
@@ -878,6 +1057,15 @@
       </p>
     </div>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/rnn-vanishing.webp" width="1500" height="515"
+             loading="lazy" decoding="async" alt="Gradient magnitude as it propagates back through time in a vanilla RNN. Each step multiplies by another Jacobian, so the signal reaching early steps decays geometrically.">
+      </div>
+      <figcaption>Gradient magnitude as it propagates back through time in a vanilla RNN. Each step multiplies by another Jacobian, so the signal reaching early steps decays geometrically.</figcaption>
+    </figure>
+
     <h3 id="lstm">Long short-term memory</h3>
 
     <p>
@@ -920,6 +1108,15 @@
         having to discover from scratch that keeping information is useful.
       </p>
     </div>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/cell-lstm.webp" width="1500" height="642"
+             loading="lazy" decoding="async" alt="The LSTM cell. The forget, input and output gates control what the cell state keeps, admits and exposes. The cell state runs across the top with no weight matrix on it.">
+      </div>
+      <figcaption><strong>The LSTM cell.</strong> The forget, input and output gates control what the cell state keeps, admits and exposes. The cell state runs across the top with no weight matrix on it.</figcaption>
+    </figure>
 
     <h3 id="gru">Gated recurrent units</h3>
 
@@ -970,6 +1167,15 @@
       </div>
       <div class="playground__body" data-widget="gru-gates"></div>
     </div>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/cell-gru.webp" width="1500" height="1094"
+             loading="lazy" decoding="async" alt="The GRU cell. Two gates instead of three and no separate cell state: the update gate blends the previous state with the candidate, and the reset gate decides how much of the past the candidate may see.">
+      </div>
+      <figcaption><strong>The GRU cell.</strong> Two gates instead of three and no separate cell state: the update gate blends the previous state with the candidate, and the reset gate decides how much of the past the candidate may see.</figcaption>
+    </figure>
 
     <h4>Two edge cases</h4>
 
@@ -1084,6 +1290,23 @@
       because there is no sequential dependency, the whole sequence is processed in parallel.
     </p>
 
+    <figure class="srcfig srcfig--row">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <figure>
+          <img src="../assets/img/notes/attn-sentence.webp" width="1500" height="748"
+               loading="lazy" decoding="async" alt="Context within a sentence">
+          <figcaption>Context within a sentence</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/img/notes/attn-context.webp" width="1500" height="747"
+               loading="lazy" decoding="async" alt="Learned per-token context">
+          <figcaption>Learned per-token context</figcaption>
+        </figure>
+      </div>
+      <figcaption>What attention is for: resolving each word against the rest of the sentence rather than reading it in isolation.</figcaption>
+    </figure>
+
     <h3 id="tokens">Tokens and embeddings</h3>
 
     <p>
@@ -1110,6 +1333,15 @@
       </div>
       <div class="playground__body" data-widget="tokenize"></div>
     </div>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/tokenisation.webp" width="1500" height="684"
+             loading="lazy" decoding="async" alt="From a sentence to a matrix: tokenise, map each token to an id, then look up a learned embedding row. Only the last step has parameters.">
+      </div>
+      <figcaption>From a sentence to a matrix: tokenise, map each token to an id, then look up a learned embedding row. Only the last step has parameters.</figcaption>
+    </figure>
 
     <h3 id="pe">Positional encoding</h3>
 
@@ -1165,6 +1397,15 @@
         attend "three tokens back" as a single operation.
       </p>
     </div>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/positional-encoding-orig.webp" width="1500" height="416"
+             loading="lazy" decoding="async" alt="Positional encodings are added to the token embeddings, not concatenated, so the layer input carries both what the token is and where it sits.">
+      </div>
+      <figcaption>Positional encodings are <em>added</em> to the token embeddings, not concatenated, so the layer input carries both what the token is and where it sits.</figcaption>
+    </figure>
 
     <h3 id="self-attn">Self-attention</h3>
 
@@ -1236,6 +1477,31 @@
         implementations such as FlashAttention).
       </p>
     </div>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/attn-matrices.webp" width="1500" height="577"
+             loading="lazy" decoding="async" alt="The four matrices of an attention layer, for reference: the three projections and the output projection.">
+      </div>
+      <figcaption>The four matrices of an attention layer, for reference: the three projections and the output projection.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/attn-projections.webp" width="1500" height="765"
+             loading="lazy" decoding="async" alt="Building the projections: the same input X is multiplied by three different learned matrices to give queries, keys and values.">
+      </div>
+      <figcaption>Building the projections: the same input <strong>X</strong> is multiplied by three different learned matrices to give queries, keys and values.</figcaption>
+    </figure>
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/attn-calculation.webp" width="1500" height="1211"
+             loading="lazy" decoding="async" alt="The full computation for a single query row — scores against every key, softmax, then a weighted sum of the value vectors.">
+      </div>
+      <figcaption>The full computation for a single query row — scores against every key, softmax, then a weighted sum of the value vectors.</figcaption>
+    </figure>
 
     <h3 id="scaling">Why divide by \(\sqrt{d_k}\)</h3>
 
@@ -1321,6 +1587,15 @@
       <div class="playground__body" data-widget="mha-heads"></div>
     </div>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/attn-multihead.webp" width="1500" height="536"
+             loading="lazy" decoding="async" alt="Multi-head attention stacks several sets of projection matrices, runs them in parallel on narrower slices, and concatenates the results.">
+      </div>
+      <figcaption>Multi-head attention stacks several sets of projection matrices, runs them in parallel on narrower slices, and concatenates the results.</figcaption>
+    </figure>
+
     <h3 id="masking">Masking and training objectives</h3>
 
     <p>
@@ -1377,6 +1652,15 @@
       </div>
     </div>
 
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/attn-masked.webp" width="1500" height="422"
+             loading="lazy" decoding="async" alt="The causal mask and its effect on the score matrix: the upper triangle is set to −∞ before the softmax, so no position can read the future.">
+      </div>
+      <figcaption>The causal mask and its effect on the score matrix: the upper triangle is set to −∞ before the softmax, so no position can read the future.</figcaption>
+    </figure>
+
     <h3 id="block">The block, assembled</h3>
 
     <div class="playground">
@@ -1403,6 +1687,15 @@
     </div>
 
     <!-- ==================================================== -->
+    <figure class="srcfig srcfig--tall">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/arch-transformer.webp" width="487" height="715"
+             loading="lazy" decoding="async" alt="The original transformer architecture, reproduced from Vaswani et al. (2017). Compare with the interactive block above.">
+      </div>
+      <figcaption>The original transformer architecture, reproduced from Vaswani et al. (2017). Compare with the interactive block above.</figcaption>
+    </figure>
+
     <h2 id="errata">Errata and verification</h2>
 
     <p>

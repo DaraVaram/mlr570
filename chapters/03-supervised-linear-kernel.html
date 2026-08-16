@@ -126,6 +126,7 @@
       <div class="chapter-head__stats">
         <span class="pill pill--live">Verified</span>
         <span class="pill pill--play">10 interactive figures</span>
+        <span class="pill pill--brand">4 diagrams from the notes</span>
         <span class="pill pill--brand">5 parts</span>
       </div>
     </div>
@@ -314,6 +315,15 @@ def perceptron(X, y, eta=1.0, epochs=100):
     return w, b                             # not separable -- gave up</code></pre>
     </div>
 
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/perceptron-algo.webp" width="1500" height="1401"
+             loading="lazy" decoding="async" alt="The perceptron update rule">
+      </div>
+      <figcaption>The perceptron rule as drawn in the notes: each misclassified point pulls the weight vector toward its own class, and the boundary rotates until nothing is left on the wrong side.</figcaption>
+    </figure>
+
     <h3 id="perceptron-gd">The gradient descent view</h3>
 
     <p>
@@ -471,6 +481,24 @@ def perceptron(X, y, eta=1.0, epochs=100):
     \[ b = y_k - \sum_{j=1}^n \alpha_j y_j\, x_j^\top x_k, \]
     <p>which in practice is averaged over all support vectors for numerical stability. The decision function is</p>
     \[ f(x) = \operatorname{sign}\Big(\sum_{i=1}^n \alpha_i^\star y_i\, x_i^\top x + b^\star\Big). \]
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/svm-margin-orig.webp" width="1500" height="1420"
+             loading="lazy" decoding="async" alt="The maximum-margin classifier. Only the support vectors — the points touching the dashed margin lines — determine the boundary; every other point could be moved freely without changing it.">
+      </div>
+      <figcaption>The maximum-margin classifier. Only the <strong>support vectors</strong> — the points touching the dashed margin lines — determine the boundary; every other point could be moved freely without changing it.</figcaption>
+    </figure>
+
+    <figure class="srcfig">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/svm-margin-orig.webp" width="1500" height="1420"
+             loading="lazy" decoding="async" alt="The maximum-margin classifier. Only the support vectors — the points touching the dashed margin lines — determine the boundary; every other point could be moved freely without changing it.">
+      </div>
+      <figcaption>The maximum-margin classifier. Only the <strong>support vectors</strong> — the points touching the dashed margin lines — determine the boundary; every other point could be moved freely without changing it.</figcaption>
+    </figure>
 
     <h3 id="soft-margin">Soft margin and the penalty C</h3>
 
@@ -874,6 +902,15 @@ print("lasso kept :", np.flatnonzero(lasso.coef_))</code></pre>
       </div>
       <div class="playground__body" data-widget="feature-lift"></div>
     </div>
+
+    <figure class="srcfig srcfig--mid">
+      <div class="srcfig__tag">From the lecture notes</div>
+      <div class="srcfig__frame">
+        <img src="../assets/img/notes/circle-lift-3d.webp" width="666" height="533"
+             loading="lazy" decoding="async" alt="The circle dataset lifted into three dimensions. What is inseparable in the plane becomes separable by a flat plane once a third coordinate is added — the whole idea behind the kernel trick.">
+      </div>
+      <figcaption>The circle dataset lifted into three dimensions. What is inseparable in the plane becomes separable by a flat plane once a third coordinate is added — the whole idea behind the kernel trick.</figcaption>
+    </figure>
 
     <h3 id="kernels">Kernel functions and the kernel trick</h3>
 

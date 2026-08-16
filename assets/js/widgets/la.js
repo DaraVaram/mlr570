@@ -866,7 +866,7 @@ defineWidget('svd-compress', node => {
     const cum = dec.s.map((v, i) => { acc += v * v; return [i + 1, acc / total]; });
     p.path([[0, 0], ...cum], { color: C.c2, lw: 2.2 });
     p.line([k, 0], [k, 1.06], { color: C.c4, lw: 1.6, dash: [5, 4] });
-    p.text({ px: 8, py: 11 }, 'σᵢ (bars) · cumulative energy (line)', { color: C.muted, size: 10.5 });
+    p.title('σᵢ bars · cumulative energy', { size: 10.5, margin: 8 });
   });
 
   redraw();
