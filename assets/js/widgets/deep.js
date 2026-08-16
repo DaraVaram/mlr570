@@ -2345,120 +2345,337 @@ defineWidget('mha-heads', node => {
 });
 
 /* ============================================================
-   The full transformer block
+   The transformer block, drawn as a data path rather than a stack
    ============================================================ */
 defineWidget('transformer-arch', node => {
-  const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: .78, equal: false, pad: 0 }));
+  const { left, right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 100, ymin: 0, ymax: 100, aspect: .82, equal: false, pad: 0 }));
 
+  // The key lives in the DOM rather than on the canvas: it never competes with
+  // the diagram for space and stays legible at any figure size.
+  const keyItem = (col, label, dashed) => el('span', {
+    style: 'display:inline-flex;align-items:center;gap:.42em;font-size:.78rem;color:var(--ink-muted)',
+  }, el('span', {
+    style: `width:18px;height:0;border-top:${dashed ? '2px dashed' : '3px solid'} ${col};`
+         + 'border-radius:2px;flex:none',
+  }), label);
+  const keyRow = el('div', {
+    style: 'display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;padding:.15rem .1rem 0',
+  });
+  left.appendChild(keyRow);
+
+  /* Each stage carries what it does and, crucially, whether it can see any
+     position other than its own — the one structural fact worth taking away. */
   const PARTS = {
-    embed: { label: 'Input embedding', why: 'Token ids become dense learned vectors — the matrix E from the tokenisation figure. This is the only place discrete symbols enter.' },
-    pos: { label: 'Positional encoding', why: 'Added, not concatenated. Attention is permutation-equivariant, so without this the block literally cannot tell word order.' },
-    mha: { label: 'Multi-head attention', why: 'The only sublayer where tokens exchange information at all. Everything else acts on each position independently.' },
-    mask: { label: 'Causal mask', why: 'Sets the upper triangle of the scores to −∞ before the softmax, so a position can never read the future. This is what makes the decoder autoregressive.' },
-    add1: { label: 'Add & norm', why: 'A residual connection plus layer normalisation. The residual gives gradients a path that skips the sublayer — the same idea as ResNet, which is why transformers train at depth.' },
-    ff: { label: 'Feed-forward', why: 'A two-layer MLP applied to each position separately and identically, usually widening to 4·d_model and back. This is where most of the parameters live.' },
-    add2: { label: 'Add & norm', why: 'The second residual. Every sublayer in the block is wrapped this way: x + Sublayer(LayerNorm(x)).' },
-    head: { label: 'Linear + softmax', why: 'Projects back to vocabulary size and normalises, giving a distribution over the next token.' },
+    embed: {
+      label: 'Token embedding', sub: 'ids → vectors, ℝ^{|V|×d}', kind: 'io', mixes: false,
+      why: 'Each token id indexes a row of a learned matrix E. This is the only place discrete symbols enter the model; everything downstream is real-valued.',
+    },
+    pos: {
+      label: 'Positional encoding', sub: 'added, not concatenated', kind: 'io', mixes: false,
+      why: 'Attention is permutation-equivariant — shuffle the rows of X and the outputs shuffle with them. Position has to be injected explicitly, and it is added straight onto the embedding so the vector carries both what the token is and where it sits.',
+    },
+    attn: {
+      label: 'Multi-head self-attention', sub: 'h heads · scaled dot-product', kind: 'mix', mixes: true,
+      why: 'The only sublayer where positions exchange information at all. Every token forms a query, matches it against every key, and takes a weighted average of the values.',
+    },
+    mask: {
+      label: 'Causal mask', sub: 'inside attention · upper triangle → −∞', kind: 'mix', mixes: true,
+      why: 'Not a layer of its own — it is applied to the score matrix inside attention, before the softmax. Setting the upper triangle to −∞ gives those positions exactly zero weight, so a token can never read the future. This single change is what makes the stack autoregressive.',
+    },
+    add1: {
+      label: 'Add & norm', sub: 'x + Sublayer(x), then LayerNorm', kind: 'pos', mixes: false,
+      why: 'The residual add is the reason deep stacks train: the gradient reaches earlier layers through the identity path even if the sublayer contributes little. LayerNorm then rescales each position independently.',
+    },
+    ff: {
+      label: 'Feed-forward', sub: 'd → 4d → d, per position', kind: 'pos', mixes: false,
+      why: 'A two-layer MLP applied to each position separately and identically — it cannot see any other token. Most of the block\'s parameters live here.',
+    },
+    add2: {
+      label: 'Add & norm', sub: 'second residual', kind: 'pos', mixes: false,
+      why: 'Every sublayer in the block is wrapped the same way, so a block is exactly two residual-wrapped operations: one that mixes positions and one that does not.',
+    },
+    head: {
+      label: 'Linear → softmax', sub: 'd → |V|', kind: 'io', mixes: false,
+      why: 'Projects each position back to vocabulary size and normalises, giving a distribution over the next token.',
+    },
   };
-  let sel = 'mha', stack = 6, causal = true;
 
-  const sCtl = slider('stacked blocks N', { min: 1, max: 12, step: 1, value: 6, format: v => String(v), onInput: v => { stack = v; refresh(); } });
-  const cCtl = toggle('Decoder (causal mask)', { value: true, onChange: v => { causal = v; refresh(); } });
-  const out = readout([['component', 0], ['blocks', 0], ['mixes across positions', 0], ['residual paths per block', 0]]);
+  let sel = 'attn', N = 6, causal = true;
+
+  const nCtl = slider('Blocks stacked, N', { min: 1, max: 12, step: 1, value: 6, format: v => String(v), onInput: v => { N = v; refresh(); } });
+  const cCtl = toggle('Causal mask (decoder)', { value: true, onChange: v => { causal = v; if (!causal && sel === 'mask') sel = 'attn'; refresh(); } });
+  const out = readout([['component', 0], ['sees other positions', 0], ['inside the repeated block', 0], ['blocks', 0]]);
   const st = status('');
-  right.append(sCtl.root, cCtl.root, out.root, st.root);
+  right.append(nCtl.root, cCtl.root, out.root, st.root);
 
-  const order = () => ['embed', 'pos', 'mha', ...(causal ? ['mask'] : []), 'add1', 'ff', 'add2', 'head'];
+  /* ---- layout, in diagram units; y grows downward ---- */
+  const CX = 44;              // centre of the main column
+  const BW = 60;              // box width
+  const BH = 8.2;             // box height
+  const rows = () => {
+    const r = [];
+    let y = 12;
+    r.push({ key: 'embed', y }); y += 12.6;
+    r.push({ key: 'pos', y, plus: true }); y += 14.5;
+    const blockTop = y - 5.2;
+    r.push({ key: 'attn', y }); y += 11.4;
+    if (causal) { y -= 2.6; r.push({ key: 'mask', y, nested: true }); y += 11.0; }
+    r.push({ key: 'add1', y, plus: true }); y += 13.2;
+    r.push({ key: 'ff', y }); y += 12.6;
+    r.push({ key: 'add2', y, plus: true }); y += 8.4;
+    const blockBot = y;
+    y += 6.4;
+    r.push({ key: 'head', y });
+    return { list: r, blockTop, blockBot, bottom: y + BH / 2 + 5 };
+  };
+
+  const colFor = k => (k === 'mix' ? C.c2 : k === 'pos' ? C.c1 : C.c5);
 
   function refresh() {
     const P = PARTS[sel];
+    const inBlock = ['attn', 'mask', 'add1', 'ff', 'add2'].includes(sel);
     out.set([
       P.label,
-      String(stack),
-      { html: sel === 'mha' || sel === 'mask' ? 'yes' : 'no', cls: sel === 'mha' || sel === 'mask' ? 'is-ok' : '' },
-      '2 (one per sublayer)',
+      { html: P.mixes ? 'yes' : 'no — acts on each position alone', cls: P.mixes ? 'is-ok' : '' },
+      { html: inBlock ? `yes — runs ${N}×` : 'no — once, outside', cls: inBlock ? 'is-ok' : '' },
+      String(N),
     ]);
     st.set(`${INFO}<span><strong>${P.label}.</strong> ${P.why}</span>`, 'info');
+    keyRow.innerHTML = '';
+    keyRow.append(
+      keyItem(C.c5, 'input / output side'),
+      keyItem(C.c2, 'mixes positions'),
+      keyItem(C.c1, 'per position only'),
+      keyItem(C.c3, 'residual path', true),
+    );
     plot.render();
   }
 
+  /* ---- drawing primitives, all in diagram units ---- */
+  function roundedPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
   plot.onDraw(p => {
-    const seq = order();
-    p.o.xmin = -.2; p.o.xmax = 4.2;
-    p.o.ymin = -.6; p.o.ymax = seq.length + .6;
+    const L = rows();
+    p.o.xmin = 0; p.o.xmax = 100;
+    p.o.ymin = 0; p.o.ymax = Math.max(112, L.bottom + 12);
     p._computeScale();
     p.clear(null);
-    seq.forEach((k, idx) => {
-      const y = seq.length - 1 - idx;
-      const isSel = k === sel;
-      const inBlock = ['mha', 'mask', 'add1', 'ff', 'add2'].includes(k);
-      const col = k === 'mha' || k === 'mask' ? C.c2 : inBlock ? C.c1 : C.c5;
-      const [sx, sy] = p.toScreen([.55, y + .74]);
-      const w = Math.abs(p.px(2.6)), ht = Math.abs(p.py(.62));
-      p.ctx.beginPath();
-      const r = 7, x0 = sx, y0 = sy;
-      p.ctx.moveTo(x0 + r, y0);
-      p.ctx.arcTo(x0 + w, y0, x0 + w, y0 + ht, r);
-      p.ctx.arcTo(x0 + w, y0 + ht, x0, y0 + ht, r);
-      p.ctx.arcTo(x0, y0 + ht, x0, y0, r);
-      p.ctx.arcTo(x0, y0, x0 + w, y0, r);
-      p.ctx.closePath();
-      p.ctx.fillStyle = withA(col, isSel ? .38 : .14);
-      p.ctx.fill();
-      p.ctx.strokeStyle = col; p.ctx.lineWidth = isSel ? 3 : 1.6; p.ctx.stroke();
-      p.ctx.font = `${isSel ? 700 : 600} 11.5px ${css('--font-sans')}`;
-      p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
-      p.ctx.fillStyle = C.ink;
-      p.ctx.fillText(PARTS[k].label, sx + w / 2, sy + ht / 2);
-      if (idx < seq.length - 1) {
-        const a = p.toScreen([1.85, y + .72]);
-        const b = p.toScreen([1.85, y + .1]);
-        p.ctx.strokeStyle = C.muted; p.ctx.lineWidth = 1.5;
-        p.ctx.beginPath(); p.ctx.moveTo(a[0], a[1]); p.ctx.lineTo(b[0], b[1]); p.ctx.stroke();
-        p.ctx.beginPath();
-        p.ctx.moveTo(b[0], b[1]); p.ctx.lineTo(b[0] - 4.5, b[1] - 6); p.ctx.lineTo(b[0] + 4.5, b[1] - 6);
-        p.ctx.fillStyle = C.muted; p.ctx.fill();
+    const ctx = p.ctx;
+    // y grows downward in diagram units
+    const Y = v => p.Y(p.o.ymax - v);
+    const X = v => p.X(v);
+    const U = v => Math.abs(p.px(v));          // horizontal unit → px
+    const V = v => Math.abs(p.py(v));          // vertical unit → px
+
+    /* the repeated-block plate, drawn first so everything sits on top */
+    const plateX = X(CX - BW / 2 - 5.5), plateW = U(BW + 11);
+    const plateY = Y(L.blockTop), plateH = V(L.blockBot - L.blockTop);
+    roundedPath(ctx, plateX, plateY, plateW, plateH, 12);
+    ctx.fillStyle = withA(C.ink, .035);
+    ctx.fill();
+    ctx.strokeStyle = withA(C.ink, .22);
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([7, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // "× N" tab on the plate
+    const tabW = U(13), tabH = V(6.4);
+    const tabX = plateX + plateW - tabW - U(2), tabY = plateY - tabH / 2;
+    roundedPath(ctx, tabX, tabY, tabW, tabH, 7);
+    ctx.fillStyle = C.raised; ctx.fill();
+    ctx.strokeStyle = withA(C.ink, .35); ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.font = `700 ${Math.max(10, V(3.4))}px ${css('--font-sans')}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.ink;
+    ctx.fillText(`× ${N}`, tabX + tabW / 2, tabY + tabH / 2);
+    ctx.font = `600 ${Math.max(9, V(2.9))}px ${css('--font-sans')}`;
+    ctx.fillStyle = C.muted;
+    ctx.textAlign = 'left';
+    ctx.fillText('one decoder block', plateX + U(2.5), plateY - V(4.4));
+
+    /* connector arrows down the spine, drawn between consecutive boxes */
+    const list = L.list;
+    for (let i = 0; i < list.length - 1; i++) {
+      const a = list[i], b = list[i + 1];
+      if (b.nested) continue;                    // nested boxes are tied, not arrowed
+      const y0 = Y((a.nested ? a.y + BH * .41 : a.y + BH / 2)), y1 = Y(b.y - BH / 2);
+      const x = X(CX);
+      ctx.strokeStyle = withA(C.ink, .5);
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(x, y0 + 1);
+      ctx.lineTo(x, y1 - 7);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y1 - 1);
+      ctx.lineTo(x - 4.6, y1 - 8);
+      ctx.lineTo(x + 4.6, y1 - 8);
+      ctx.closePath();
+      ctx.fillStyle = withA(C.ink, .5);
+      ctx.fill();
+    }
+
+    /* residual bypasses: leave the spine above a sublayer, run down the left,
+       and re-enter at the add node — the path the gradient can take */
+    const resid = (fromKey, toKey) => {
+      const from = list.find(r => r.key === fromKey);
+      const to = list.find(r => r.key === toKey);
+      if (!from || !to) return;
+      const yA = Y(from.y + BH / 2 + 2.2);
+      const yB = Y(to.y);
+      const xSpine = X(CX);
+      const xOut = X(CX - BW / 2 - 9.5);
+      ctx.strokeStyle = C.c3;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(xSpine, yA);
+      ctx.lineTo(xOut + U(2.4), yA);
+      ctx.quadraticCurveTo(xOut, yA, xOut, yA + V(2.4));
+      ctx.lineTo(xOut, yB - V(2.4));
+      ctx.quadraticCurveTo(xOut, yB, xOut + U(2.4), yB);
+      ctx.lineTo(X(CX - BW / 2 - 2) - 6, yB);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const xh = X(CX - BW / 2 - 2);
+      ctx.beginPath();
+      ctx.moveTo(xh, yB);
+      ctx.lineTo(xh - 7, yB - 4.4);
+      ctx.lineTo(xh - 7, yB + 4.4);
+      ctx.closePath();
+      ctx.fillStyle = C.c3; ctx.fill();
+      // label it once, on the upper arc
+      if (fromKey === 'pos') {
+        ctx.save();
+        ctx.font = `650 ${Math.max(9, V(2.8))}px ${css('--font-sans')}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.translate(xOut - 4, (yA + yB) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = C.c3;
+        ctx.fillText('residual', 0, 0);
+        ctx.restore();
       }
-    });
-    // residual arcs
-    const arc = (fromK, toK) => {
-      const seq2 = order();
-      const yi = seq2.length - 1 - seq2.indexOf(fromK);
-      const yj = seq2.length - 1 - seq2.indexOf(toK);
-      const a = p.toScreen([3.25, yi + .4]);
-      const b = p.toScreen([3.25, yj + .4]);
-      p.ctx.strokeStyle = withA(C.c3, .8); p.ctx.lineWidth = 2;
-      p.ctx.setLineDash([5, 4]);
-      p.ctx.beginPath();
-      p.ctx.moveTo(p.X(3.15), a[1]);
-      p.ctx.bezierCurveTo(p.X(3.95), a[1], p.X(3.95), b[1], p.X(3.15), b[1]);
-      p.ctx.stroke(); p.ctx.setLineDash([]);
     };
-    arc(causal ? 'mask' : 'mha', 'add1');
-    arc('ff', 'add2');
-    p.text([3.75, order().length - 3.4], 'residual', { align: 'center', size: 9.5, color: C.c3 });
-    p.badge([.3, order().length - 1.6], `× ${stack}`, { color: C.c1, align: 'left' });
-    p.legend([[C.c5, 'input side'], [C.c1, 'per-position'], [C.c2, 'mixes positions'], [C.c3, 'residual']],
-      { corner: 'br', title: causal ? 'decoder block' : 'encoder block' });
+    resid('pos', 'add1');
+    resid('add1', 'add2');
+
+    /* a nested box hangs off its parent, so join them with a short tie
+       rather than an arrow — it is a part of that stage, not the next one */
+    for (let i = 1; i < list.length; i++) {
+      if (!list[i].nested) continue;
+      const par = list[i - 1], kid = list[i];
+      const yA = Y(par.y + BH / 2), yB = Y(kid.y - BH * .41);
+      ctx.strokeStyle = withA(colFor(PARTS[kid.key].kind), .55);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(X(CX), yA);
+      ctx.lineTo(X(CX), yB);
+      ctx.stroke();
+    }
+
+    /* the boxes themselves */
+    for (const r of list) {
+      const P = PARTS[r.key];
+      const isSel = r.key === sel;
+      const col = colFor(P.kind);
+      const w = U(r.nested ? BW * .74 : BW), h = V(r.nested ? BH * .82 : BH);
+      const x = X(CX) - w / 2, y = Y(r.y) - h / 2;
+
+      if (isSel) {                                   // selection halo
+        roundedPath(ctx, x - 4, y - 4, w + 8, h + 8, 12);
+        ctx.fillStyle = withA(col, .16); ctx.fill();
+      }
+      roundedPath(ctx, x, y, w, h, 9);
+      ctx.fillStyle = withA(col, isSel ? .28 : .12);
+      ctx.fill();
+      ctx.strokeStyle = col;
+      ctx.lineWidth = isSel ? 2.6 : 1.5;
+      ctx.stroke();
+
+      // a thicker leading edge marks the sublayers that mix positions
+      if (P.mixes) {
+        ctx.save();
+        roundedPath(ctx, x, y, w, h, 9);
+        ctx.clip();
+        ctx.fillStyle = col;
+        ctx.fillRect(x, y, Math.max(3, U(1.1)), h);
+        ctx.restore();
+      }
+
+      const tSize = Math.max(10.5, V(3.5));
+      ctx.font = `${isSel ? 700 : 640} ${tSize}px ${css('--font-sans')}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = C.ink;
+      ctx.fillText(P.label, x + w / 2, y + h / 2 - (P.sub ? V(.4) : -tSize * .34));
+      if (P.sub) {
+        ctx.font = `500 ${Math.max(8.5, V(2.7))}px ${css('--font-sans')}`;
+        ctx.fillStyle = C.muted;
+        ctx.textBaseline = 'top';
+        ctx.fillText(P.sub, x + w / 2, y + h / 2 + V(1.0));
+      }
+
+      // ⊕ node on the left edge for the two adds and the positional sum
+      if (r.plus) {
+        const cx = x - U(2), cy = y + h / 2, rr = Math.max(7, V(2.5));
+        ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2);
+        ctx.fillStyle = C.bg; ctx.fill();
+        ctx.strokeStyle = r.key === 'pos' ? C.c5 : C.c3;
+        ctx.lineWidth = 2; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx - rr * .5, cy); ctx.lineTo(cx + rr * .5, cy);
+        ctx.moveTo(cx, cy - rr * .5); ctx.lineTo(cx, cy + rr * .5);
+        ctx.stroke();
+      }
+
+    }
+
+    /* what enters and what leaves */
+    const cap = (yv, text) => {
+      ctx.font = `600 ${Math.max(9.5, V(3))}px ${css('--font-mono')}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = C.muted;
+      ctx.fillText(text, X(CX), Y(yv));
+    };
+    cap(list[0].y - BH / 2 - 4.6, 'token ids   T × 1');
+    cap(list[list.length - 1].y + BH / 2 + 5, 'next-token distribution   T × |V|');
+
   });
 
-  // click to select a component
+  /* click a box to read what it does */
   canvas.addEventListener('click', e => {
-    const w = plot.eventWorld(e);
-    const seq = order();
-    const idx = Math.round(seq.length - 1 - (w[1] - .74));
-    if (idx >= 0 && idx < seq.length) { sel = seq[idx]; refresh(); }
+    const r = canvas.getBoundingClientRect();
+    const py = (e.clientY - r.top) / r.height;
+    const L = rows();
+    const yv = py * plot.o.ymax;
+    let best = null, bd = Infinity;
+    for (const row of L.list) {
+      const d = Math.abs(row.y - yv);
+      if (d < bd) { bd = d; best = row.key; }
+    }
+    if (best && bd < BH) { sel = best; refresh(); }
   });
+  canvas.style.cursor = 'pointer';
 
   refresh();
 
   node.appendChild(note(
-    `Click any block to read what it does. The structural point is worth stating plainly: of everything in the ` +
-    `stack, <strong>only attention moves information between positions</strong>. The feed-forward sublayer, the ` +
-    `normalisation and the output projection all act on each position separately and identically — you could ` +
-    `shuffle the tokens and they would not notice. That is also why positional encoding has to be injected at ` +
-    `the very bottom, and why the causal mask is enough to make the whole stack autoregressive. Toggle the mask ` +
-    `off to get the encoder block that BERT-style models stack instead.`
+    `Click any stage to read what it does. The structural point the diagram is built around: of ` +
+    `everything in the stack, <strong>only attention moves information between positions</strong> — ` +
+    `those boxes carry a solid leading edge. The feed-forward layer, both normalisations and the output ` +
+    `projection all act on each position separately and identically; shuffle the tokens and they would ` +
+    `not notice. That is why positional encoding has to be <em>added</em> at the very bottom, and why ` +
+    `the causal mask alone is enough to make the whole stack autoregressive — it is not a layer, it is a ` +
+    `change to the score matrix inside attention. The dashed path is the residual: it is what lets the ` +
+    `gradient reach the bottom of a deep stack, and it is the same trick as ` +
+    `<a href="#architectures">ResNet's skip connection</a>, laid along depth.`
   ));
 });
