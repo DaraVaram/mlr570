@@ -90,6 +90,7 @@
           <li><a href="#scaling">Why divide by √d_k</a></li>
           <li><a href="#mha">Multi-head attention</a></li>
           <li><a href="#masking">Masking and training objectives</a></li>
+          <li><a href="#block">The block, assembled</a></li>
         </ul>
       </div>
       <div class="sidebar__group">
@@ -117,7 +118,7 @@
       </p>
       <div class="chapter-head__stats">
         <span class="pill pill--live">Verified</span>
-        <span class="pill pill--play">10 interactive figures</span>
+        <span class="pill pill--play">21 interactive figures</span>
         <span class="pill pill--brand">3 parts</span>
       </div>
     </div>
@@ -155,6 +156,17 @@
         and it would have to learn it separately for every position, because a cat detector trained in the
         top-left corner tells the network nothing about the bottom-right.
       </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">What you see, and what the model receives</div>
+          <div class="playground__sub">The same image as a picture and as the array of integers a layer actually consumes</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="image-numbers"></div>
     </div>
 
     <p>
@@ -277,6 +289,17 @@
       <div class="playground__body" data-widget="conv-arith"></div>
     </div>
 
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Valid against same, and what the border loses</div>
+          <div class="playground__sub">Stack layers with valid padding and watch the feature map disappear</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="padding-modes"></div>
+    </div>
+
     <h3 id="channels">Channels and filter banks</h3>
 
     <p>
@@ -312,6 +335,17 @@
         stacking local operations, because a unit deep in the network sees a large patch of input assembled
         from many small ones.
       </p>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Edges, then corners, then parts</div>
+          <div class="playground__sub">Each stage is built by composing the stage below it</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="feature-hierarchy"></div>
     </div>
 
     <h3 id="pool">Pooling</h3>
@@ -512,6 +546,17 @@
       treat these as approximate.
     </p>
 
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">The revolution of depth</div>
+          <div class="playground__sub">Depth, parameters and ImageNet error, 2010 to 2019</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="arch-evolution"></div>
+    </div>
+
     <h4>Residual connections</h4>
 
     <p>
@@ -631,6 +676,17 @@
       </p>
     </div>
 
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">One recurrence, four supervision patterns</div>
+          <div class="playground__sub">Only the wiring of inputs and outputs changes</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="seq-types"></div>
+    </div>
+
     <h3 id="rnn-form">The vanilla RNN</h3>
 
     <div class="defn">
@@ -659,6 +715,17 @@
       three are the same at every step — the network drawn "unrolled" across time looks like a deep
       feedforward network whose layers happen to share weights.
     </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Rolled, unrolled, and one set of weights</div>
+          <div class="playground__sub">Highlight U, W or V and every arrow of that colour is the same matrix</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="rnn-sharing"></div>
+    </div>
 
     <div class="callout callout--note">
       <div class="callout__title">Why tanh rather than ReLU</div>
@@ -885,6 +952,17 @@
     <div class="playground">
       <div class="playground__head">
         <div>
+          <div class="playground__title">Inside an LSTM and a GRU cell</div>
+          <div class="playground__sub">The carry path thickens as you open the gate</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="gate-cell"></div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
           <div class="playground__title">What the gates actually do</div>
           <div class="playground__sub">Send a pulse into the unit at t = 3 and see how long it survives</div>
         </div>
@@ -1022,6 +1100,17 @@
       training.
     </p>
 
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">From a sentence to the matrix X</div>
+          <div class="playground__sub">Tokenise, look up an id, embed — only the last step is learned</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="tokenize"></div>
+    </div>
+
     <h3 id="pe">Positional encoding</h3>
 
     <div class="callout callout--warn">
@@ -1118,6 +1207,17 @@
     <div class="playground">
       <div class="playground__head">
         <div>
+          <div class="playground__title">Building Q, K and V step by step</div>
+          <div class="playground__sub">Five stages from token embeddings to the attention output</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="qkv-build"></div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
           <div class="playground__title">The attention matrix</div>
           <div class="playground__sub">Pick a query token, toggle the mask and the scaling, and watch the row respond</div>
         </div>
@@ -1210,6 +1310,17 @@
       </p>
     </div>
 
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Why h heads cost the same as one</div>
+          <div class="playground__sub">Per-head width shrinks exactly as fast as the head count grows</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="mha-heads"></div>
+    </div>
+
     <h3 id="masking">Masking and training objectives</h3>
 
     <p>
@@ -1264,6 +1375,19 @@
           generate autoregressively and only the masked positions contribute gradient.
         </p>
       </div>
+    </div>
+
+    <h3 id="block">The block, assembled</h3>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">A transformer block, component by component</div>
+          <div class="playground__sub">Click any box — only one of them moves information between positions</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="transformer-arch"></div>
     </div>
 
     <div class="callout callout--intuition">

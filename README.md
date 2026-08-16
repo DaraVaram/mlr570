@@ -16,8 +16,8 @@ as things students can pick up and move.
 | 1 · Mathematical Background | Live — 26 interactive figures |
 | 2 · Data Fundamentals | Live — 21 interactive figures |
 | 3 · Supervised Learning I (linear & kernel) | Live — 10 interactive figures |
-| 4 · Trees & Neural Networks | Live — 10 interactive figures |
-| 5 · CNNs, RNNs & Transformers | Live — 10 interactive figures |
+| 4 · Trees & Neural Networks | Live — 12 interactive figures |
+| 5 · CNNs, RNNs & Transformers | Live — 21 interactive figures |
 | 6 · Unsupervised Learning | Live — 13 interactive figures |
 
 ## Running it locally

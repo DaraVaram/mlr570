@@ -2,7 +2,7 @@
    widgets/nets.js — Decision trees and feedforward neural networks
    ============================================================ */
 import {
-  Plot, Dragger, C, el, slider, toggle, segmented, button,
+  Plot, Dragger, C, css, el, slider, toggle, segmented, button,
   matrixInput, readout, status, defineWidget, canvasHost,
   trackPlot, clamp, fmt, round,
 } from '../viz.js';
@@ -19,6 +19,16 @@ const note = html => el('div', { class: 'pg-note', html });
 const OK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
 const INFO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01" stroke-linecap="round"/></svg>`;
 const WARN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>`;
+
+/** Module-level alpha helper (a widget below defines its own local copy too). */
+function withA(hex, a) {
+  hex = (hex || '').trim();
+  if (!hex.startsWith('#')) return hex;
+  const n = hex.length === 4
+    ? hex.slice(1).split('').map(c => parseInt(c + c, 16))
+    : [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  return `rgba(${n.join(',')},${a})`;
+}
 
 /* ---------- the Play Tennis dataset, exactly as printed ---------- */
 const FEATURES = ['Outlook', 'Temp', 'Humidity', 'Wind'];
@@ -1301,5 +1311,437 @@ defineWidget('universal-approx', node => {
     `and it is far less mysterious than it sounds: a single hidden layer is just a very flexible way to build ` +
     `a piecewise-linear function. Note what the theorem does <em>not</em> say — it guarantees such a network ` +
     `<em>exists</em>, not that gradient descent will find it, and not that it will generalise.`
+  ));
+});
+
+/* ============================================================
+   Full example: what each layer of a 2→8→8→2 network learns on XOR
+   Rebuilds the source chapter's out_xor/ panel study as a live network.
+   ============================================================ */
+defineWidget('fnn-layers', node => {
+  const wrap = el('div');
+  node.appendChild(wrap);
+
+  const R = 2.2;                       // input square is [-R, R]^2
+  const GRID = 34;                     // resolution of every activation map
+
+  /* ---- data: XOR by quadrant ---- */
+  function xorData(n, seed) {
+    const r = ML.rng(seed);
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const x = (r() * 2 - 1) * 1.75, y = (r() * 2 - 1) * 1.75;
+      pts.push([x, y, (x > 0) === (y > 0) ? 0 : 1]);
+    }
+    return pts;
+  }
+  let data = xorData(220, 7);
+
+  /* ---- a 2 → 8 → 8 → 2 ReLU network ---- */
+  const SIZES = [2, 8, 8, 2];
+  function initNet(seed) {
+    const r = ML.rng(seed);
+    const Ws = [], bs = [];
+    for (let l = 0; l < SIZES.length - 1; l++) {
+      const scale = Math.sqrt(2 / SIZES[l]);
+      Ws.push(Array.from({ length: SIZES[l + 1] }, () =>
+        Array.from({ length: SIZES[l] }, () => ML.gauss(r) * scale)));
+      bs.push(new Array(SIZES[l + 1]).fill(0));
+    }
+    return { Ws, bs };
+  }
+  const relu = v => (v > 0 ? v : 0);
+  function softmax(z) {
+    const m = Math.max(...z);
+    const e = z.map(v => Math.exp(v - m));
+    const s = e.reduce((a, b) => a + b, 0);
+    return e.map(v => v / s);
+  }
+  function forward(n, input) {
+    const a1 = n.Ws[0].map((row, i) => relu(row[0] * input[0] + row[1] * input[1] + n.bs[0][i]));
+    const a2 = n.Ws[1].map((row, i) => relu(row.reduce((s, w, j) => s + w * a1[j], 0) + n.bs[1][i]));
+    const z3 = n.Ws[2].map((row, i) => row.reduce((s, w, j) => s + w * a2[j], 0) + n.bs[2][i]);
+    return { a1, a2, z3, o: softmax(z3) };
+  }
+  function trainEpoch(n, lr) {
+    const gW = n.Ws.map(W => W.map(r2 => r2.map(() => 0)));
+    const gb = n.bs.map(b => b.map(() => 0));
+    let loss = 0, correct = 0;
+    for (const [px, py, lab] of data) {
+      const { a1, a2, o } = forward(n, [px, py]);
+      loss -= Math.log(Math.max(1e-12, o[lab]));
+      if ((o[1] > o[0] ? 1 : 0) === lab) correct++;
+      const acts = [[px, py], a1, a2];
+      let delta = o.map((v, i) => v - (i === lab ? 1 : 0));
+      for (let l = 2; l >= 0; l--) {
+        for (let i = 0; i < gW[l].length; i++) {
+          gb[l][i] += delta[i];
+          for (let j = 0; j < gW[l][i].length; j++) gW[l][i][j] += delta[i] * acts[l][j];
+        }
+        if (l > 0) {
+          const back = acts[l].map((_, j) => n.Ws[l].reduce((s, row, i) => s + row[j] * delta[i], 0));
+          delta = back.map((v, j) => (acts[l][j] > 0 ? v : 0));   // ReLU derivative
+        }
+      }
+    }
+    const N = data.length;
+    for (let l = 0; l < 3; l++) {
+      for (let i = 0; i < n.Ws[l].length; i++) {
+        n.bs[l][i] -= lr * gb[l][i] / N;
+        for (let j = 0; j < n.Ws[l][i].length; j++) n.Ws[l][i][j] -= lr * gW[l][i][j] / N;
+      }
+    }
+    return { loss: loss / N, acc: correct / N };
+  }
+
+  /** Loss and accuracy without touching the weights, so epoch 0 reports honestly. */
+  function evaluate(n) {
+    let loss = 0, correct = 0;
+    for (const [px, py, lab] of data) {
+      const { o } = forward(n, [px, py]);
+      loss -= Math.log(Math.max(1e-12, o[lab]));
+      if ((o[1] > o[0] ? 1 : 0) === lab) correct++;
+    }
+    return { loss: loss / data.length, acc: correct / data.length };
+  }
+
+  let net = initNet(11);
+  let epoch = 0, running = false, raf = null, lr = .35;
+  let stats = evaluate(net);
+  let field = null;                   // cached activations over the input grid
+
+  /** One forward pass per grid cell gives every panel at once. */
+  function computeField() {
+    const a1 = Array.from({ length: 8 }, () => new Float32Array(GRID * GRID));
+    const a2 = Array.from({ length: 8 }, () => new Float32Array(GRID * GRID));
+    const lg = Array.from({ length: 2 }, () => new Float32Array(GRID * GRID));
+    const pr = new Float32Array(GRID * GRID);
+    for (let gy = 0; gy < GRID; gy++) {
+      const y = R - (2 * R) * (gy / (GRID - 1));
+      for (let gx = 0; gx < GRID; gx++) {
+        const x = -R + (2 * R) * (gx / (GRID - 1));
+        const k = gy * GRID + gx;
+        const f = forward(net, [x, y]);
+        for (let i = 0; i < 8; i++) { a1[i][k] = f.a1[i]; a2[i][k] = f.a2[i]; }
+        lg[0][k] = f.z3[0]; lg[1][k] = f.z3[1];
+        pr[k] = f.o[1];
+      }
+    }
+    field = { a1, a2, lg, pr };
+  }
+
+  /* ---- panels ---- */
+  const panelCv = [];
+  function panelGrid(title, count, kind) {
+    const host = el('div', { style: 'margin-bottom:.85rem' });
+    host.appendChild(el('div', { class: 'matrix-label', html: title }));
+    const g = el('div', {
+      style: `display:grid;grid-template-columns:repeat(${count === 2 ? 2 : 4},1fr);gap:.4rem`,
+    });
+    for (let i = 0; i < count; i++) {
+      const cv = el('canvas', { style: 'width:100%;aspect-ratio:1;display:block;border-radius:6px' });
+      const cell = el('div', { style: 'position:relative' }, cv,
+        el('span', {
+          style: 'position:absolute;left:4px;top:2px;font-size:.62rem;font-weight:700;' +
+                 'color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.65);pointer-events:none',
+          text: kind === 'lg' ? `logit ${i + 1}` : `${i + 1}`,
+        }));
+      g.appendChild(cell);
+      panelCv.push({ cv, kind, idx: i });
+    }
+    host.appendChild(g);
+    return host;
+  }
+
+  const bigCv = el('canvas');
+  const bigHost = el('div', {},
+    el('div', { class: 'matrix-label', html: 'Final decision boundary' }),
+    el('div', { class: 'pg-canvas-wrap' }, bigCv));
+
+  const h1 = panelGrid('Hidden layer 1 — each neuron is one linear cut (post-ReLU)', 8, 'a1');
+  const h2 = panelGrid('Hidden layer 2 — cuts recombined into curved regions', 8, 'a2');
+  const lgp = panelGrid('Output logits — one panel per class', 2, 'lg');
+
+  const acts = el('div', { class: 'pg-actions' },
+    button('Train 200 epochs', () => { for (let i = 0; i < 200; i++) stats = trainEpoch(net, lr); epoch += 200; refresh(); }),
+    button('Run', () => { running = !running; if (running) loop(); }),
+    button('Reset', () => { net = initNet(11 + Math.floor(Math.random() * 900)); epoch = 0; stats = evaluate(net); refresh(); }));
+  const lrCtl = slider('learning rate', { min: .05, max: 1, step: .05, value: .35, onInput: v => { lr = v; } });
+  const out = readout([['epochs', 0], ['loss', 0], ['training accuracy', 0], ['dead ReLU units in layer 1', 0]]);
+  const st = status('');
+
+  const left = el('div', {}, bigHost);
+  const right = el('div', { class: 'pg-controls' }, acts, lrCtl.root, out.root, st.root);
+  wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
+  wrap.appendChild(el('div', { style: 'margin-top:1rem' }, h1, h2, lgp));
+
+  const plot = trackPlot(new Plot(bigCv, { xmin: -R, xmax: R, ymin: -R, ymax: R, aspect: 1, equal: true, pad: 0 }));
+
+  function drawPanel(cv, buf, diverging) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = cv.clientWidth || 90;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr); }
+    const ctx = cv.getContext('2d');
+    const img = ctx.createImageData(GRID, GRID);
+    let lo = Infinity, hi = -Infinity;
+    for (const v of buf) { if (v < lo) lo = v; if (v > hi) hi = v; }
+    const span = Math.max(hi - lo, 1e-6);
+    const c1 = hexRGB(C.c1), c2 = hexRGB(C.c2), bgc = hexRGB(C.bg);
+    for (let k = 0; k < buf.length; k++) {
+      let r2, g2, b2;
+      if (diverging) {
+        const t = (buf[k] - lo) / span * 2 - 1;              // −1 … 1
+        const c = t >= 0 ? c2 : c1;
+        const a = Math.min(1, Math.abs(t));
+        r2 = bgc[0] + (c[0] - bgc[0]) * a;
+        g2 = bgc[1] + (c[1] - bgc[1]) * a;
+        b2 = bgc[2] + (c[2] - bgc[2]) * a;
+      } else {
+        const a = (buf[k] - lo) / span;
+        r2 = bgc[0] + (c1[0] - bgc[0]) * a;
+        g2 = bgc[1] + (c1[1] - bgc[1]) * a;
+        b2 = bgc[2] + (c1[2] - bgc[2]) * a;
+      }
+      img.data[k * 4] = r2; img.data[k * 4 + 1] = g2; img.data[k * 4 + 2] = b2; img.data[k * 4 + 3] = 255;
+    }
+    const tmp = document.createElement('canvas');
+    tmp.width = GRID; tmp.height = GRID;
+    tmp.getContext('2d').putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(tmp, 0, 0, cv.width, cv.height);
+  }
+  function hexRGB(hex) {
+    hex = (hex || '#000').trim();
+    if (!hex.startsWith('#')) return [128, 128, 128];
+    return hex.length === 4
+      ? hex.slice(1).split('').map(c => parseInt(c + c, 16))
+      : [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  }
+
+  function loop() {
+    if (!running) return;
+    for (let i = 0; i < 12; i++) stats = trainEpoch(net, lr);
+    epoch += 12;
+    refresh();
+    raf = requestAnimationFrame(loop);
+  }
+  window.addEventListener('pagehide', () => { running = false; cancelAnimationFrame(raf); });
+
+  function refresh() {
+    computeField();
+    // a unit is dead if it never activates anywhere on the input square
+    const dead = field.a1.filter(b => b.every(v => v <= 1e-9)).length;
+    out.set([
+      String(epoch),
+      fmt(stats.loss, 4),
+      { html: `${fmt(stats.acc * 100, 1)}%`, cls: stats.acc > .95 ? 'is-ok' : '' },
+      { html: `${dead} of 8`, cls: dead > 2 ? 'is-warn' : 'is-ok' },
+    ]);
+    st.set(
+      epoch === 0
+        ? `${INFO}<span>Untrained. The layer-1 panels are already straight cuts — that is all a single ReLU unit can ever be — but they are oriented at random.</span>`
+        : stats.acc > .95
+          ? `${OK}<span><strong>XOR solved.</strong> Look at the three rows: layer 1 holds eight straight cuts, layer 2 recombines them into curved regions, and the two logits are now linearly separable so the final readout is trivial.</span>`
+          : `${INFO}<span>Training — accuracy ${fmt(stats.acc * 100, 1)}%. Watch the layer-1 cuts rotate to line up with the quadrant boundaries.</span>`,
+      stats.acc > .95 ? 'ok' : 'info');
+    panelCv.forEach(({ cv, kind, idx }) => {
+      const buf = kind === 'a1' ? field.a1[idx] : kind === 'a2' ? field.a2[idx] : field.lg[idx];
+      drawPanel(cv, buf, kind === 'lg');
+    });
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    // decision surface from the cached probabilities
+    const cw = p.w, ch = p.h;
+    const tmp = document.createElement('canvas');
+    tmp.width = GRID; tmp.height = GRID;
+    const img = tmp.getContext('2d').createImageData(GRID, GRID);
+    const c1 = hexRGB(C.c1), c2 = hexRGB(C.c2), bgc = hexRGB(C.bg);
+    for (let k = 0; k < field.pr.length; k++) {
+      const t = field.pr[k] * 2 - 1;
+      const c = t >= 0 ? c2 : c1;
+      const a = Math.min(1, Math.abs(t)) * .62;
+      img.data[k * 4] = bgc[0] + (c[0] - bgc[0]) * a;
+      img.data[k * 4 + 1] = bgc[1] + (c[1] - bgc[1]) * a;
+      img.data[k * 4 + 2] = bgc[2] + (c[2] - bgc[2]) * a;
+      img.data[k * 4 + 3] = 255;
+    }
+    tmp.getContext('2d').putImageData(img, 0, 0);
+    p.ctx.imageSmoothingEnabled = true;
+    p.ctx.drawImage(tmp, p.X(-R), p.Y(R), cw - 2 * (p.X(-R)), ch - 2 * (p.Y(R)));
+    data.forEach(([x, y, lab]) => p.dot([x, y], { r: 3.4, color: lab === 0 ? C.c1 : C.c2 }));
+    p.axes(); p.ticks(1);
+    p.legend([[C.c1, 'class 0 — same sign'], [C.c2, 'class 1 — opposite sign']],
+      { corner: 'tl', title: `${epoch} epochs · accuracy ${fmt(stats.acc * 100, 0)}%` });
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `This is the full XOR run-through from the notes, rebuilt as a live network. XOR is the standard example ` +
+    `of a problem no linear model can touch, and the three rows of panels show exactly how a network gets ` +
+    `around that. Every unit in <strong>layer 1</strong> computes ReLU(w·x + b), so its activation map can ` +
+    `only ever be a half-plane — a single straight cut, bright on one side and flat zero on the other. ` +
+    `<strong>Layer 2</strong> takes weighted combinations of those eight half-planes, and the maps become ` +
+    `selective, cornered, curved. By the <strong>logit</strong> row the two classes have been pulled apart ` +
+    `far enough that a plain linear readout separates them. Nonlinearity is not in any single unit; it is in ` +
+    `the composition. Watch the dead-unit counter too — ReLU units that start pointing the wrong way can ` +
+    `output zero everywhere and never recover, since their gradient is zero as well.`
+  ));
+});
+
+/* ============================================================
+   How different optimisers travel the loss surface
+   ============================================================ */
+defineWidget('optimizers', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: -2.2, xmax: 2.2, ymin: -1.4, ymax: 1.4, aspect: 1.5, equal: false, pad: 0 }));
+
+  const SURF = {
+    ravine: {
+      label: 'Ill-conditioned valley',
+      f: (x, y) => .5 * (.06 * x * x + 3.2 * y * y),
+      g: (x, y) => [.06 * x, 3.2 * y],
+      start: [-1.95, 1.1], lr: .35,
+    },
+    saddle: {
+      label: 'Saddle point',
+      f: (x, y) => .32 * (x * x * x / 3 - x) + .9 * y * y,
+      g: (x, y) => [.32 * (x * x - 1), 1.8 * y],
+      start: [-.05, .95], lr: .25,
+    },
+    bowl: {
+      label: 'Well-conditioned bowl',
+      f: (x, y) => .5 * (.9 * x * x + 1.1 * y * y),
+      g: (x, y) => [.9 * x, 1.1 * y],
+      start: [-1.9, 1.05], lr: .35,
+    },
+  };
+  let key = 'ravine', lrScale = 1, mu = .9, steps = 60, showAll = true;
+
+  const sCtl = segmented(Object.entries(SURF).map(([k, v]) => ({ label: v.label, value: k })),
+    { value: 'ravine', label: 'Loss surface', onChange: v => { key = v; refresh(); } });
+  const lrCtl = slider('learning-rate multiplier', { min: .2, max: 3, step: .1, value: 1, onInput: v => { lrScale = v; refresh(); } });
+  const muCtl = slider('momentum μ', { min: 0, max: .98, step: .02, value: .9, onInput: v => { mu = v; refresh(); } });
+  const nCtl = slider('steps', { min: 5, max: 200, step: 5, value: 60, format: v => String(v), onInput: v => { steps = v; refresh(); } });
+  const aCtl = toggle('Show all four at once', { value: true, onChange: v => { showAll = v; plot.render(); } });
+  const out = readout([['GD — final loss', 0], ['Momentum', 0], ['RMSProp', 0], ['Adam', 0], ['fastest to 1% of optimum', 0]]);
+  const st = status('');
+  right.append(sCtl.root, lrCtl.root, muCtl.root, nCtl.root, aCtl.root, out.root, st.root);
+
+  /* Each optimiser, written exactly as the notes give it. */
+  function run(kind) {
+    const S = SURF[key];
+    const eta = S.lr * lrScale;
+    let [x, y] = S.start;
+    let vx = 0, vy = 0, sx = 0, sy = 0, mx = 0, my = 0;
+    const path = [[x, y]];
+    const eps = 1e-8, b1 = .9, b2 = .999;
+    for (let t = 1; t <= steps; t++) {
+      const [gx, gy] = S.g(x, y);
+      if (kind === 'gd') {
+        x -= eta * gx; y -= eta * gy;
+      } else if (kind === 'mom') {
+        vx = mu * vx - eta * gx; vy = mu * vy - eta * gy;
+        x += vx; y += vy;
+      } else if (kind === 'rms') {
+        sx = .9 * sx + .1 * gx * gx; sy = .9 * sy + .1 * gy * gy;
+        x -= eta * gx / (Math.sqrt(sx) + eps); y -= eta * gy / (Math.sqrt(sy) + eps);
+      } else {
+        mx = b1 * mx + (1 - b1) * gx; my = b1 * my + (1 - b1) * gy;
+        sx = b2 * sx + (1 - b2) * gx * gx; sy = b2 * sy + (1 - b2) * gy * gy;
+        const mhx = mx / (1 - b1 ** t), mhy = my / (1 - b1 ** t);
+        const shx = sx / (1 - b2 ** t), shy = sy / (1 - b2 ** t);
+        x -= eta * mhx / (Math.sqrt(shx) + eps); y -= eta * mhy / (Math.sqrt(shy) + eps);
+      }
+      if (!Number.isFinite(x) || !Number.isFinite(y)) break;
+      x = clamp(x, -8, 8); y = clamp(y, -8, 8);
+      path.push([x, y]);
+    }
+    return path;
+  }
+
+  const KINDS = [['gd', 'GD', () => C.c4], ['mom', 'Momentum', () => C.c1],
+                 ['rms', 'RMSProp', () => C.c3], ['adam', 'Adam', () => C.c2]];
+  let paths = {};
+  function refresh() {
+    const S = SURF[key];
+    paths = {};
+    KINDS.forEach(([k]) => { paths[k] = run(k); });
+    const fin = k => { const p = paths[k][paths[k].length - 1]; return S.f(p[0], p[1]); };
+    const best = Math.min(...KINDS.map(([k]) => fin(k)));
+    // first step within 1% of the best value reached
+    const reach = k => {
+      const target = best + .01 * Math.abs(best) + 1e-3;
+      const i = paths[k].findIndex(p => S.f(p[0], p[1]) <= target);
+      return i < 0 ? null : i;
+    };
+    const times = KINDS.map(([k, lbl]) => [lbl, reach(k)]).filter(t => t[1] !== null);
+    times.sort((a, b) => a[1] - b[1]);
+    out.set([
+      ...KINDS.map(([k]) => ({ html: fmt(fin(k), 5), cls: fin(k) <= best + 1e-9 ? 'is-ok' : '' })),
+      times.length ? `${times[0][0]} (${times[0][1]} steps)` : '—',
+    ]);
+    st.set(
+      key === 'ravine'
+        ? `${INFO}<span>This valley is <strong>53× steeper across than along</strong>. Plain GD has one step size for both directions, so it must stay small enough not to diverge across the valley — and then crawls along it. Momentum accumulates the consistent along-valley gradient while the oscillating across-valley components cancel. The adaptive methods rescale each coordinate by its own gradient history, which fixes the conditioning directly.</span>`
+        : key === 'saddle'
+          ? `${INFO}<span>Near a saddle the gradient is tiny but not zero. GD stalls; the methods carrying velocity or per-coordinate scaling escape much sooner.</span>`
+          : `${OK}<span>On a well-conditioned bowl everything works and plain GD is competitive. Adaptive optimisers earn their keep on badly scaled problems, not easy ones.</span>`,
+      key === 'bowl' ? 'ok' : 'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    const S = SURF[key];
+    p.o.xmin = -2.2; p.o.xmax = 2.2; p.o.ymin = -1.4; p.o.ymax = 1.4;
+    p._computeScale();
+    // contours
+    const levels = [];
+    for (let i = 1; i <= 9; i++) levels.push((i / 9) ** 2 * S.f(-2.1, 1.3));
+    const N = 90;
+    for (const L of levels) {
+      p.ctx.beginPath();
+      let started = false;
+      for (let gy = 0; gy <= N; gy++) {
+        for (let gx = 0; gx <= N; gx++) {
+          const x = -2.2 + 4.4 * gx / N, y = -1.4 + 2.8 * gy / N;
+          if (Math.abs(S.f(x, y) - L) < L * .045 + .006) {
+            const [sx2, sy2] = p.toScreen([x, y]);
+            if (!started) { p.ctx.moveTo(sx2, sy2); started = true; }
+            p.ctx.rect(sx2 - .8, sy2 - .8, 1.6, 1.6);
+          }
+        }
+      }
+      p.ctx.fillStyle = withA(C.muted, .30);
+      p.ctx.fill();
+    }
+    p.grid(.5, { color: C.grid });
+    p.axes(); p.ticks(.5);
+    const shown = showAll ? KINDS : [KINDS[0]];
+    shown.forEach(([k, lbl, col]) => {
+      const path = paths[k];
+      p.path(path, { color: col(), lw: 2.4 });
+      path.forEach((q, i) => { if (i % Math.max(1, Math.round(steps / 30)) === 0) p.dot(q, { r: 2.4, color: col() }); });
+      p.dot(path[path.length - 1], { r: 5.5, color: col() });
+    });
+    p.dot([0, 0], { r: 5, color: C.ink });
+    p.badge([0, 0], 'optimum', { color: C.ink, align: 'center', dy: 16 });
+    p.legend(shown.map(([k, lbl, col]) => [col(), lbl]), { corner: 'tr', title: `${steps} steps from the same start` });
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `All four updates are exactly as written in the notes. <strong>GD</strong> takes ` +
+    `<span class="u-mono">θ ← θ − η∇L</span>. <strong>Momentum</strong> carries a velocity ` +
+    `<span class="u-mono">v_t = μv_{t−1} − η∇L</span>. <strong>RMSProp</strong> divides by a running root-mean-square ` +
+    `of the gradient, and <strong>Adam</strong> combines that with a momentum term plus bias correction ` +
+    `<span class="u-mono">m̂ = m/(1−β₁ᵗ)</span>, which matters most in the first few steps when the running ` +
+    `averages start at zero. Push the learning-rate multiplier up and watch GD blow up across the valley long ` +
+    `before the adaptive methods are troubled — that difference in usable step size is most of why Adam is the ` +
+    `default.`
   ));
 });

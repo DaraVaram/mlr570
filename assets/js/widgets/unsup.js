@@ -98,9 +98,9 @@ defineWidget('kmeans-lab', node => {
     const C1 = f.labels.map((l, i) => (l === 0 ? i + 1 : 0)).filter(Boolean);
     const C2 = f.labels.map((l, i) => (l === 1 ? i + 1 : 0)).filter(Boolean);
     out.set([
-      `C₁ = {x${C1.join(', x')}}<br>C₂ = {x${C2.join(', x')}}`,
+      { html: `C₁ = {x${C1.join(', x')}}<br>C₂ = {x${C2.join(', x')}}` },
       { html: fmt(f.wcssBefore, 6), cls: 'is-ok' },
-      f.centers.map(c => `(${c[0].toFixed(4)}, ${c[1].toFixed(4)})`).join('<br>'),
+      { html: f.centers.map(c => `(${c[0].toFixed(4)}, ${c[1].toFixed(4)})`).join('<br>') },
       step === 0 ? '— (first assignment)' : String(f.moved),
     ]);
     const isLast = step === frames.length - 1;

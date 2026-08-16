@@ -2,7 +2,7 @@
    widgets/deep.js — CNNs, RNNs and Transformers
    ============================================================ */
 import {
-  Plot, Dragger, C, el, slider, toggle, segmented, button,
+  Plot, Dragger, C, css, el, slider, toggle, segmented, button,
   matrixInput, matrixView, readout, status, defineWidget, canvasHost,
   trackPlot, clamp, fmt, round,
 } from '../viz.js';
@@ -1079,5 +1079,1367 @@ defineWidget('attention-scaling', node => {
     `proportional to <span class="u-mono">o(1−o)</span>, <strong>the gradient vanishes</strong>. Dividing by ` +
     `√d_k cancels the growth exactly, holding the logit spread near 1 whatever the dimension. Turn the ` +
     `scaling off and push d_k to 512 to see the failure it prevents.`
+  ));
+});
+
+/* ============================================================
+   What you see versus what the model sees
+   ============================================================ */
+defineWidget('image-numbers', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: true, pad: 0 }));
+
+  const N = 16;
+  /* A small grayscale glyph, drawn analytically so it needs no asset. */
+  const SHAPES = {
+    seven: { label: 'A digit', f: (x, y) => {
+      const bar = y > .72 && x > .18 && x < .84 ? 1 : 0;
+      const dx = x - (.86 - .62 * y);
+      const stroke = Math.abs(dx) < .09 && y < .78 ? 1 : 0;
+      return Math.max(bar, stroke);
+    } },
+    edge: { label: 'A hard edge', f: (x) => (x > .5 ? .92 : .12) },
+    grad: { label: 'A gradient', f: (x, y) => .1 + .8 * (x * .6 + y * .4) },
+    disc: { label: 'A disc', f: (x, y) => (Math.hypot(x - .5, y - .5) < .32 ? .9 : .1) },
+  };
+  let key = 'seven', mode = 'both', channel = 'gray';
+
+  const sCtl = segmented(Object.entries(SHAPES).map(([k, v]) => ({ label: v.label, value: k })),
+    { value: 'seven', label: 'Image', onChange: v => { key = v; refresh(); } });
+  const mCtl = segmented([
+    { label: 'What you see', value: 'image' },
+    { label: 'Both', value: 'both' },
+    { label: 'What the model sees', value: 'numbers' },
+  ], { value: 'both', label: 'View', onChange: v => { mode = v; plot.render(); } });
+  const cCtl = segmented([{ label: 'Grayscale', value: 'gray' }, { label: 'RGB', value: 'rgb' }],
+    { value: 'gray', label: 'Channels', onChange: v => { channel = v; refresh(); } });
+  const out = readout([['grid', 0], ['numbers in this image', 0], ['as a tensor', 0], ['at 224×224 RGB instead', 0]]);
+  const st = status('');
+  right.append(sCtl.root, mCtl.root, cCtl.root, out.root, st.root);
+
+  let pix = [];
+  function refresh() {
+    const f = SHAPES[key].f;
+    pix = [];
+    for (let r = 0; r < N; r++) {
+      const row = [];
+      for (let c = 0; c < N; c++) {
+        const x = (c + .5) / N, y = 1 - (r + .5) / N;
+        row.push(clamp(f(x, y), 0, 1));
+      }
+      pix.push(row);
+    }
+    const ch = channel === 'rgb' ? 3 : 1;
+    out.set([
+      `${N} × ${N}`,
+      { html: (N * N * ch).toLocaleString(), cls: 'is-ok' },
+      { html: channel === 'rgb' ? `ℝ<sup>${N}×${N}×3</sup>` : `ℝ<sup>${N}×${N}</sup>` },
+      { html: (224 * 224 * 3).toLocaleString() + ' numbers', cls: 'is-warn' },
+    ]);
+    st.set(
+      `${INFO}<span>An image is an array of numbers and nothing else. This ${N}×${N} thumbnail is already ` +
+      `${(N * N * ch).toLocaleString()} of them; a modest 224×224 colour photograph is <strong>150,528</strong>. ` +
+      `Flatten that and hand it to a dense layer of 1000 units and you have committed to over 150 million weights.</span>`,
+      'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    p.o.xmin = 0; p.o.xmax = N; p.o.ymin = 0; p.o.ymax = N;
+    p._computeScale();
+    p.clear(null);
+    const showImg = mode !== 'numbers';
+    const showNum = mode !== 'image';
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const v = pix[r][c];
+        const [sx, sy] = p.toScreen([c, N - r - 1]);
+        const w = Math.abs(p.px(1)), h = Math.abs(p.px(1));
+        if (showImg) {
+          const g = Math.round(v * 255);
+          p.ctx.fillStyle = `rgb(${g},${g},${g})`;
+          p.ctx.fillRect(sx, sy - h, w + .5, h + .5);
+        } else {
+          p.ctx.fillStyle = C.bg;
+          p.ctx.fillRect(sx, sy - h, w + .5, h + .5);
+        }
+        if (showNum) {
+          const val = Math.round(v * 255);
+          p.ctx.font = `600 ${Math.max(7, Math.min(11, w * .42))}px ${css('--font-mono')}`;
+          p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+          p.ctx.fillStyle = showImg ? (v > .5 ? '#000' : '#fff') : C.ink;
+          p.ctx.fillText(String(val), sx + w / 2, sy - h / 2);
+        }
+        if (!showImg) {
+          p.ctx.strokeStyle = withA(C.grid, .8); p.ctx.lineWidth = .6;
+          p.ctx.strokeRect(sx, sy - h, w, h);
+        }
+      }
+    }
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `Switch between the three views. You see a shape; the model receives a grid of integers in [0, 255] and ` +
+    `never sees anything else. Two consequences follow immediately, and they are the entire motivation for ` +
+    `convolution. First, <strong>the count explodes</strong> — pixels scale with area, so a dense first layer ` +
+    `becomes unaffordable almost at once. Second, and worse, <strong>flattening destroys adjacency</strong>: ` +
+    `once this grid is a flat vector, the number at position 37 has no recorded relationship to the one at 53, ` +
+    `even though they were neighbours. A dense layer would have to rediscover that from data, separately for ` +
+    `every position in the image.`
+  ));
+});
+
+/* ============================================================
+   Valid versus same padding
+   ============================================================ */
+defineWidget('padding-modes', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.7, equal: true, pad: 0 }));
+
+  let H = 7, F = 3, mode = 'same', layers = 1;
+  const hCtl = slider('input size H', { min: 5, max: 12, step: 1, value: 7, format: v => `${v}×${v}`, onInput: v => { H = v; refresh(); } });
+  const fCtl = slider('kernel F', { min: 2, max: 5, step: 1, value: 3, format: v => `${v}×${v}`, onInput: v => { F = v; refresh(); } });
+  const mCtl = segmented([{ label: 'Valid (P = 0)', value: 'valid' }, { label: 'Same', value: 'same' }],
+    { value: 'same', label: 'Padding', onChange: v => { mode = v; refresh(); } });
+  const lCtl = slider('stacked layers', { min: 1, max: 10, step: 1, value: 1, format: v => String(v), onInput: v => { layers = v; refresh(); } });
+  const out = readout([['padding P', 0], ['output after 1 layer', 0], [`output after ${1} layers`, 0], ['corner pixel used by', 0], ['centre pixel used by', 0]]);
+  const st = status('');
+  right.append(hCtl.root, fCtl.root, mCtl.root, lCtl.root, out.root, st.root);
+
+  const P = () => (mode === 'same' ? Math.floor(F / 2) : 0);
+  const outDim = h => Math.floor((h + 2 * P() - F) / 1) + 1;
+
+  function refresh() {
+    let h = H;
+    const chain = [h];
+    for (let i = 0; i < layers; i++) { h = Math.max(0, outDim(h)); chain.push(h); }
+    // how many output positions read the corner vs the centre input pixel (single layer)
+    const p = P();
+    const countFor = (r, c) => {
+      let n = 0;
+      const o = outDim(H);
+      for (let i = 0; i < o; i++) for (let j = 0; j < o; j++) {
+        const r0 = i - p, c0 = j - p;
+        if (r >= r0 && r < r0 + F && c >= c0 && c < c0 + F) n++;
+      }
+      return n;
+    };
+    out.root.querySelectorAll('dt')[2].textContent = `output after ${layers} layer${layers === 1 ? '' : 's'}`;
+    out.set([
+      mode === 'same' ? `⌊F/2⌋ = ${p}` : '0',
+      `${outDim(H)} × ${outDim(H)}`,
+      { html: `${h} × ${h}`, cls: h === 0 ? 'is-warn' : (h === H ? 'is-ok' : '') },
+      `${countFor(0, 0)} output${countFor(0, 0) === 1 ? '' : 's'}`,
+      `${countFor(Math.floor(H / 2), Math.floor(H / 2))} outputs`,
+    ]);
+    st.set(
+      mode === 'same' && F % 2 === 1
+        ? `${OK}<span><strong>Same padding holds the size fixed</strong> at ${H}×${H}, so you can stack as many layers as you like. That is why almost every modern architecture uses it.</span>`
+        : mode === 'same'
+          ? `${WARN}<span>With an <strong>even</strong> kernel, "same" cannot be exactly symmetric — ⌊F/2⌋ padding gives ${outDim(H)}×${outDim(H)}, not ${H}×${H}. Same padding is only exact for odd F, which is one reason odd kernels dominate.</span>`
+          : h === 0
+            ? `${WARN}<span><strong>The feature map has vanished.</strong> Valid padding removes F−1 = ${F - 1} pixels per layer, so after ${layers} layers there is nothing left to convolve.</span>`
+            : `${INFO}<span>Valid padding shrinks the map by F−1 = ${F - 1} each layer: ${chain.join(' → ')}. The corner pixel is read by only ${countFor(0, 0)} output, against ${countFor(Math.floor(H / 2), Math.floor(H / 2))} for the centre — border information is systematically under-used.</span>`,
+      mode === 'same' && F % 2 === 1 ? 'ok' : (h === 0 || (mode === 'same' && F % 2 === 0) ? 'warn' : 'info'));
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    const pad = P(), tot = H + 2 * pad;
+    const o = outDim(H);
+    const gap = 1.6;
+    const W = tot + gap + Math.max(o, 1);
+    p.o.xmin = -.6; p.o.xmax = W + .6;
+    p.o.ymin = -1.4; p.o.ymax = Math.max(tot, o) + 1.2;
+    p._computeScale();
+    p.clear(null);
+    const cell = (x, y, fill, stroke, dash) => {
+      const [sx, sy] = p.toScreen([x, y + 1]);
+      const w = Math.abs(p.px(1));
+      if (fill) { p.ctx.fillStyle = fill; p.ctx.fillRect(sx, sy, w, w); }
+      p.ctx.strokeStyle = stroke; p.ctx.lineWidth = 1;
+      if (dash) p.ctx.setLineDash([3, 3]);
+      p.ctx.strokeRect(sx, sy, w, w);
+      p.ctx.setLineDash([]);
+    };
+    // input, with the padding ring
+    for (let r = 0; r < tot; r++) {
+      for (let c = 0; c < tot; c++) {
+        const isPad = r < pad || c < pad || r >= tot - pad || c >= tot - pad;
+        cell(c, tot - r - 1,
+          isPad ? withA(C.c2, .13) : withA(C.c1, .16),
+          isPad ? withA(C.c2, .55) : withA(C.c1, .5),
+          isPad);
+        if (isPad) {
+          const [sx, sy] = p.toScreen([c + .5, tot - r - .5]);
+          p.ctx.font = `600 ${Math.max(6, Math.min(10, Math.abs(p.px(1)) * .4))}px ${css('--font-mono')}`;
+          p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+          p.ctx.fillStyle = withA(C.c2, .85);
+          p.ctx.fillText('0', sx, sy);
+        }
+      }
+    }
+    // kernel footprint at the top-left valid position
+    const [kx, ky] = p.toScreen([0, tot]);
+    p.ctx.strokeStyle = C.c3; p.ctx.lineWidth = 2.4;
+    p.ctx.strokeRect(kx, ky, Math.abs(p.px(F)), Math.abs(p.px(F)));
+
+    p.text([tot / 2, -.5], `input ${H}×${H}${pad ? ` + ${pad} ring` : ''}`, { align: 'center', size: 11, color: C.muted });
+
+    // output
+    const ox = tot + gap;
+    for (let r = 0; r < o; r++) for (let c = 0; c < o; c++) {
+      cell(ox + c, o - r - 1, withA(C.c3, .18), withA(C.c3, .55));
+    }
+    p.text([ox + o / 2, -.5], `output ${o}×${o}`, { align: 'center', size: 11, color: C.muted });
+    // arrow
+    const a0 = p.toScreen([tot + .25, Math.max(tot, o) / 2]);
+    const a1 = p.toScreen([ox - .25, Math.max(tot, o) / 2]);
+    p.ctx.strokeStyle = C.muted; p.ctx.lineWidth = 1.8;
+    p.ctx.beginPath(); p.ctx.moveTo(a0[0], a0[1]); p.ctx.lineTo(a1[0], a1[1]); p.ctx.stroke();
+    p.ctx.beginPath();
+    p.ctx.moveTo(a1[0], a1[1]); p.ctx.lineTo(a1[0] - 7, a1[1] - 5); p.ctx.lineTo(a1[0] - 7, a1[1] + 5);
+    p.ctx.fillStyle = C.muted; p.ctx.fill();
+    p.legend([[C.c1, 'real pixels'], [C.c2, 'zero padding'], [C.c3, 'kernel / output']], { corner: 'tr' });
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `Valid padding uses only positions where the kernel fits entirely inside the image, so each layer eats ` +
+    `F−1 pixels and the map shrinks. Push the layer count up with valid padding and watch it disappear ` +
+    `altogether — that is the practical reason deep stacks need padding. Same padding adds a ring of ⌊F/2⌋ ` +
+    `zeros so the output matches the input exactly, but only when F is <strong>odd</strong>; try F = 2 or 4 and ` +
+    `the arithmetic no longer lands. There is a second, subtler reason to pad: without it a corner pixel is ` +
+    `read by a single output while a central pixel is read by F² of them, so the network sees the borders far ` +
+    `less often than the middle.`
+  ));
+});
+
+/* ============================================================
+   What the layers end up detecting
+   ============================================================ */
+defineWidget('feature-hierarchy', node => {
+  const wrap = el('div');
+  node.appendChild(wrap);
+
+  const N = 26;
+  /* Stage-1 filters are the classic oriented edges and blobs; stages 2 and 3
+     are built by composing stage-1 responses, which is exactly the claim. */
+  const K1 = {
+    'vertical edge': [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]],
+    'horizontal edge': [[-1, -2, -1], [0, 0, 0], [1, 2, 1]],
+    'diagonal ╱': [[0, 1, 2], [-1, 0, 1], [-2, -1, 0]],
+    'diagonal ╲': [[2, 1, 0], [1, 0, -1], [0, -1, -2]],
+    'blob / centre-surround': [[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]],
+    'low-pass': [[1, 1, 1], [1, 1, 1], [1, 1, 1]].map(r => r.map(v => v / 9)),
+  };
+  let stage = 1;
+
+  const scene = (x, y) => {
+    // a small synthetic "face-like" scene: two dark discs, a bar, a rounded outline
+    let v = .82;
+    const inD = (cx, cy, r) => Math.hypot(x - cx, y - cy) < r;
+    if (Math.hypot((x - .5) / .40, (y - .52) / .46) > 1) v = .30;         // background outside head
+    if (inD(.36, .64, .075) || inD(.64, .64, .075)) v = .10;              // eyes
+    if (Math.abs(y - .36) < .035 && Math.abs(x - .5) < .16) v = .16;      // mouth
+    if (Math.abs(x - .5) < .022 && y > .42 && y < .58) v = .55;           // nose
+    return v;
+  };
+
+  const img = [];
+  for (let r = 0; r < N; r++) {
+    const row = [];
+    for (let c = 0; c < N; c++) row.push(scene((c + .5) / N, 1 - (r + .5) / N));
+    img.push(row);
+  }
+  function conv(src, k) {
+    const n = src.length, f = k.length, off = (f - 1) / 2;
+    const out = [];
+    for (let r = 0; r < n; r++) {
+      const row = [];
+      for (let c = 0; c < n; c++) {
+        let s = 0;
+        for (let u = 0; u < f; u++) for (let v = 0; v < f; v++) {
+          const rr = clamp(r + u - off, 0, n - 1), cc = clamp(c + v - off, 0, n - 1);
+          s += k[u][v] * src[rr][cc];
+        }
+        row.push(Math.max(0, s));                              // ReLU
+      }
+      out.push(row);
+    }
+    return out;
+  }
+  const stage1 = Object.fromEntries(Object.entries(K1).map(([k, v]) => [k, conv(img, v)]));
+  // stage 2: combine pairs of stage-1 maps -> corners and textures
+  const combo = (a, b) => a.map((row, r) => row.map((v, c) => Math.max(0, v * .5 + b[r][c] * .5 - .18)));
+  const stage2 = {
+    'corner (V + H)': combo(stage1['vertical edge'], stage1['horizontal edge']),
+    'texture (╱ + ╲)': combo(stage1['diagonal ╱'], stage1['diagonal ╲']),
+    'curve (H + blob)': combo(stage1['horizontal edge'], stage1['blob / centre-surround']),
+    'spot cluster': combo(stage1['blob / centre-surround'], stage1['low-pass']),
+  };
+  const stage3 = {
+    'eye-like part': combo(stage2['corner (V + H)'], stage2['spot cluster']),
+    'mouth-like part': combo(stage2['curve (H + blob)'], stage1['horizontal edge']),
+    'whole-object template': combo(stage2['texture (╱ + ╲)'], stage2['curve (H + blob)']),
+  };
+
+  const sCtl = segmented([
+    { label: '1 · edges & blobs', value: 1 },
+    { label: '2 · corners & textures', value: 2 },
+    { label: '3 · parts & objects', value: 3 },
+  ], { value: 1, label: 'Layer depth', onChange: v => { stage = Number(v); refresh(); } });
+  const st = status('');
+  const gridHost = el('div', { style: 'display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.6rem;margin-top:.7rem' });
+  const inputHost = el('div', { style: 'max-width:190px' });
+
+  wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' },
+    el('div', {}, el('div', { class: 'matrix-label', html: 'Input image' }), inputHost),
+    el('div', { class: 'pg-controls' }, sCtl.root, st.root)));
+  wrap.appendChild(gridHost);
+
+  function drawMap(cv, m, label) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = cv.clientWidth || 110;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr); }
+    const ctx = cv.getContext('2d');
+    let hi = 1e-6;
+    for (const row of m) for (const v of row) if (v > hi) hi = v;
+    const tmp = document.createElement('canvas');
+    tmp.width = m.length; tmp.height = m.length;
+    const id = tmp.getContext('2d').createImageData(m.length, m.length);
+    for (let r = 0; r < m.length; r++) for (let c = 0; c < m.length; c++) {
+      const g = Math.round(255 * clamp(m[r][c] / hi, 0, 1));
+      const k = (r * m.length + c) * 4;
+      id.data[k] = g; id.data[k + 1] = g; id.data[k + 2] = g; id.data[k + 3] = 255;
+    }
+    tmp.getContext('2d').putImageData(id, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(tmp, 0, 0, cv.width, cv.height);
+  }
+
+  const inCv = el('canvas', { style: 'width:100%;aspect-ratio:1;display:block;border-radius:8px' });
+  inputHost.appendChild(inCv);
+
+  function refresh() {
+    const maps = stage === 1 ? stage1 : stage === 2 ? stage2 : stage3;
+    gridHost.innerHTML = '';
+    Object.entries(maps).forEach(([name, m]) => {
+      const cv = el('canvas', { style: 'width:100%;aspect-ratio:1;display:block;border-radius:8px' });
+      gridHost.appendChild(el('div', {},
+        cv, el('div', { style: 'font-size:.72rem;color:var(--ink-muted);margin-top:.25rem;text-align:center', text: name })));
+      requestAnimationFrame(() => drawMap(cv, m));
+    });
+    requestAnimationFrame(() => drawMap(inCv, img));
+    st.set(
+      stage === 1
+        ? `${INFO}<span><strong>Layer 1 sees only 3×3 patches.</strong> There is nothing else it can detect but oriented edges, blobs and flat regions — and this is what trained networks actually learn here, near-universally.</span>`
+        : stage === 2
+          ? `${INFO}<span><strong>Layer 2 combines layer-1 maps.</strong> A corner is just a vertical edge <em>and</em> a horizontal edge in the same place; a texture is a mix of orientations. Nothing new is invented — the units are compositions.</span>`
+          : `${OK}<span><strong>Layer 3 assembles parts.</strong> By now the receptive field covers most of the image, so a unit can respond to an eye-like or mouth-like configuration rather than any single edge. Nobody designed this hierarchy; it falls out of stacking local operations.</span>`,
+      stage === 3 ? 'ok' : 'info');
+  }
+
+  refresh();
+
+  node.appendChild(note(
+    `These maps are computed live from hand-written kernels, then composed — not photographs of a trained ` +
+    `network — but the composition is the honest part of the story. A first-layer unit sees a 3×3 window and ` +
+    `so <em>cannot</em> represent anything more than an oriented edge or a blob. Each later stage takes weighted ` +
+    `combinations of the stage below, so its units answer questions like "is there a vertical edge and a ` +
+    `horizontal edge at the same place?" — a corner. Stack enough of these and the receptive field covers the ` +
+    `whole image, at which point a unit can fire for an object part. Compare with ` +
+    `<a href="#rf">the receptive-field figure</a>: the hierarchy of <em>features</em> and the growth of the ` +
+    `<em>window</em> are the same phenomenon seen from two sides.`
+  ));
+});
+
+/* ============================================================
+   The revolution of depth
+   ============================================================ */
+defineWidget('arch-evolution', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.55, equal: false, pad: 0 }));
+
+  /* Every number here is from the chapter's own summary table, plus the
+     published ImageNet top-5 errors for the winning entries. */
+  const MODELS = [
+    { name: 'Shallow (2010)', year: 2010, depth: 3, err: 28.2, params: null, note: 'Pre-deep-learning ILSVRC winner — hand-designed features.' },
+    { name: 'Shallow (2011)', year: 2011, depth: 4, err: 25.8, params: null, note: 'Still shallow, still hand-designed.' },
+    { name: 'AlexNet', year: 2012, depth: 8, err: 16.4, params: 60, note: '5 conv + 3 FC. GPUs, ReLU, dropout. The result that restarted deep learning.' },
+    { name: 'ZFNet', year: 2013, depth: 8, err: 11.7, params: 60, note: 'AlexNet with tuned kernel sizes and strides.' },
+    { name: 'VGG-16', year: 2014, depth: 16, err: 7.3, params: 138, note: 'Uniform 3×3 stacks. Simple and repeatable, but a huge fully connected tail.' },
+    { name: 'GoogLeNet', year: 2014, depth: 22, err: 6.7, params: 6.8, note: 'Inception modules with 1×1 bottlenecks — 20× fewer parameters than AlexNet.' },
+    { name: 'ResNet-152', year: 2015, depth: 152, err: 3.57, params: 60, note: 'Residual connections. Depth stopped being a liability.' },
+    { name: 'MobileNetV1', year: 2017, depth: 28, err: 10.5, params: 4.2, note: 'Depthwise separable convolutions, engineered for phones.' },
+    { name: 'EfficientNet-B0', year: 2019, depth: 19, err: 6.7, params: 5.3, note: 'Compound scaling of depth, width and resolution together.' },
+    { name: 'EfficientNet-B7', year: 2019, depth: 64, err: 2.9, params: 66, note: '84.4% top-1. Same principle, scaled up.' },
+  ];
+  let axis = 'depth', sel = 6;
+
+  const aCtl = segmented([
+    { label: 'Depth vs error', value: 'depth' },
+    { label: 'Parameters vs error', value: 'params' },
+    { label: 'Error over time', value: 'year' },
+  ], { value: 'depth', label: 'View', onChange: v => { axis = v; refresh(); } });
+  const sCtl = slider('highlight model', {
+    min: 0, max: MODELS.length - 1, step: 1, value: 6,
+    format: v => MODELS[v].name, onInput: v => { sel = v; refresh(); },
+  });
+  const out = readout([['model', 0], ['layers with parameters', 0], ['parameters', 0], ['top-5 ImageNet error', 0], ['error per million params', 0]]);
+  const st = status('');
+  right.append(aCtl.root, sCtl.root, out.root, st.root);
+
+  function refresh() {
+    const m = MODELS[sel];
+    out.set([
+      `${m.name} (${m.year})`,
+      String(m.depth),
+      m.params === null ? '—' : `≈ ${m.params}M`,
+      { html: `${m.err}%`, cls: m.err < 5 ? 'is-ok' : '' },
+      m.params === null ? '—' : fmt(m.err / m.params, 3),
+    ]);
+    st.set(`${INFO}<span><strong>${m.name}.</strong> ${m.note}</span>`, 'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    const pts = MODELS.filter(m => (axis === 'params' ? m.params !== null : true));
+    const xOf = m => (axis === 'depth' ? Math.log10(m.depth) : axis === 'params' ? Math.log10(m.params) : m.year);
+    const xs = pts.map(xOf);
+    const pad = (Math.max(...xs) - Math.min(...xs)) * .12 + .05;
+    p.o.xmin = Math.min(...xs) - pad; p.o.xmax = Math.max(...xs) + pad;
+    p.o.ymin = 0; p.o.ymax = 31;
+    p._computeScale();
+    p.grid(5, { color: C.grid });
+    if (axis === 'year') {
+      p.path(pts.slice().sort((a, b) => a.year - b.year).map(m => [m.year, m.err]),
+        { color: withA(C.c1, .5), lw: 2, dash: [6, 4] });
+    }
+    pts.forEach(m => {
+      const isSel = MODELS[sel] === m;
+      const col = m.year <= 2011 ? C.c4 : m.err < 5 ? C.c3 : C.c1;
+      p.dot([xOf(m), m.err], { r: isSel ? 9 : 5.5, color: withA(col, isSel ? 1 : .7) });
+      if (isSel) p.badge([xOf(m), m.err], `${m.name} · ${m.err}%`, { color: col, align: 'center', dy: -18 });
+    });
+    p.axes();
+    if (axis === 'year') p.ticks(5);
+    else {
+      p.ticks(5);
+      // decade ticks on the log axis
+      for (const v of [1, 10, 100, 1000]) {
+        const lx = Math.log10(v);
+        if (lx < p.o.xmin || lx > p.o.xmax) continue;
+        p.text([lx, 0], String(v), { align: 'center', dy: 15, size: 10.5, color: C.muted });
+      }
+    }
+    p.text({ px: p.w / 2, py: p.h - 4 },
+      axis === 'depth' ? 'layers with learnable parameters (log scale)'
+        : axis === 'params' ? 'parameters, millions (log scale)' : 'year',
+      { align: 'center', size: 10.5, color: C.muted });
+    p.legend([[C.c4, 'pre-deep-learning'], [C.c1, 'deep CNN'], [C.c3, 'below 5% error']],
+      { corner: 'tr', title: 'top-5 ImageNet error (%)' });
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `Before 2015, networks stayed under about twenty layers — not from lack of ambition, but because adding ` +
+    `layers made the <em>training</em> loss worse, which is an optimisation failure rather than overfitting. ` +
+    `ResNet's identity shortcuts removed that barrier and 152 layers reached <strong>3.57%</strong> top-5 error. ` +
+    `Then switch to the parameters view and notice that the story is not simply "bigger": GoogLeNet beat VGG-16 ` +
+    `with <strong>twenty times fewer parameters</strong>, and EfficientNet-B0 matches it again at 5.3M. Depth and ` +
+    `parameter count are different axes, and most of the progress after 2014 came from spending parameters ` +
+    `better rather than spending more of them.`
+  ));
+});
+
+/* ============================================================
+   The three sequence supervision patterns
+   ============================================================ */
+defineWidget('seq-types', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.7, equal: false, pad: 0 }));
+
+  const PATTERNS = {
+    o2m: { label: 'One-to-many', task: 'Image captioning', ins: 1, outs: 5,
+      why: 'A single image vector is encoded once, then the decoder emits one word per step until it produces a stop token.' },
+    m2o: { label: 'Many-to-one', task: 'Sentiment analysis', ins: 5, outs: 1,
+      why: 'The whole review is consumed and only the final hidden state is read out, so the label depends on the entire sequence.' },
+    m2m: { label: 'Many-to-many (aligned)', task: 'Part-of-speech tagging', ins: 5, outs: 5,
+      why: 'One output per input, emitted as you go. Input and output lengths match exactly.' },
+    enc: { label: 'Many-to-many (encoder–decoder)', task: 'Machine translation', ins: 4, outs: 5,
+      why: 'Read the whole source first, then generate. Input and output lengths are free to differ — essential when languages do not align word for word.' },
+  };
+  let key = 'm2m';
+
+  const pCtl = segmented(Object.entries(PATTERNS).map(([k, v]) => ({ label: v.label, value: k })),
+    { value: 'm2m', label: 'Pattern', onChange: v => { key = v; refresh(); } });
+  const out = readout([['task', 0], ['inputs', 0], ['outputs', 0], ['lengths must match', 0], ['loss is summed over', 0]]);
+  const st = status('');
+  right.append(pCtl.root, out.root, st.root);
+
+  function refresh() {
+    const P = PATTERNS[key];
+    out.set([
+      P.task, String(P.ins), String(P.outs),
+      { html: key === 'm2m' ? 'yes' : 'no', cls: key === 'm2m' ? 'is-warn' : 'is-ok' },
+      key === 'm2o' ? 'the final step only' : `all ${P.outs} output steps`,
+    ]);
+    st.set(`${INFO}<span><strong>${P.label} — ${P.task}.</strong> ${P.why}</span>`, 'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    const P = PATTERNS[key];
+    const T = Math.max(P.ins, P.outs);
+    p.o.xmin = -.9; p.o.xmax = T + .4; p.o.ymin = -1.5; p.o.ymax = 3.1;
+    p._computeScale();
+    p.clear(null);
+    const box = (x, y, label, col, filled) => {
+      const [sx, sy] = p.toScreen([x, y]);
+      const w = Math.abs(p.px(.62)), h = Math.abs(p.px(.52));
+      p.ctx.beginPath();
+      const r = 5;
+      const x0 = sx - w / 2, y0 = sy - h / 2;
+      p.ctx.moveTo(x0 + r, y0);
+      p.ctx.arcTo(x0 + w, y0, x0 + w, y0 + h, r);
+      p.ctx.arcTo(x0 + w, y0 + h, x0, y0 + h, r);
+      p.ctx.arcTo(x0, y0 + h, x0, y0, r);
+      p.ctx.arcTo(x0, y0, x0 + w, y0, r);
+      p.ctx.closePath();
+      p.ctx.fillStyle = filled ? withA(col, .2) : C.bg;
+      p.ctx.fill();
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = 2; p.ctx.stroke();
+      p.ctx.font = `700 11px ${css('--font-sans')}`;
+      p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+      p.ctx.fillStyle = C.ink;
+      p.ctx.fillText(label, sx, sy);
+    };
+    const arrow = (a, b, col, dash) => {
+      const [x1, y1] = p.toScreen(a), [x2, y2] = p.toScreen(b);
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = 1.8;
+      if (dash) p.ctx.setLineDash([4, 4]);
+      p.ctx.beginPath(); p.ctx.moveTo(x1, y1); p.ctx.lineTo(x2, y2); p.ctx.stroke();
+      p.ctx.setLineDash([]);
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      p.ctx.beginPath();
+      p.ctx.moveTo(x2, y2);
+      p.ctx.lineTo(x2 - 7 * Math.cos(ang - .4), y2 - 7 * Math.sin(ang - .4));
+      p.ctx.lineTo(x2 - 7 * Math.cos(ang + .4), y2 - 7 * Math.sin(ang + .4));
+      p.ctx.fillStyle = col; p.ctx.fill();
+    };
+
+    const encEnd = key === 'enc' ? P.ins - 1 : T - 1;
+    for (let t = 0; t < T; t++) {
+      // hidden state row
+      box(t, 1, `s${'₀₁₂₃₄₅₆₇₈₉'[t + 1]}`, C.c1, true);
+      if (t > 0) arrow([t - 1 + .34, 1], [t - .34, 1], C.c1);
+      // inputs
+      const hasIn = key === 'o2m' ? t === 0 : t < P.ins;
+      if (hasIn) {
+        box(t, -.6, `x${'₀₁₂₃₄₅₆₇₈₉'[t + 1]}`, C.c5, false);
+        arrow([t, -.32], [t, .72], C.c5);
+      }
+      // outputs
+      const hasOut = key === 'm2o' ? t === T - 1
+        : key === 'o2m' ? true
+          : key === 'enc' ? t >= P.ins - 1 && t - (P.ins - 1) < P.outs
+            : t < P.outs;
+      if (hasOut) {
+        box(t, 2.6, `ŷ${'₀₁₂₃₄₅₆₇₈₉'[t + 1]}`, C.c3, false);
+        arrow([t, 1.28], [t, 2.32], C.c3);
+      }
+    }
+    if (key === 'enc') {
+      const [bx] = p.toScreen([P.ins - 1 + .5, 0]);
+      p.ctx.strokeStyle = withA(C.muted, .7); p.ctx.lineWidth = 1.6;
+      p.ctx.setLineDash([5, 5]);
+      p.ctx.beginPath();
+      p.ctx.moveTo(bx, p.Y(3.0)); p.ctx.lineTo(bx, p.Y(-1.3));
+      p.ctx.stroke(); p.ctx.setLineDash([]);
+      p.text([P.ins / 2 - .6, -1.2], 'encoder', { align: 'center', size: 10.5, color: C.muted });
+      p.text([P.ins + 1.4, -1.2], 'decoder', { align: 'center', size: 10.5, color: C.muted });
+    }
+    p.legend([[C.c5, 'input xₜ'], [C.c1, 'hidden state sₜ'], [C.c3, 'output ŷₜ']],
+      { corner: 'tl', title: PATTERNS[key].label });
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `One recurrence, four supervision regimes. The cell is identical in every case — what changes is only ` +
+    `<em>where you attach inputs and read outputs</em>. That flexibility is a large part of why RNNs took over ` +
+    `sequence modelling: you do not need a new architecture per task, only a new wiring of the same ` +
+    `\\(\\mathbf{U}, \\mathbf{W}, \\mathbf{V}\\). Note the difference between the two many-to-many forms — the ` +
+    `aligned version needs input and output lengths to match, which rules out translation, while the ` +
+    `encoder–decoder version reads everything before emitting anything and so has no such constraint.`
+  ));
+});
+
+/* ============================================================
+   Rolled, unrolled, and one set of weights everywhere
+   ============================================================ */
+defineWidget('rnn-sharing', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.7, equal: false, pad: 0 }));
+
+  let view = 'unrolled', T = 4, hi = null, inside = false;
+  const vCtl = segmented([{ label: 'Rolled', value: 'rolled' }, { label: 'Unrolled', value: 'unrolled' }],
+    { value: 'unrolled', label: 'View', onChange: v => { view = v; refresh(); } });
+  const tCtl = slider('sequence length T', { min: 2, max: 8, step: 1, value: 4, format: v => String(v), onInput: v => { T = v; refresh(); } });
+  const iCtl = toggle('Open up the cell', { value: false, onChange: v => { inside = v; refresh(); } });
+  const hCtl = segmented([
+    { label: 'none', value: '' }, { label: 'U', value: 'U' }, { label: 'W', value: 'W' }, { label: 'V', value: 'V' },
+  ], { value: '', label: 'Highlight a shared matrix', onChange: v => { hi = v || null; plot.render(); } });
+  const out = readout([['U — reads the input', 0], ['W — carries the state', 0], ['V — reads out', 0], ['total parameters', 0], ['if each step had its own', 0]]);
+  const st = status('');
+  right.append(vCtl.root, tCtl.root, iCtl.root, hCtl.root, out.root, st.root);
+
+  const d = 4, m = 3;                        // vocab 4, hidden 3 — the chapter's example
+  function refresh() {
+    const per = d * m + m * m + m * d + m + d;
+    out.set([
+      `${m} × ${d} = ${m * d}`,
+      `${m} × ${m} = ${m * m}`,
+      `${d} × ${m} = ${d * m}`,
+      { html: `${per} — <strong>independent of T</strong>`, cls: 'is-ok' },
+      { html: `${per * T} at T = ${T}`, cls: 'is-warn' },
+    ]);
+    st.set(
+      hi
+        ? `${OK}<span><strong>${hi}</strong> is the <em>same matrix</em> at every highlighted position — not ${T} copies. That is weight sharing along time, and it is why an RNN handles any sequence length with a fixed parameter count.</span>`
+        : view === 'rolled'
+          ? `${INFO}<span>The rolled view is the honest one: there is a single cell with a self-loop. Unroll it to see why backpropagation works.</span>`
+          : `${INFO}<span>Unrolled, an RNN is just a deep feedforward network of depth T — whose layers happen to share every weight. Highlight U, W or V to see the sharing.</span>`,
+      hi ? 'ok' : 'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    p.clear(null);
+    const drawBox = (x, y, w, h, label, col, filled, lw) => {
+      const [sx, sy] = p.toScreen([x, y]);
+      const pw = Math.abs(p.px(w)), ph = Math.abs(p.px(h));
+      const x0 = sx - pw / 2, y0 = sy - ph / 2, r = 6;
+      p.ctx.beginPath();
+      p.ctx.moveTo(x0 + r, y0);
+      p.ctx.arcTo(x0 + pw, y0, x0 + pw, y0 + ph, r);
+      p.ctx.arcTo(x0 + pw, y0 + ph, x0, y0 + ph, r);
+      p.ctx.arcTo(x0, y0 + ph, x0, y0, r);
+      p.ctx.arcTo(x0, y0, x0 + pw, y0, r);
+      p.ctx.closePath();
+      p.ctx.fillStyle = filled ? withA(col, .18) : C.bg;
+      p.ctx.fill();
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = lw || 2; p.ctx.stroke();
+      if (label) {
+        p.ctx.font = `700 11.5px ${css('--font-sans')}`;
+        p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+        p.ctx.fillStyle = C.ink;
+        p.ctx.fillText(label, sx, sy);
+      }
+    };
+    const arrow = (a, b, col, lw, label) => {
+      const [x1, y1] = p.toScreen(a), [x2, y2] = p.toScreen(b);
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = lw || 1.8;
+      p.ctx.beginPath(); p.ctx.moveTo(x1, y1); p.ctx.lineTo(x2, y2); p.ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      p.ctx.beginPath();
+      p.ctx.moveTo(x2, y2);
+      p.ctx.lineTo(x2 - 8 * Math.cos(ang - .38), y2 - 8 * Math.sin(ang - .38));
+      p.ctx.lineTo(x2 - 8 * Math.cos(ang + .38), y2 - 8 * Math.sin(ang + .38));
+      p.ctx.fillStyle = col; p.ctx.fill();
+      if (label) {
+        p.ctx.font = `800 11px ${css('--font-mono')}`;
+        p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        p.ctx.save();
+        p.ctx.fillStyle = C.raised;
+        p.ctx.beginPath(); p.ctx.arc(mx, my, 9, 0, Math.PI * 2); p.ctx.fill();
+        p.ctx.fillStyle = col;
+        p.ctx.fillText(label, mx, my);
+        p.ctx.restore();
+      }
+    };
+    const colFor = k => (hi === k ? C.c2 : (k === 'U' ? C.c5 : k === 'W' ? C.c1 : C.c3));
+    const lwFor = k => (hi === k ? 3.4 : 1.8);
+
+    if (view === 'rolled') {
+      p.o.xmin = -1.6; p.o.xmax = 1.6; p.o.ymin = -1.5; p.o.ymax = 1.7;
+      p._computeScale();
+      drawBox(0, 0, 1.1, .7, inside ? '' : 'sₜ', C.c1, true, hi === 'W' ? 3.4 : 2);
+      if (inside) {
+        p.text([0, .16], 'φ(U xₜ + W sₜ₋₁ + b)', { align: 'center', size: 10.5, color: C.ink, weight: 700 });
+        p.text([0, -.16], 'tanh', { align: 'center', size: 10, color: C.muted });
+      }
+      drawBox(0, -1.1, .8, .5, 'xₜ', C.c5, false);
+      drawBox(0, 1.15, .8, .5, 'ŷₜ', C.c3, false);
+      arrow([0, -.85], [0, -.37], colFor('U'), lwFor('U'), 'U');
+      arrow([0, .37], [0, .9], colFor('V'), lwFor('V'), 'V');
+      // self loop
+      const c = p.toScreen([0, 0]);
+      const rr = Math.abs(p.px(.62));
+      p.ctx.strokeStyle = colFor('W'); p.ctx.lineWidth = lwFor('W');
+      p.ctx.beginPath();
+      p.ctx.arc(c[0] + rr * .95, c[1], rr * .58, Math.PI * .62, Math.PI * 1.38, true);
+      p.ctx.stroke();
+      p.ctx.font = `800 11px ${css('--font-mono')}`;
+      p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+      p.ctx.fillStyle = colFor('W');
+      p.ctx.fillText('W', c[0] + rr * 1.75, c[1]);
+    } else {
+      p.o.xmin = -1.1; p.o.xmax = T + .3; p.o.ymin = -1.5; p.o.ymax = 1.7;
+      p._computeScale();
+      const sub = '₀₁₂₃₄₅₆₇₈₉';
+      drawBox(-.62, 0, .55, .5, 's₀', C.muted, false);
+      for (let t = 0; t < T; t++) {
+        drawBox(t, 0, .78, .62, inside ? '' : `s${sub[t + 1]}`, C.c1, true, hi === 'W' ? 3.4 : 2);
+        if (inside) p.text([t, 0], 'tanh', { align: 'center', size: 9, color: C.muted });
+        drawBox(t, -1.1, .62, .46, `x${sub[t + 1]}`, C.c5, false);
+        drawBox(t, 1.15, .62, .46, `ŷ${sub[t + 1]}`, C.c3, false);
+        arrow([t, -.86], [t, -.34], colFor('U'), lwFor('U'), 'U');
+        arrow([t, .34], [t, .9], colFor('V'), lwFor('V'), 'V');
+        arrow([t - 1 + (t === 0 ? .66 : .42), 0], [t - .42, 0], colFor('W'), lwFor('W'), 'W');
+      }
+    }
+    p.legend([[colFor('U'), 'U — input → state'], [colFor('W'), 'W — state → state'], [colFor('V'), 'V — state → output']],
+      { corner: 'tl', title: hi ? `${hi} is one matrix, reused` : 'the same three matrices at every step' });
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `The rolled diagram shows what an RNN <em>is</em>: one cell with a loop. The unrolled diagram shows what ` +
+    `training <em>does</em> with it — lay out T copies and backpropagate through the lot. The crucial point is ` +
+    `that unrolling copies the <strong>computation</strong>, not the <strong>parameters</strong>. Highlight U, ` +
+    `W or V and every arrow of that colour lights up at once, because they are all the same matrix. The ` +
+    `parameter readout makes the consequence concrete: the count does not contain T anywhere, so one model ` +
+    `handles a four-word sentence and a four-hundred-word document alike. It is also why the gradient for W ` +
+    `accumulates a contribution from every time step, which is where ` +
+    `<a href="#bptt">backpropagation through time</a> begins.`
+  ));
+});
+
+/* ============================================================
+   Inside an LSTM and a GRU cell
+   ============================================================ */
+defineWidget('gate-cell', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: false, pad: 0 }));
+
+  let kind = 'lstm', f = .9, i = .4, o = .7, z = .3, r = .8, cPrev = .6, cand = .5;
+  const kCtl = segmented([{ label: 'LSTM', value: 'lstm' }, { label: 'GRU', value: 'gru' }],
+    { value: 'lstm', label: 'Cell', onChange: v => { kind = v; rebuild(); } });
+  const g1 = slider('forget gate f', { min: 0, max: 1, step: .02, value: .9, onInput: v => { f = v; refresh(); } });
+  const g2 = slider('input gate i', { min: 0, max: 1, step: .02, value: .4, onInput: v => { i = v; refresh(); } });
+  const g3 = slider('output gate o', { min: 0, max: 1, step: .02, value: .7, onInput: v => { o = v; refresh(); } });
+  const g4 = slider('update gate z', { min: 0, max: 1, step: .02, value: .3, onInput: v => { z = v; refresh(); } });
+  const g5 = slider('reset gate r', { min: 0, max: 1, step: .02, value: .8, onInput: v => { r = v; refresh(); } });
+  const g6 = slider('previous state', { min: -1, max: 1, step: .05, value: .6, onInput: v => { cPrev = v; refresh(); } });
+  const g7 = slider('candidate', { min: -1, max: 1, step: .05, value: .5, onInput: v => { cand = v; refresh(); } });
+  const presets = el('div', { class: 'pg-actions' },
+    button('Remember', () => { f = 1; i = 0; z = 0; g1.set(1); g2.set(0); g4.set(0); refresh(); }),
+    button('Overwrite', () => { f = 0; i = 1; z = 1; g1.set(0); g2.set(1); g4.set(1); refresh(); }),
+    button('Blend', () => { f = .6; i = .5; z = .5; g1.set(.6); g2.set(.5); g4.set(.5); refresh(); }));
+  const out = readout([['carried through', 0], ['written in', 0], ['new state', 0], ['∂ new / ∂ old', 0], ['after 20 steps', 0]]);
+  const st = status('');
+  right.append(kCtl.root, g1.root, g2.root, g3.root, g4.root, g5.root, g6.root, g7.root, presets, out.root, st.root);
+
+  function rebuild() {
+    [g1, g2, g3].forEach(s => { s.root.style.display = kind === 'lstm' ? '' : 'none'; });
+    [g4, g5].forEach(s => { s.root.style.display = kind === 'gru' ? '' : 'none'; });
+    refresh();
+  }
+  function refresh() {
+    let carried, written, next, deriv;
+    if (kind === 'lstm') {
+      carried = f * cPrev; written = i * cand; next = carried + written; deriv = f;
+    } else {
+      carried = (1 - z) * cPrev; written = z * cand; next = carried + written; deriv = 1 - z;
+    }
+    const after = Math.pow(deriv, 20);
+    out.set([
+      fmt(carried, 4), fmt(written, 4),
+      { html: fmt(next, 4), cls: 'is-ok' },
+      { html: fmt(deriv, 4), cls: deriv > .8 ? 'is-ok' : deriv < .3 ? 'is-warn' : '' },
+      { html: after < 1e-4 ? after.toExponential(2) : fmt(after, 5), cls: after > .01 ? 'is-ok' : 'is-warn' },
+    ]);
+    st.set(
+      deriv > .95
+        ? `${OK}<span><strong>The carousel is open.</strong> The derivative along the carry path is ${fmt(deriv, 3)}, so after 20 steps the gradient is still scaled by ${fmt(after, 4)}. A vanilla RNN with tanh′ ≈ 0.25 and w = 0.8 would be at 1.1×10⁻¹⁴.</span>`
+        : deriv < .2
+          ? `${WARN}<span>The gate is nearly shut: only ${fmt(deriv * 100, 0)}% of the old state survives each step, so information from 20 steps back is scaled by ${after < 1e-4 ? after.toExponential(2) : fmt(after, 5)}. Useful when you <em>want</em> to forget — fatal when you do not.</span>`
+          : `${INFO}<span>Partly open. The cell is mixing old state and new candidate; the derivative along the carry path is ${fmt(deriv, 3)}.</span>`,
+      deriv > .95 ? 'ok' : deriv < .2 ? 'warn' : 'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    p.o.xmin = -.2; p.o.xmax = 10.2; p.o.ymin = -2.6; p.o.ymax = 2.9;
+    p._computeScale();
+    p.clear(null);
+    const node2 = (x, y, rad, label, col) => {
+      const [sx, sy] = p.toScreen([x, y]);
+      p.ctx.beginPath(); p.ctx.arc(sx, sy, Math.abs(p.px(rad)), 0, Math.PI * 2);
+      p.ctx.fillStyle = C.bg; p.ctx.fill();
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = 2.2; p.ctx.stroke();
+      p.ctx.font = `700 13px ${css('--font-sans')}`;
+      p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+      p.ctx.fillStyle = col; p.ctx.fillText(label, sx, sy);
+    };
+    const gateBox = (x, y, label, val, col) => {
+      const [sx, sy] = p.toScreen([x, y]);
+      const w = Math.abs(p.px(1.15)), h = Math.abs(p.px(.62));
+      p.ctx.fillStyle = withA(col, .13 + .5 * val);
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = 2;
+      p.ctx.beginPath();
+      const r2 = 6, x0 = sx - w / 2, y0 = sy - h / 2;
+      p.ctx.moveTo(x0 + r2, y0);
+      p.ctx.arcTo(x0 + w, y0, x0 + w, y0 + h, r2);
+      p.ctx.arcTo(x0 + w, y0 + h, x0, y0 + h, r2);
+      p.ctx.arcTo(x0, y0 + h, x0, y0, r2);
+      p.ctx.arcTo(x0, y0, x0 + w, y0, r2);
+      p.ctx.closePath(); p.ctx.fill(); p.ctx.stroke();
+      p.ctx.font = `700 11px ${css('--font-sans')}`;
+      p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+      p.ctx.fillStyle = C.ink;
+      p.ctx.fillText(`${label} = ${fmt(val, 2)}`, sx, sy);
+    };
+    const line = (a, b, col, lw, dash) => {
+      const [x1, y1] = p.toScreen(a), [x2, y2] = p.toScreen(b);
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = lw;
+      if (dash) p.ctx.setLineDash(dash);
+      p.ctx.beginPath(); p.ctx.moveTo(x1, y1); p.ctx.lineTo(x2, y2); p.ctx.stroke();
+      p.ctx.setLineDash([]);
+    };
+
+    const carryVal = kind === 'lstm' ? f : 1 - z;
+    // the carry highway across the top — width encodes how open it is
+    line([0, 1.7], [10, 1.7], withA(C.c3, .35 + .6 * carryVal), 2 + 7 * carryVal);
+    p.text([0.1, 2.25], kind === 'lstm' ? 'cell state cₜ₋₁ → cₜ  (the constant error carousel)' : 'carry path (1 − z)·sₜ₋₁',
+      { size: 10.5, color: C.c3, weight: 700 });
+
+    if (kind === 'lstm') {
+      gateBox(2.2, .1, 'f', f, C.c4);
+      node2(2.2, 1.7, .28, '×', C.c4);
+      line([2.2, .41], [2.2, 1.42], C.c4, 2);
+      gateBox(4.6, .1, 'i', i, C.c1);
+      gateBox(4.6, -1.1, 'c̃', (cand + 1) / 2, C.c5);
+      node2(4.6, 1.7, .28, '×', C.c1);
+      line([4.6, .41], [4.6, 1.42], C.c1, 2);
+      line([4.6, -.79], [4.6, -.21], C.c5, 2);
+      node2(6.2, 1.7, .28, '+', C.c3);
+      gateBox(8.2, .1, 'o', o, C.c2);
+      node2(8.2, 1.7, .28, '×', C.c2);
+      line([8.2, .41], [8.2, 1.42], C.c2, 2);
+      line([8.2, 1.42], [8.2, -1.9], withA(C.c2, .6), 2, [4, 4]);
+      p.text([8.2, -2.2], 'sₜ = o ⊙ tanh(cₜ)', { align: 'center', size: 10.5, color: C.muted });
+      p.text([2.2, -.55], 'forget', { align: 'center', size: 9.5, color: C.muted });
+      p.text([4.6, -.55], 'input', { align: 'center', size: 9.5, color: C.muted });
+      p.text([8.2, -.55], 'output', { align: 'center', size: 9.5, color: C.muted });
+    } else {
+      gateBox(2.6, .1, '1−z', 1 - z, C.c4);
+      node2(2.6, 1.7, .28, '×', C.c4);
+      line([2.6, .41], [2.6, 1.42], C.c4, 2);
+      gateBox(5.4, .1, 'z', z, C.c1);
+      gateBox(5.4, -1.1, 's̃', (cand + 1) / 2, C.c5);
+      gateBox(3.9, -2.1, 'r', r, C.c2);
+      node2(5.4, 1.7, .28, '×', C.c1);
+      line([5.4, .41], [5.4, 1.42], C.c1, 2);
+      line([5.4, -.79], [5.4, -.21], C.c5, 2);
+      line([4.5, -2.1], [5.4, -1.41], withA(C.c2, .7), 2);
+      node2(7.4, 1.7, .28, '+', C.c3);
+      p.text([7.4, 2.25], 'sₜ', { align: 'center', size: 11, color: C.c3, weight: 700 });
+    }
+    p.text([0.1, -2.45], `∂sₜ/∂sₜ₋₁ along the carry path ≈ ${fmt(carryVal, 3)}`,
+      { size: 11, color: carryVal > .8 ? C.c3 : C.c4, weight: 700 });
+  });
+
+  rebuild();
+
+  node.appendChild(note(
+    `Both cells are built from the same two primitives: a <strong>sigmoid gate</strong> producing a number in ` +
+    `(0, 1), and an <strong>elementwise multiply</strong> that uses it to scale a vector. The thick line across ` +
+    `the top is the part that matters — in the LSTM it is the cell state, updated as ` +
+    `<span class="u-mono">cₜ = f ⊙ cₜ₋₁ + i ⊙ c̃ₜ</span>, and in the GRU it is the ` +
+    `<span class="u-mono">(1 − z) ⊙ sₜ₋₁</span> term. Either way there is <strong>no weight matrix and no tanh ` +
+    `on that path</strong>, so its derivative is just the gate value. Open the gate and the line thickens; the ` +
+    `gradient then survives twenty steps essentially intact, against roughly 10⁻¹⁴ for a vanilla RNN. Press ` +
+    `<strong>Remember</strong> and <strong>Overwrite</strong> to see the two extremes the network can choose ` +
+    `between, per unit and per step.`
+  ));
+});
+
+/* ============================================================
+   Tokens → ids → embeddings
+   ============================================================ */
+defineWidget('tokenize', node => {
+  const wrap = el('div');
+  node.appendChild(wrap);
+
+  const SENTENCES = {
+    a: 'the cat sat on the mat',
+    b: 'unbelievably transformative results',
+    c: 'the cats sat on the mats',
+  };
+  let key = 'a', gran = 'sub', dim = 6;
+
+  const sCtl = segmented([
+    { label: '"the cat sat on the mat"', value: 'a' },
+    { label: 'rare words', value: 'b' },
+    { label: 'plurals', value: 'c' },
+  ], { value: 'a', label: 'Sentence', onChange: v => { key = v; refresh(); } });
+  const gCtl = segmented([
+    { label: 'Whole words', value: 'word' }, { label: 'Subwords', value: 'sub' }, { label: 'Characters', value: 'char' },
+  ], { value: 'sub', label: 'Tokenisation', onChange: v => { gran = v; refresh(); } });
+  const dCtl = slider('d_model (shown)', { min: 4, max: 10, step: 1, value: 6, format: v => String(v), onInput: v => { dim = v; refresh(); } });
+  const out = readout([['tokens', 0], ['vocabulary needed', 0], ['embedding matrix E', 0], ['X, the layer input', 0]]);
+  const st = status('');
+
+  const tokHost = el('div', { style: 'margin-top:.6rem' });
+  const left = el('div', {}, tokHost);
+  const right = el('div', { class: 'pg-controls' }, sCtl.root, gCtl.root, dCtl.root, out.root, st.root);
+  wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
+
+  /* A toy subword vocabulary — enough to show the mechanism honestly. */
+  const SUBS = ['un', 'believ', 'ably', 'transform', 'ative', 'result', 's', 'the', 'cat', 'sat', 'on', 'mat'];
+  function tokenize(text) {
+    if (gran === 'char') return [...text.replace(/ /g, '_')];
+    const words = text.split(' ');
+    if (gran === 'word') return words;
+    const out2 = [];
+    for (const w of words) {
+      let rest = w, guard = 0;
+      const parts = [];
+      while (rest.length && guard++ < 20) {
+        const hit = SUBS.filter(s => rest.startsWith(s)).sort((a, b) => b.length - a.length)[0];
+        if (hit) { parts.push(hit); rest = rest.slice(hit.length); }
+        else { parts.push(rest[0]); rest = rest.slice(1); }
+      }
+      out2.push(...parts.map((s, i) => (i ? '##' + s : s)));
+    }
+    return out2;
+  }
+  const hash = s => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  const embedOf = (tok, k) => {
+    const h = hash(tok + '|' + k);
+    return ((h % 2000) / 1000 - 1) * .9;
+  };
+
+  function refresh() {
+    const toks = tokenize(SENTENCES[key]);
+    const uniq = [...new Set(toks)];
+    const vocabEst = gran === 'word' ? '~170,000 (every English word form)'
+      : gran === 'sub' ? '~30,000–50,000 (typical BPE)'
+        : '~100 (letters and punctuation)';
+    out.set([
+      `${toks.length} tokens, ${uniq.length} distinct`,
+      vocabEst,
+      `|V| × ${dim}`,
+      { html: `${toks.length} × ${dim}`, cls: 'is-ok' },
+    ]);
+    st.set(
+      gran === 'word'
+        ? `${WARN}<span><strong>Whole words are brittle.</strong> Any word not in the vocabulary becomes a single unknown token, and "cat"/"cats" are unrelated entries that must each be learned from scratch.</span>`
+        : gran === 'char'
+          ? `${WARN}<span><strong>Characters never go out of vocabulary</strong>, but sequences get long — and attention costs O(T²), so length is expensive.</span>`
+          : `${OK}<span><strong>Subwords are the compromise everyone uses.</strong> Common words stay whole, rare ones split into familiar pieces (note the <span class="u-mono">##</span> continuation marks), so the vocabulary stays bounded and nothing is ever truly unknown.</span>`,
+      gran === 'sub' ? 'ok' : 'warn');
+
+    tokHost.innerHTML = '';
+    const row = (label, cells, cls) => {
+      const r = el('div', { style: 'display:flex;gap:.3rem;align-items:center;margin-bottom:.45rem;flex-wrap:wrap' });
+      r.appendChild(el('span', { style: 'font-size:.72rem;color:var(--ink-faint);min-width:74px', text: label }));
+      cells.forEach(c => r.appendChild(c));
+      tokHost.appendChild(r);
+      void cls;
+    };
+    row('text', toks.map(t => el('span', {
+      class: 'pill', style: 'font-family:var(--font-mono);font-size:.76rem', text: t,
+    })));
+    row('token id', toks.map(t => el('span', {
+      style: 'font-family:var(--font-mono);font-size:.72rem;padding:.18rem .4rem;border-radius:5px;' +
+             'background:var(--bg-sunken);color:var(--ink-muted)',
+      text: String(hash(t) % 30000),
+    })));
+    const grid = el('div', { style: `display:grid;grid-template-columns:repeat(${dim},minmax(0,1fr));gap:2px;max-width:${dim * 44}px` });
+    toks.forEach(t => {
+      for (let k = 0; k < dim; k++) {
+        const v = embedOf(t, k);
+        grid.appendChild(el('span', {
+          style: `font-family:var(--font-mono);font-size:.6rem;text-align:center;padding:.2rem 0;border-radius:3px;` +
+                 `background:${withA(v >= 0 ? C.c2 : C.c1, .12 + .5 * Math.abs(v))};color:var(--ink)`,
+          text: v.toFixed(1),
+        }));
+      }
+    });
+    tokHost.appendChild(el('div', { style: 'display:flex;gap:.55rem;align-items:flex-start;margin-top:.5rem' },
+      el('span', { style: 'font-size:.72rem;color:var(--ink-faint);min-width:74px;padding-top:.3rem', text: `X (${toks.length}×${dim})` }),
+      grid));
+  }
+
+  refresh();
+
+  node.appendChild(note(
+    `Three steps, and only the last one is learned. <strong>Tokenise</strong> splits the text into units; ` +
+    `<strong>look up</strong> maps each unit to an integer id; <strong>embed</strong> maps each id to a row of ` +
+    `the matrix \\(\\mathbf{E} \\in \\mathbb{R}^{|\\mathcal{V}| \\times d_{\\text{model}}}\\). Stack those rows and ` +
+    `you have \\(\\mathbf{X} \\in \\mathbb{R}^{T \\times d_{\\text{model}}}\\), which is what every later layer ` +
+    `actually consumes. Compare the three granularities on the plurals sentence: whole-word tokenisation gives ` +
+    `"cat" and "cats" unrelated ids with nothing shared between them, while subwords split off a reusable ` +
+    `<span class="u-mono">##s</span>. Unlike one-hot vectors, embeddings are dense and trained, so related ` +
+    `tokens can end up near one another — a representation the model builds for itself.`
+  ));
+});
+
+/* ============================================================
+   Building Q, K and V, and the attention that follows
+   ============================================================ */
+defineWidget('qkv-build', node => {
+  const wrap = el('div');
+  node.appendChild(wrap);
+
+  const TOKENS = ['the', 'cat', 'sat', 'on', 'the', 'mat'];
+  const T = TOKENS.length, dm = 4;
+  let dk = 3, step = 3, qi = 1, scaled = true;
+
+  const stCtl = segmented([
+    { label: '1 · X', value: 1 }, { label: '2 · Q,K,V', value: 2 },
+    { label: '3 · QKᵀ', value: 3 }, { label: '4 · softmax', value: 4 }, { label: '5 · ×V', value: 5 },
+  ], { value: 3, label: 'Stage', onChange: v => { step = Number(v); refresh(); } });
+  const kCtl = slider('d_k', { min: 2, max: 6, step: 1, value: 3, format: v => String(v), onInput: v => { dk = v; rebuild(); } });
+  const qCtl = slider('query token i', { min: 0, max: T - 1, step: 1, value: 1, format: v => `"${TOKENS[v]}"`, onInput: v => { qi = v; refresh(); } });
+  const scCtl = toggle('divide by √d_k', { value: true, onChange: v => { scaled = v; refresh(); } });
+  const out = readout([['X', 0], ['W^Q, W^K, W^V', 0], ['Q, K, V', 0], ['scores QKᵀ', 0], ['attends most to', 0]]);
+  const st = status('');
+
+  const host = el('div', { style: 'display:grid;gap:.75rem;margin-top:.4rem' });
+  const left = el('div', {}, host);
+  const right = el('div', { class: 'pg-controls' }, stCtl.root, kCtl.root, qCtl.root, scCtl.root, out.root, st.root);
+  wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
+
+  const hash = s => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  let X = [], WQ = [], WK = [], WV = [], Q = [], K = [], V = [], E = [], A = [], O = [];
+
+  const mul = (Am, Bm) => Am.map(row => Bm[0].map((_, j) => row.reduce((s, v, k) => s + v * Bm[k][j], 0)));
+  function rebuild() {
+    X = TOKENS.map((t, i) => Array.from({ length: dm }, (_, k) => ((hash(t + '#' + k + '#' + i) % 2000) / 1000 - 1) * .9));
+    const mk = (rows, cols, tag) => Array.from({ length: rows }, (_, a) =>
+      Array.from({ length: cols }, (_, b) => ((hash(tag + a + '.' + b) % 2000) / 1000 - 1) * .8));
+    WQ = mk(dm, dk, 'Q'); WK = mk(dm, dk, 'K'); WV = mk(dm, dk, 'V');
+    refresh();
+  }
+  function refresh() {
+    Q = mul(X, WQ); K = mul(X, WK); V = mul(X, WV);
+    const scale = scaled ? 1 / Math.sqrt(dk) : 1;
+    E = Q.map(q => K.map(k => q.reduce((s, v, t) => s + v * k[t], 0) * scale));
+    A = E.map(row => {
+      const m = Math.max(...row);
+      const e = row.map(v => Math.exp(v - m));
+      const s = e.reduce((a, b) => a + b, 0);
+      return e.map(v => v / s);
+    });
+    O = A.map(a => V[0].map((_, j) => a.reduce((s, w, t) => s + w * V[t][j], 0)));
+    const best = A[qi].indexOf(Math.max(...A[qi]));
+    out.set([
+      `${T} × ${dm}`,
+      `${dm} × ${dk} each`,
+      `${T} × ${dk} each`,
+      { html: `${T} × ${T}`, cls: 'is-warn' },
+      { html: `"${TOKENS[best]}" at ${fmt(A[qi][best] * 100, 1)}%`, cls: 'is-ok' },
+    ]);
+    st.set(
+      step === 1 ? `${INFO}<span>Every token is a row of <strong>X</strong>. Nothing here knows about any other token yet.</span>`
+        : step === 2 ? `${INFO}<span>Three <em>different</em> linear maps of the same X. A token's <strong>query</strong> is what it is looking for, its <strong>key</strong> is what it offers, its <strong>value</strong> is what it passes on if selected.</span>`
+          : step === 3 ? `${INFO}<span>Entry (i, j) is <span class="u-mono">qᵢ·kⱼ</span> — how well token i's query matches token j's key. This is the only place tokens ever see each other, and it costs <strong>T² = ${T * T}</strong> dot products.</span>`
+            : step === 4 ? `${OK}<span>Row-wise softmax turns each row into a distribution over all ${T} positions. Row ${qi + 1} sums to <strong>${fmt(A[qi].reduce((s, v) => s + v, 0), 6)}</strong>.</span>`
+              : `${OK}<span>Each output row is a weighted average of <em>value</em> vectors, using that row of A as the weights. Token "${TOKENS[qi]}" is now a blend of the whole sentence.</span>`,
+      step >= 4 ? 'ok' : 'info');
+
+    host.innerHTML = '';
+    const heat = (M, title, opts = {}) => {
+      const { rowLab, colLab, hlRow, pct, sym = true } = opts;
+      const cols = M[0].length;
+      let hi = 1e-9;
+      M.forEach(r => r.forEach(v => { hi = Math.max(hi, Math.abs(v)); }));
+      const box = el('div');
+      box.appendChild(el('div', { class: 'matrix-label', html: title }));
+      const g = el('div', { style: `display:grid;grid-template-columns:auto repeat(${cols},minmax(0,1fr));gap:2px;max-width:${90 + cols * 52}px` });
+      g.appendChild(el('span'));
+      for (let j = 0; j < cols; j++) {
+        g.appendChild(el('span', {
+          style: 'font-size:.62rem;color:var(--ink-faint);text-align:center',
+          text: colLab ? colLab[j] : String(j + 1),
+        }));
+      }
+      M.forEach((row, i) => {
+        g.appendChild(el('span', {
+          style: `font-size:.66rem;color:${hlRow === i ? 'var(--ink)' : 'var(--ink-faint)'};` +
+                 `font-weight:${hlRow === i ? 700 : 400};text-align:right;padding-right:.25rem;white-space:nowrap`,
+          text: rowLab ? rowLab[i] : String(i + 1),
+        }));
+        row.forEach(v => {
+          const t = sym ? Math.abs(v) / hi : v / hi;
+          const col = sym ? (v >= 0 ? C.c2 : C.c1) : C.c1;
+          g.appendChild(el('span', {
+            style: `font-family:var(--font-mono);font-size:.6rem;text-align:center;padding:.24rem 0;border-radius:3px;` +
+                   `background:${withA(col, .1 + .55 * t)};` +
+                   `outline:${hlRow === i ? '1.5px solid ' + C.c3 : 'none'}`,
+            text: pct ? (v * 100).toFixed(0) + '%' : v.toFixed(2),
+          }));
+        });
+      });
+      box.appendChild(g);
+      host.appendChild(box);
+    };
+
+    if (step === 1) heat(X, `<strong>X</strong> — token embeddings (${T} × ${dm})`, { rowLab: TOKENS, hlRow: qi });
+    if (step === 2) {
+      heat(Q, `<strong>Q = X W<sup>Q</sup></strong> (${T} × ${dk})`, { rowLab: TOKENS, hlRow: qi });
+      heat(K, `<strong>K = X W<sup>K</sup></strong> (${T} × ${dk})`, { rowLab: TOKENS });
+      heat(V, `<strong>V = X W<sup>V</sup></strong> (${T} × ${dk})`, { rowLab: TOKENS });
+    }
+    if (step === 3) heat(E, `<strong>QK<sup>T</sup>${scaled ? ' / √d_k' : ''}</strong> — raw scores (${T} × ${T})`,
+      { rowLab: TOKENS, colLab: TOKENS, hlRow: qi });
+    if (step === 4) heat(A, `<strong>A = softmax(QK<sup>T</sup>/√d_k)</strong> — each row sums to 1`,
+      { rowLab: TOKENS, colLab: TOKENS, hlRow: qi, pct: true, sym: false });
+    if (step === 5) {
+      heat(A, `<strong>A</strong> — attention weights`, { rowLab: TOKENS, colLab: TOKENS, hlRow: qi, pct: true, sym: false });
+      heat(O, `<strong>A V</strong> — the output, one blended vector per token (${T} × ${dk})`, { rowLab: TOKENS, hlRow: qi });
+    }
+  }
+
+  rebuild();
+
+  node.appendChild(note(
+    `Walk the five stages in order and the whole of self-attention is there. The three projection matrices ` +
+    `\\(\\mathbf{W}^Q, \\mathbf{W}^K, \\mathbf{W}^V\\) are the <em>only</em> learned parameters — everything else ` +
+    `is fixed arithmetic. Stage 3 is where the quadratic cost lives: a \\(T \\times T\\) score matrix, ` +
+    `${T * T} dot products for six tokens and a million for a thousand. Stage 4's softmax is applied ` +
+    `<strong>row-wise</strong>, so each token gets its own distribution over the sentence, and stage 5 uses ` +
+    `those as blending weights over the value vectors. Turn off the \\(\\sqrt{d_k}\\) division and push ` +
+    `\\(d_k\\) up to watch the distribution collapse onto a single token — the failure mode ` +
+    `<a href="#scaling">the scaling figure</a> quantifies.`
+  ));
+});
+
+/* ============================================================
+   Multi-head attention
+   ============================================================ */
+defineWidget('mha-heads', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.55, equal: false, pad: 0 }));
+
+  let dModel = 64, h = 8, showHead = 0;
+  const dCtl = slider('d_model', { min: 16, max: 256, step: 16, value: 64, format: v => String(v), onInput: v => { dModel = v; refresh(); } });
+  const hCtl = slider('heads h', { min: 1, max: 16, step: 1, value: 8, format: v => String(v), onInput: v => { h = v; refresh(); } });
+  const out = readout([['per-head d_k = d_v', 0], ['params per head', 0], ['params, all heads', 0], ['single head at full width', 0], ['scaling uses', 0]]);
+  const st = status('');
+  right.append(dCtl.root, hCtl.root, out.root, st.root);
+
+  function refresh() {
+    const dk = Math.floor(dModel / h);
+    const perHead = 3 * dModel * dk;
+    const all = perHead * h;
+    const single = 3 * dModel * dModel;
+    showHead = Math.min(showHead, h - 1);
+    out.set([
+      { html: `${dModel} / ${h} = ${dk}`, cls: dModel % h === 0 ? 'is-ok' : 'is-warn' },
+      `3 · ${dModel} · ${dk} = ${perHead.toLocaleString()}`,
+      { html: all.toLocaleString(), cls: 'is-ok' },
+      single.toLocaleString(),
+      { html: `1/√${dk} = ${fmt(1 / Math.sqrt(dk), 4)}`, cls: 'is-ok' },
+    ]);
+    st.set(
+      dModel % h !== 0
+        ? `${WARN}<span>d_model = ${dModel} is not divisible by h = ${h}. Real implementations require it to be — the concatenation has to come back to exactly d_model.</span>`
+        : `${OK}<span><strong>${h} heads cost the same as one.</strong> Each head works in ${dk} dimensions instead of ${dModel}, so ${all.toLocaleString()} parameters total against ${single.toLocaleString()} for a single full-width head. You get ${h} different relationships for the price of one — and note the scaling factor is 1/√${dk}, the <em>per-head</em> dimension, not 1/√${dModel}.</span>`,
+      dModel % h === 0 ? 'ok' : 'warn');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    const dk = Math.max(1, Math.floor(dModel / h));
+    p.o.xmin = -.4; p.o.xmax = 10.4; p.o.ymin = -.6; p.o.ymax = Math.max(h, 4) + .8;
+    p._computeScale();
+    p.clear(null);
+    const rect = (x, y, w, ht, col, label, alpha) => {
+      const [sx, sy] = p.toScreen([x, y + ht]);
+      const pw = Math.abs(p.px(w)), ph = Math.abs(p.px(ht));
+      p.ctx.fillStyle = withA(col, alpha ?? .2);
+      p.ctx.fillRect(sx, sy, pw, ph);
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = 1.4;
+      p.ctx.strokeRect(sx, sy, pw, ph);
+      if (label && ph > 11) {
+        p.ctx.font = `600 ${Math.min(10, ph * .7)}px ${css('--font-sans')}`;
+        p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+        p.ctx.fillStyle = C.ink;
+        p.ctx.fillText(label, sx + pw / 2, sy + ph / 2);
+      }
+    };
+    const H = Math.max(h, 1);
+    const rowH = Math.min(.82, (Math.max(h, 4) - .2) / H);
+    // input X
+    rect(0, (Math.max(h, 4) - 1.6) / 2, 1.1, 1.6, C.c5, 'X', .18);
+    p.text([.55, -.35], `T × ${dModel}`, { align: 'center', size: 9.5, color: C.muted });
+    for (let i = 0; i < H; i++) {
+      const y = i * (rowH + .12);
+      const isSel = i === showHead;
+      rect(2.4, y, 1.5, rowH, isSel ? C.c2 : C.c1, `head ${i + 1}`, isSel ? .32 : .14);
+      rect(4.4, y, 1.4, rowH, isSel ? C.c2 : C.c3, `d_k=${dk}`, isSel ? .3 : .12);
+      const a = p.toScreen([1.15, (Math.max(h, 4) - 1.6) / 2 + .8]);
+      const b = p.toScreen([2.38, y + rowH / 2]);
+      p.ctx.strokeStyle = withA(isSel ? C.c2 : C.muted, isSel ? .8 : .3);
+      p.ctx.lineWidth = isSel ? 2 : 1;
+      p.ctx.beginPath(); p.ctx.moveTo(a[0], a[1]); p.ctx.lineTo(b[0], b[1]); p.ctx.stroke();
+      const c = p.toScreen([5.85, y + rowH / 2]);
+      const dd = p.toScreen([7.0, (Math.max(h, 4) - Math.min(h * rowH * 1.1, 3)) / 2 + Math.min(h * rowH * 1.1, 3) / 2]);
+      p.ctx.strokeStyle = withA(isSel ? C.c2 : C.muted, isSel ? .8 : .3);
+      p.ctx.beginPath(); p.ctx.moveTo(c[0], c[1]); p.ctx.lineTo(dd[0], dd[1]); p.ctx.stroke();
+    }
+    p.text([3.15, Math.max(h, 4) + .45], 'W^Q, W^K, W^V per head', { align: 'center', size: 10, color: C.muted });
+    p.text([5.1, Math.max(h, 4) + .45], 'attention', { align: 'center', size: 10, color: C.muted });
+    const catH = Math.min(h * rowH * 1.1, 3);
+    rect(7.0, (Math.max(h, 4) - catH) / 2, 1.2, catH, C.c3, 'concat', .2);
+    p.text([7.6, -.35], `T × ${h * dk}`, { align: 'center', size: 9.5, color: C.muted });
+    rect(8.9, (Math.max(h, 4) - 1.6) / 2, 1.1, 1.6, C.c1, 'W^O', .2);
+    p.text([9.45, -.35], `${h * dk} × ${dModel}`, { align: 'center', size: 9.5, color: C.muted });
+    p.legend([[C.c2, `head ${showHead + 1} highlighted`]], { corner: 'tl', title: `${h} heads × d_k ${dk} = ${h * dk}` });
+  });
+
+  canvas.addEventListener('click', () => { showHead = (showHead + 1) % Math.max(h, 1); plot.render(); });
+  refresh();
+
+  node.appendChild(note(
+    `A single attention operation gives every token exactly one distribution over the sentence, so it can ` +
+    `express one kind of relationship. Language has several at once — agreement, coreference, semantic ` +
+    `similarity — and multi-head attention runs \\(h\\) of them side by side on <em>narrower</em> projections. ` +
+    `That last word is the trick: each head works in \\(d_k = d_{\\text{model}}/h\\) dimensions, so ` +
+    `concatenating \\(h\\) of them returns exactly \\(d_{\\text{model}}\\) columns and the total parameter count ` +
+    `is unchanged. Move the head slider and watch the per-head width shrink as the count grows while the ` +
+    `totals stay put. Click the diagram to step through the heads.`
+  ));
+});
+
+/* ============================================================
+   The full transformer block
+   ============================================================ */
+defineWidget('transformer-arch', node => {
+  const { right, canvas } = split(node, { wide: true });
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: .78, equal: false, pad: 0 }));
+
+  const PARTS = {
+    embed: { label: 'Input embedding', why: 'Token ids become dense learned vectors — the matrix E from the tokenisation figure. This is the only place discrete symbols enter.' },
+    pos: { label: 'Positional encoding', why: 'Added, not concatenated. Attention is permutation-equivariant, so without this the block literally cannot tell word order.' },
+    mha: { label: 'Multi-head attention', why: 'The only sublayer where tokens exchange information at all. Everything else acts on each position independently.' },
+    mask: { label: 'Causal mask', why: 'Sets the upper triangle of the scores to −∞ before the softmax, so a position can never read the future. This is what makes the decoder autoregressive.' },
+    add1: { label: 'Add & norm', why: 'A residual connection plus layer normalisation. The residual gives gradients a path that skips the sublayer — the same idea as ResNet, which is why transformers train at depth.' },
+    ff: { label: 'Feed-forward', why: 'A two-layer MLP applied to each position separately and identically, usually widening to 4·d_model and back. This is where most of the parameters live.' },
+    add2: { label: 'Add & norm', why: 'The second residual. Every sublayer in the block is wrapped this way: x + Sublayer(LayerNorm(x)).' },
+    head: { label: 'Linear + softmax', why: 'Projects back to vocabulary size and normalises, giving a distribution over the next token.' },
+  };
+  let sel = 'mha', stack = 6, causal = true;
+
+  const sCtl = slider('stacked blocks N', { min: 1, max: 12, step: 1, value: 6, format: v => String(v), onInput: v => { stack = v; refresh(); } });
+  const cCtl = toggle('Decoder (causal mask)', { value: true, onChange: v => { causal = v; refresh(); } });
+  const out = readout([['component', 0], ['blocks', 0], ['mixes across positions', 0], ['residual paths per block', 0]]);
+  const st = status('');
+  right.append(sCtl.root, cCtl.root, out.root, st.root);
+
+  const order = () => ['embed', 'pos', 'mha', ...(causal ? ['mask'] : []), 'add1', 'ff', 'add2', 'head'];
+
+  function refresh() {
+    const P = PARTS[sel];
+    out.set([
+      P.label,
+      String(stack),
+      { html: sel === 'mha' || sel === 'mask' ? 'yes' : 'no', cls: sel === 'mha' || sel === 'mask' ? 'is-ok' : '' },
+      '2 (one per sublayer)',
+    ]);
+    st.set(`${INFO}<span><strong>${P.label}.</strong> ${P.why}</span>`, 'info');
+    plot.render();
+  }
+
+  plot.onDraw(p => {
+    const seq = order();
+    p.o.xmin = -.2; p.o.xmax = 4.2;
+    p.o.ymin = -.6; p.o.ymax = seq.length + .6;
+    p._computeScale();
+    p.clear(null);
+    seq.forEach((k, idx) => {
+      const y = seq.length - 1 - idx;
+      const isSel = k === sel;
+      const inBlock = ['mha', 'mask', 'add1', 'ff', 'add2'].includes(k);
+      const col = k === 'mha' || k === 'mask' ? C.c2 : inBlock ? C.c1 : C.c5;
+      const [sx, sy] = p.toScreen([.55, y + .74]);
+      const w = Math.abs(p.px(2.6)), ht = Math.abs(p.px(.62));
+      p.ctx.beginPath();
+      const r = 7, x0 = sx, y0 = sy;
+      p.ctx.moveTo(x0 + r, y0);
+      p.ctx.arcTo(x0 + w, y0, x0 + w, y0 + ht, r);
+      p.ctx.arcTo(x0 + w, y0 + ht, x0, y0 + ht, r);
+      p.ctx.arcTo(x0, y0 + ht, x0, y0, r);
+      p.ctx.arcTo(x0, y0, x0 + w, y0, r);
+      p.ctx.closePath();
+      p.ctx.fillStyle = withA(col, isSel ? .38 : .14);
+      p.ctx.fill();
+      p.ctx.strokeStyle = col; p.ctx.lineWidth = isSel ? 3 : 1.6; p.ctx.stroke();
+      p.ctx.font = `${isSel ? 700 : 600} 11.5px ${css('--font-sans')}`;
+      p.ctx.textAlign = 'center'; p.ctx.textBaseline = 'middle';
+      p.ctx.fillStyle = C.ink;
+      p.ctx.fillText(PARTS[k].label, sx + w / 2, sy + ht / 2);
+      if (idx < seq.length - 1) {
+        const a = p.toScreen([1.85, y + .72]);
+        const b = p.toScreen([1.85, y + .1]);
+        p.ctx.strokeStyle = C.muted; p.ctx.lineWidth = 1.5;
+        p.ctx.beginPath(); p.ctx.moveTo(a[0], a[1]); p.ctx.lineTo(b[0], b[1]); p.ctx.stroke();
+        p.ctx.beginPath();
+        p.ctx.moveTo(b[0], b[1]); p.ctx.lineTo(b[0] - 4.5, b[1] - 6); p.ctx.lineTo(b[0] + 4.5, b[1] - 6);
+        p.ctx.fillStyle = C.muted; p.ctx.fill();
+      }
+    });
+    // residual arcs
+    const arc = (fromK, toK) => {
+      const seq2 = order();
+      const yi = seq2.length - 1 - seq2.indexOf(fromK);
+      const yj = seq2.length - 1 - seq2.indexOf(toK);
+      const a = p.toScreen([3.25, yi + .4]);
+      const b = p.toScreen([3.25, yj + .4]);
+      p.ctx.strokeStyle = withA(C.c3, .8); p.ctx.lineWidth = 2;
+      p.ctx.setLineDash([5, 4]);
+      p.ctx.beginPath();
+      p.ctx.moveTo(p.X(3.15), a[1]);
+      p.ctx.bezierCurveTo(p.X(3.95), a[1], p.X(3.95), b[1], p.X(3.15), b[1]);
+      p.ctx.stroke(); p.ctx.setLineDash([]);
+    };
+    arc(causal ? 'mask' : 'mha', 'add1');
+    arc('ff', 'add2');
+    p.text([3.75, order().length - 3.4], 'residual', { align: 'center', size: 9.5, color: C.c3 });
+    p.badge([.3, order().length - 1.6], `× ${stack}`, { color: C.c1, align: 'left' });
+    p.legend([[C.c5, 'input side'], [C.c1, 'per-position'], [C.c2, 'mixes positions'], [C.c3, 'residual']],
+      { corner: 'br', title: causal ? 'decoder block' : 'encoder block' });
+  });
+
+  // click to select a component
+  canvas.addEventListener('click', e => {
+    const w = plot.eventWorld(e);
+    const seq = order();
+    const idx = Math.round(seq.length - 1 - (w[1] - .74));
+    if (idx >= 0 && idx < seq.length) { sel = seq[idx]; refresh(); }
+  });
+
+  refresh();
+
+  node.appendChild(note(
+    `Click any block to read what it does. The structural point is worth stating plainly: of everything in the ` +
+    `stack, <strong>only attention moves information between positions</strong>. The feed-forward sublayer, the ` +
+    `normalisation and the output projection all act on each position separately and identically — you could ` +
+    `shuffle the tokens and they would not notice. That is also why positional encoding has to be injected at ` +
+    `the very bottom, and why the causal mask is enough to make the whole stack autoregressive. Toggle the mask ` +
+    `off to get the encoder block that BERT-style models stack instead.`
   ));
 });

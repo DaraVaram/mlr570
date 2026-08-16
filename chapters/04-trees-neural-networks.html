@@ -80,7 +80,9 @@
           <li><a href="#activations">Activation functions</a></li>
           <li><a href="#backprop">Backpropagation</a></li>
           <li><a href="#training">Training in practice</a></li>
+          <li><a href="#optim">Optimisers</a></li>
           <li><a href="#universal">Universal approximation</a></li>
+          <li><a href="#xor-study">Full XOR run-through</a></li>
         </ul>
       </div>
       <div class="sidebar__group">
@@ -106,7 +108,7 @@
       </p>
       <div class="chapter-head__stats">
         <span class="pill pill--live">Verified</span>
-        <span class="pill pill--play">10 interactive figures</span>
+        <span class="pill pill--play">12 interactive figures</span>
         <span class="pill pill--brand">2 parts</span>
       </div>
     </div>
@@ -987,6 +989,60 @@
       </li>
     </ul>
 
+    <h3 id="optim">How optimisers travel the loss surface</h3>
+
+    <p>
+      Plain gradient descent takes \(\theta \leftarrow \theta - \eta\nabla_\theta\mathcal{L}\) using the
+      whole dataset; <strong>SGD</strong> does the same on a mini-batch, which is noisier but far cheaper
+      and helps escape shallow minima. Two refinements dominate practice.
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Momentum</h4>
+        <p>
+          \[ \mathbf{v}_t = \mu\mathbf{v}_{t-1} - \eta\nabla_\theta\mathcal{L}_t, \qquad \theta_t = \theta_{t-1} + \mathbf{v}_t \]
+        </p>
+        <p>
+          A running average of past gradients. Components that keep pointing the same way accumulate;
+          components that oscillate cancel.
+        </p>
+      </div>
+      <div class="card">
+        <h4>RMSProp and Adam</h4>
+        <p>
+          \[ \mathbf{m}_t = \beta_1\mathbf{m}_{t-1} + (1-\beta_1)\mathbf{g}_t, \quad \mathbf{v}_t = \beta_2\mathbf{v}_{t-1} + (1-\beta_2)\mathbf{g}_t^2 \]
+          \[ \hat{\mathbf{m}}_t = \frac{\mathbf{m}_t}{1-\beta_1^t}, \quad \hat{\mathbf{v}}_t = \frac{\mathbf{v}_t}{1-\beta_2^t}, \quad \theta_t = \theta_{t-1} - \eta\frac{\hat{\mathbf{m}}_t}{\sqrt{\hat{\mathbf{v}}_t}+\epsilon} \]
+        </p>
+        <p>
+          Per-coordinate step sizes, scaled by a running estimate of gradient magnitude. The
+          \(1-\beta^t\) divisions correct the bias from starting the averages at zero.
+        </p>
+      </div>
+    </div>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Four optimisers, one starting point</div>
+          <div class="playground__sub">The differences only show up when the surface is badly conditioned</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="optimizers"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">The real problem is conditioning, not local minima</div>
+      <p>
+        The valley in that figure is 53 times steeper across than along. Plain gradient descent has one step
+        size for every direction, so \(\eta\) must stay below \(2/3.2 = 0.625\) to avoid diverging across
+        the valley — and at that size it crawls along it. Push the multiplier past 1.8 and watch GD explode
+        while Adam is untroubled. That gap in usable step size, not any story about escaping local minima,
+        is most of why adaptive optimisers became the default.
+      </p>
+    </div>
+
     <h3 id="universal">Universal approximation</h3>
 
     <p>
@@ -1010,6 +1066,55 @@
         </span>
       </div>
       <div class="playground__body" data-widget="universal-approx"></div>
+    </div>
+
+    <h3 id="xor-study">A full run-through: what each layer learns</h3>
+
+    <p>
+      The notes close the chapter with a complete worked experiment: a
+      \(2 \rightarrow 8 \rightarrow 8 \rightarrow 2\) network trained on the XOR dataset, with every hidden
+      unit's activation plotted over the input square. It is the clearest available answer to the question of
+      <em>where</em> the nonlinearity in a neural network actually comes from.
+    </p>
+
+    <div class="playground">
+      <div class="playground__head">
+        <div>
+          <div class="playground__title">Every unit in a 2 → 8 → 8 → 2 network</div>
+          <div class="playground__sub">Train it live, then read the three rows: cuts, then compositions, then a linear readout</div>
+        </div>
+        <span class="pill pill--play">Interactive</span>
+      </div>
+      <div class="playground__body" data-widget="fnn-layers"></div>
+    </div>
+
+    <div class="callout callout--intuition">
+      <div class="callout__title">No single unit is doing anything clever</div>
+      <p>
+        Each first-layer unit computes \(\mathrm{ReLU}(\mathbf{w}^\top\mathbf{x} + b)\). That is a
+        <em>half-plane</em> and nothing more — zero on one side of a line, linear on the other. Eight of them
+        give eight straight cuts. The second layer takes weighted combinations of those, which is how a
+        corner appears: "vertical edge <em>and</em> horizontal edge in the same place" is a sum of two
+        half-planes with a threshold. By the output layer the classes have been rearranged into a shape a
+        plain linear readout can separate.
+      </p>
+      <p>
+        This is the mechanism behind
+        <a href="#universal">universal approximation</a> made visible, and it is the same argument as the
+        <a href="05-cnns-rnns-transformers.html#channels">feature hierarchy in a CNN</a> — simple local
+        detectors, composed.
+      </p>
+    </div>
+
+    <div class="callout callout--warn">
+      <div class="callout__title">Dead ReLU units</div>
+      <p>
+        Watch the dead-unit counter. A ReLU unit whose weights push it negative across the whole input
+        region outputs zero everywhere — and since its gradient is also zero everywhere, it can never
+        recover. It is simply gone from the model. Reset the figure a few times and you will find seeds
+        where one or two units are born dead. This is what leaky ReLU, discussed
+        <a href="#activations">above</a>, exists to prevent.
+      </p>
     </div>
 
     <div class="callout callout--warn">
