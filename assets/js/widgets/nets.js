@@ -254,9 +254,9 @@ defineWidget('info-gain', node => {
       const total = g.length || 1;
       const wy = w * c.yes / total;
       pl.ctx.fillStyle = C.c3; pl.ctx.globalAlpha = .85;
-      pl.ctx.fillRect(pl.X(x), pl.Y(y + h), pl.px(wy), pl.px(h));
+      pl.ctx.fillRect(pl.X(x), pl.Y(y + h), pl.px(wy), pl.py(h));
       pl.ctx.fillStyle = C.c4;
-      pl.ctx.fillRect(pl.X(x + wy), pl.Y(y + h), pl.px(w - wy), pl.px(h));
+      pl.ctx.fillRect(pl.X(x + wy), pl.Y(y + h), pl.px(w - wy), pl.py(h));
       pl.ctx.globalAlpha = 1;
       pl.text([x + w / 2, y + h / 2], `${c.yes}Y / ${c.no}N`,
         { align: 'center', size: 11.5, weight: 700, color: C.raised });
@@ -373,7 +373,7 @@ defineWidget('tree-builder', node => {
       if (n.leaf) {
         const col = n.label === 'Yes' ? C.c3 : n.label === 'No' ? C.c4 : C.muted;
         pl.ctx.fillStyle = col; pl.ctx.globalAlpha = .9;
-        pl.ctx.fillRect(pl.X(cx - .42), pl.Y(y + .34), pl.px(.84), pl.px(.68));
+        pl.ctx.fillRect(pl.X(cx - .42), pl.Y(y + .34), pl.px(.84), pl.py(.68));
         pl.ctx.globalAlpha = 1;
         pl.text([cx, y], n.label, { align: 'center', size: 12, weight: 750, color: C.raised });
         const c = countYN(n.rows);
@@ -383,7 +383,7 @@ defineWidget('tree-builder', node => {
         pl.ctx.strokeStyle = C.c1; pl.ctx.lineWidth = 2;
         const w = .58 + n.feat.length * .13;
         pl.ctx.beginPath();
-        pl.ctx.roundRect(pl.X(cx - w / 2), pl.Y(y + .34), pl.px(w), pl.px(.68), 6);
+        pl.ctx.roundRect(pl.X(cx - w / 2), pl.Y(y + .34), pl.px(w), pl.py(.68), 6);
         pl.ctx.fill(); pl.ctx.stroke();
         pl.text([cx, y], n.feat, { align: 'center', size: 11.5, weight: 700, color: C.c1 });
         const kids = Object.entries(n.children);

@@ -333,7 +333,7 @@ defineWidget('kfold', node => {
         const x = .5 + f * boxW;
         p.ctx.fillStyle = isVal ? C.c2 : C.c1;
         p.ctx.globalAlpha = (activeFold >= 0 && round !== activeFold) ? .18 : (isVal ? .95 : .55);
-        p.ctx.fillRect(p.X(x) + 2, p.Y(y) , p.px(boxW) - 4, p.px(rowH) - 5);
+        p.ctx.fillRect(p.X(x) + 2, p.Y(y), p.px(boxW) - 4, p.py(rowH) - 5);
         p.ctx.globalAlpha = 1;
         if (boxW > .9 && (activeFold < 0 || round === activeFold)) {
           p.text([x + boxW / 2, y - rowH / 2 + .08], isVal ? 'val' : 'train', {
@@ -445,7 +445,7 @@ defineWidget('confusion-matrix', node => {
       const t = cell.v / mx;
       p.ctx.fillStyle = cell.col;
       p.ctx.globalAlpha = .16 + t * .62;
-      p.ctx.fillRect(p.X(X), p.Y(Y), p.px(w) - 4, p.px(h) - 4);
+      p.ctx.fillRect(p.X(X), p.Y(Y), p.px(w) - 4, p.py(h) - 4);
       p.ctx.globalAlpha = 1;
       p.text([X + w / 2, Y - h / 2 + .42], String(cell.v),
         { align: 'center', size: 22, weight: 750, color: t > .55 ? C.raised : C.ink, mono: true });
@@ -825,6 +825,7 @@ defineWidget('mse-mae', node => {
       if (side > .05) {
         p.ctx.fillStyle = C.c4; p.ctx.globalAlpha = .13;
         const x0 = p.X(i), y0 = p.Y(Math.max(t, pred[i]));
+        // deliberately a screen square — the area is what encodes e^2
         p.ctx.fillRect(x0, y0, p.px(side), p.px(side));
         p.ctx.globalAlpha = 1;
         p.ctx.strokeStyle = C.c4; p.ctx.lineWidth = 1; p.ctx.globalAlpha = .5;

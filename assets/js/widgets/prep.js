@@ -882,7 +882,6 @@ defineWidget('feature-selection', node => {
     const cols = [C.c1, C.c3, C.c4, C.muted, C.c2];
     scores.forEach((s, i) => {
       const yy = 4.5 - i;
-      const h = p.px(0);
       p.ctx.fillStyle = cols[i];
       p.ctx.globalAlpha = .85;
       const x0 = p.X(0), x1 = p.X(s);

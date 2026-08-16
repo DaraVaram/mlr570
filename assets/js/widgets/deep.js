@@ -138,14 +138,14 @@ defineWidget('conv-demo', node => {
       grayCell(p, X, Y, p.px(cell) + 1, p.px(cell) + 1, padded[i][j]);
       if (isPad) {
         p.ctx.fillStyle = withA(C.c2, .35);
-        p.ctx.fillRect(X, Y, p.px(cell) + 1, p.px(cell) + 1);
+        p.ctx.fillRect(X, Y, p.px(cell) + 1, p.py(cell) + 1);
       }
     }
     // kernel window
     const oi = Math.floor(pos / H2), oj = pos % H2;
     const kx = ox + oj * stride * cell, ky = oy - oi * stride * cell;
     p.ctx.strokeStyle = C.c4; p.ctx.lineWidth = 2.6;
-    p.ctx.strokeRect(p.X(kx), p.Y(ky), p.px(F * cell), p.px(F * cell));
+    p.ctx.strokeRect(p.X(kx), p.Y(ky), p.px(F * cell), p.py(F * cell));
     p.text([ox + M * cell / 2, oy - M * cell - .7], `input ${N}×${N}${pad ? ` (padded to ${M}×${M})` : ''}`,
       { align: 'center', size: 10.5, color: C.muted });
 
@@ -160,7 +160,7 @@ defineWidget('conv-demo', node => {
       grayCell(p, X, Y, p.px(ocell) + 1, p.px(ocell) + 1, t * 255);
       if (i === oi && j === oj) {
         p.ctx.strokeStyle = C.c4; p.ctx.lineWidth = 2.4;
-        p.ctx.strokeRect(X, Y, p.px(ocell), p.px(ocell));
+        p.ctx.strokeRect(X, Y, p.px(ocell), p.py(ocell));
       }
     }
     p.text([ox2 + H2 * ocell / 2, oy2 - H2 * ocell - .7], `feature map ${H2}×${H2}`,
@@ -340,14 +340,14 @@ defineWidget('pooling', node => {
         const t = hi - lo < 1e-9 ? .5 : (M[i][j] - lo) / (hi - lo);
         const X = p.X(ox + j * cs), Y = p.Y(oy - i * cs);
         p.ctx.fillStyle = withA(C.c1, .12 + t * .6);
-        p.ctx.fillRect(X + 1, Y + 1, p.px(cs) - 2, p.px(cs) - 2);
+        p.ctx.fillRect(X + 1, Y + 1, p.px(cs) - 2, p.py(cs) - 2);
         p.text([ox + j * cs + cs / 2, oy - i * cs - cs / 2], fmt(M[i][j], mode === 'avg' && n < N ? 2 : 0),
           { align: 'center', size: 10.5, weight: 600, color: t > .55 ? C.raised : C.ink, mono: true });
       }
       if (hlWin) {
         p.ctx.strokeStyle = C.c4; p.ctx.lineWidth = 2;
         for (let i = 0; i < n; i += 2) for (let j = 0; j < n; j += 2) {
-          p.ctx.strokeRect(p.X(ox + j * cs), p.Y(oy - i * cs), p.px(2 * cs), p.px(2 * cs));
+          p.ctx.strokeRect(p.X(ox + j * cs), p.Y(oy - i * cs), p.px(2 * cs), p.py(2 * cs));
         }
       }
       p.text([ox + n * cs / 2, oy + .45], label, { align: 'center', size: 11, color: C.muted, weight: 600 });
@@ -439,7 +439,7 @@ defineWidget('receptive-field', node => {
       for (let k = 0; k < s.R; k++) {
         const x = cx - (s.R * px) / 2 + k * px;
         p.ctx.fillStyle = li === 0 ? withA(C.muted, .35) : withA(C.c1, .25 + .5 * (li / rows));
-        p.ctx.fillRect(p.X(x) + .8, p.Y(y), Math.max(1, p.px(px) - 1.6), p.px(rowH * .42));
+        p.ctx.fillRect(p.X(x) + .8, p.Y(y), Math.max(1, p.px(px) - 1.6), p.py(rowH * .42));
       }
       const label = li === 0 ? 'input pixel' : `after layer ${li} (F=${layers[li - 1].F}, S=${layers[li - 1].S})`;
       p.text([1, y - rowH * .21], label, { size: 10.5, color: C.muted, weight: 600 });
@@ -570,7 +570,7 @@ defineWidget('rnn-unroll', node => {
       p.arrow([x, 2.6], [x, 4.65], { color: done ? C.c3 : C.grid, lw: done ? 2.2 : 1.3, head: 8 });
       p.ctx.fillStyle = done ? withA(C.c3, .25) : C.raised;
       p.ctx.strokeStyle = done ? C.c3 : C.grid; p.ctx.lineWidth = 1.8;
-      p.ctx.beginPath(); p.ctx.roundRect(p.X(x - .55), p.Y(2.4), p.px(1.1), p.px(1.0), 6);
+      p.ctx.beginPath(); p.ctx.roundRect(p.X(x - .55), p.Y(2.4), p.px(1.1), p.py(1.0), 6);
       p.ctx.fill(); p.ctx.stroke();
       p.text([x, 1.9], T.ch, { align: 'center', size: 14, weight: 750, color: done ? C.c3 : C.muted });
       p.text([x, 1.15], `x${'₁₂₃₄'[i]}`, { align: 'center', size: 9.5, color: C.muted });
@@ -580,7 +580,7 @@ defineWidget('rnn-unroll', node => {
       const best = T.p.indexOf(Math.max(...T.p));
       p.ctx.fillStyle = done ? withA(C.c2, .25) : C.raised;
       p.ctx.strokeStyle = done ? C.c2 : C.grid; p.ctx.lineWidth = 1.8;
-      p.ctx.beginPath(); p.ctx.roundRect(p.X(x - .55), p.Y(9.5), p.px(1.1), p.px(1.0), 6);
+      p.ctx.beginPath(); p.ctx.roundRect(p.X(x - .55), p.Y(9.5), p.px(1.1), p.py(1.0), 6);
       p.ctx.fill(); p.ctx.stroke();
       p.text([x, 9.0], done ? VOCAB[best] : '?', { align: 'center', size: 14, weight: 750, color: done ? C.c2 : C.muted });
       p.text([x, 10.1], `target ${T.tgt}`, { align: 'center', size: 9.5, color: C.muted });
@@ -824,7 +824,7 @@ defineWidget('positional-encoding', node => {
     p.o.xmin = 0; p.o.xmax = dModel; p.o.ymin = -padBot; p.o.ymax = T + padTop;
     p._computeScale();
     const rowY = pos => T - pos;                      // top edge of row `pos`
-    const cw = p.px(1), ch = p.px(1);
+    const cw = p.px(1), ch = p.py(1);
     for (let pos = 0; pos < T; pos++) for (let i = 0; i < dModel; i++) {
       const v = PE(pos, i);
       p.ctx.fillStyle = v >= 0 ? withA(C.c1, .1 + Math.abs(v) * .8) : withA(C.c4, .1 + Math.abs(v) * .8);
@@ -958,10 +958,10 @@ defineWidget('attention', node => {
       const v = A[i][j];
       const X = p.X(ox + j * cell), Y = p.Y(oy - i * cell);
       p.ctx.fillStyle = withA(C.c1, .05 + v * .9);
-      p.ctx.fillRect(X + 1, Y + 1, p.px(cell) - 2, p.px(cell) - 2);
+      p.ctx.fillRect(X + 1, Y + 1, p.px(cell) - 2, p.py(cell) - 2);
       if (i === query) {
         p.ctx.strokeStyle = C.c2; p.ctx.lineWidth = 2;
-        p.ctx.strokeRect(X + 1, Y + 1, p.px(cell) - 2, p.px(cell) - 2);
+        p.ctx.strokeRect(X + 1, Y + 1, p.px(cell) - 2, p.py(cell) - 2);
       }
       if (v > 0.005) {
         p.text([ox + j * cell + cell / 2, oy - i * cell - cell / 2], fmt(v, 2),
@@ -988,7 +988,7 @@ defineWidget('attention', node => {
     A[query].forEach((v, j) => {
       const x = ox + j * cell;
       p.ctx.fillStyle = C.c2; p.ctx.globalAlpha = .85;
-      p.ctx.fillRect(p.X(x + .12), p.Y(by + v * 1.15), p.px(cell - .24), p.px(v * 1.15));
+      p.ctx.fillRect(p.X(x + .12), p.Y(by + v * 1.15), p.px(cell - .24), p.py(v * 1.15));
       p.ctx.globalAlpha = 1;
     });
     p.line([ox, by], [ox + T * cell, by], { color: C.axis, lw: 1.2 });
@@ -1621,7 +1621,7 @@ defineWidget('seq-types', node => {
     p.clear(null);
     const box = (x, y, label, col, filled) => {
       const [sx, sy] = p.toScreen([x, y]);
-      const w = Math.abs(p.px(.62)), h = Math.abs(p.px(.52));
+      const w = Math.abs(p.px(.62)), h = Math.abs(p.py(.52));
       p.ctx.beginPath();
       const r = 5;
       const x0 = sx - w / 2, y0 = sy - h / 2;
@@ -1743,7 +1743,7 @@ defineWidget('rnn-sharing', node => {
     p.clear(null);
     const drawBox = (x, y, w, h, label, col, filled, lw) => {
       const [sx, sy] = p.toScreen([x, y]);
-      const pw = Math.abs(p.px(w)), ph = Math.abs(p.px(h));
+      const pw = Math.abs(p.px(w)), ph = Math.abs(p.py(h));
       const x0 = sx - pw / 2, y0 = sy - ph / 2, r = 6;
       p.ctx.beginPath();
       p.ctx.moveTo(x0 + r, y0);
@@ -1912,7 +1912,7 @@ defineWidget('gate-cell', node => {
     };
     const gateBox = (x, y, label, val, col) => {
       const [sx, sy] = p.toScreen([x, y]);
-      const w = Math.abs(p.px(1.15)), h = Math.abs(p.px(.62));
+      const w = Math.abs(p.px(1.15)), h = Math.abs(p.py(.62));
       p.ctx.fillStyle = withA(col, .13 + .5 * val);
       p.ctx.strokeStyle = col; p.ctx.lineWidth = 2;
       p.ctx.beginPath();
@@ -2288,7 +2288,7 @@ defineWidget('mha-heads', node => {
     p.clear(null);
     const rect = (x, y, w, ht, col, label, alpha) => {
       const [sx, sy] = p.toScreen([x, y + ht]);
-      const pw = Math.abs(p.px(w)), ph = Math.abs(p.px(ht));
+      const pw = Math.abs(p.px(w)), ph = Math.abs(p.py(ht));
       p.ctx.fillStyle = withA(col, alpha ?? .2);
       p.ctx.fillRect(sx, sy, pw, ph);
       p.ctx.strokeStyle = col; p.ctx.lineWidth = 1.4;
@@ -2395,7 +2395,7 @@ defineWidget('transformer-arch', node => {
       const inBlock = ['mha', 'mask', 'add1', 'ff', 'add2'].includes(k);
       const col = k === 'mha' || k === 'mask' ? C.c2 : inBlock ? C.c1 : C.c5;
       const [sx, sy] = p.toScreen([.55, y + .74]);
-      const w = Math.abs(p.px(2.6)), ht = Math.abs(p.px(.62));
+      const w = Math.abs(p.px(2.6)), ht = Math.abs(p.py(.62));
       p.ctx.beginPath();
       const r = 7, x0 = sx, y0 = sy;
       p.ctx.moveTo(x0 + r, y0);

@@ -168,8 +168,15 @@ export class Plot {
     const r = this.canvas.getBoundingClientRect();
     return this.toWorld(ev.clientX - r.left, ev.clientY - r.top);
   }
-  /** world length → pixels */
+  /**
+   * World length -> pixels.
+   * px() uses the horizontal scale and py() the vertical one. They are only
+   * interchangeable when the plot was built with equal: true; otherwise
+   * sizing a box's height with px() stretches it by sx/sy, which makes
+   * tiled cells overlap their neighbours.
+   */
   px(len) { return len * this.sx; }
+  py(len) { return len * this.sy; }
 
   /* render plumbing */
   onDraw(fn) { this._draw = fn; this.render(); return this; }
