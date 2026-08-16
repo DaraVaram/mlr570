@@ -91,7 +91,7 @@ function infoGain(rows, feat, measure = 'entropy') {
 defineWidget('entropy-gini', node => {
   const { right, canvas } = split(node, { hint: 'Drag the marker' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.05, xmax: 1.05, ymin: -.06, ymax: 1.12, aspect: 1.4, equal: false, pad: 0,
+    xmin: -.05, xmax: 1.05, ymin: -.06, ymax: 1.12, aspect: 1.15, equal: false, pad: 0,
   }));
 
   let p = 0.3, showScaled = false;
@@ -195,7 +195,7 @@ defineWidget('info-gain', node => {
   const work = el('div', { class: 'readout', style: 'margin-top:1rem' });
   wrap.appendChild(work);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 7, aspect: 1.5, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 7, aspect: 1.23, equal: false, pad: 0 }));
 
   const rowsFor = () => branch === 'all' ? TENNIS : TENNIS.filter(r => r[1] === branch);
 
@@ -300,7 +300,7 @@ defineWidget('info-gain', node => {
 defineWidget('tree-builder', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 12, ymin: 0, ymax: 8, aspect: 1.6, equal: false, pad: 0,
+    xmin: 0, xmax: 12, ymin: 0, ymax: 8, aspect: 1.31, equal: false, pad: 0,
   }));
 
   let depthLimit = 0, measure = 'entropy';
@@ -588,7 +588,7 @@ defineWidget('tree-boundary', node => {
 defineWidget('continuous-split', node => {
   const { right, canvas } = split(node, { hint: 'Drag the threshold', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 19.4, xmax: 22.6, ymin: -.34, ymax: 1.34, aspect: 1.8, equal: false, pad: 0,
+    xmin: 19.4, xmax: 22.6, ymin: -.34, ymax: 1.34, aspect: 1.48, equal: false, pad: 0,
   }));
 
   const DATA = [
@@ -681,7 +681,7 @@ defineWidget('continuous-split', node => {
 defineWidget('activations', node => {
   const { right, canvas } = split(node, { hint: 'Drag the marker', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -5, xmax: 5, ymin: -1.6, ymax: 2.2, aspect: 1.5, equal: false, pad: 0,
+    xmin: -5, xmax: 5, ymin: -1.6, ymax: 2.2, aspect: 1.23, equal: false, pad: 0,
   }));
 
   const ACTS = {
@@ -769,7 +769,7 @@ defineWidget('activations', node => {
 defineWidget('fnn-forward', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 10, ymin: 0, ymax: 7, aspect: 1.5, equal: false, pad: 0,
+    xmin: 0, xmax: 10, ymin: 0, ymax: 7, aspect: 1.23, equal: false, pad: 0,
   }));
 
   const r = ML.rng(31);
@@ -1211,7 +1211,7 @@ defineWidget('fnn-playground', node => {
 defineWidget('universal-approx', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.2, xmax: 6.5, ymin: -1.7, ymax: 1.7, aspect: 1.7, equal: false, pad: 0,
+    xmin: -.2, xmax: 6.5, ymin: -1.7, ymax: 1.7, aspect: 1.39, equal: false, pad: 0,
   }));
 
   let nUnits = 6, showPieces = true, target = 'sine';
@@ -1599,7 +1599,7 @@ defineWidget('fnn-layers', node => {
    ============================================================ */
 defineWidget('optimizers', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: -2.2, xmax: 2.2, ymin: -1.4, ymax: 1.4, aspect: 1.5, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: -2.2, xmax: 2.2, ymin: -1.4, ymax: 1.4, aspect: 1.23, equal: false, pad: 0 }));
 
   const SURF = {
     ravine: {

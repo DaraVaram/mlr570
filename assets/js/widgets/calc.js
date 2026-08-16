@@ -109,9 +109,9 @@ function hexRgb(h) {
    1. The derivative as a limit — watch the secant become tangent
    ============================================================ */
 defineWidget('derivative-limit', node => {
-  const { right, canvas } = split(node, { aspect: 1.5, hint: 'Drag the point a' });
+  const { right, canvas } = split(node, { aspect: 1.23, hint: 'Drag the point a' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -1, xmax: 4.2, ymin: -2, ymax: 16.5, aspect: 1.5, equal: false, pad: 0,
+    xmin: -1, xmax: 4.2, ymin: -2, ymax: 16.5, aspect: 1.23, equal: false, pad: 0,
   }));
 
   const FS = {
@@ -216,9 +216,9 @@ defineWidget('derivative-limit', node => {
    2. Gradient descent on a loss surface
    ============================================================ */
 defineWidget('gradient-descent', node => {
-  const { right, canvas } = split(node, { aspect: 1.25, wide: true, hint: 'Click anywhere to drop a start point' });
+  const { right, canvas } = split(node, { aspect: 1.05, wide: true, hint: 'Click anywhere to drop a start point' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.2, xmax: 3.2, ymin: -2.6, ymax: 2.6, aspect: 1.25, pad: 0,
+    xmin: -3.2, xmax: 3.2, ymin: -2.6, ymax: 2.6, aspect: 1.05, pad: 0,
   }));
 
   const SURF = {
@@ -381,9 +381,9 @@ defineWidget('gradient-descent', node => {
    3. Convexity — the chord test
    ============================================================ */
 defineWidget('convexity', node => {
-  const { right, canvas } = split(node, { aspect: 1.5, hint: 'Drag the two endpoints' });
+  const { right, canvas } = split(node, { aspect: 1.23, hint: 'Drag the two endpoints' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.2, xmax: 3.2, ymin: -3, ymax: 7, aspect: 1.5, equal: false, pad: 0,
+    xmin: -3.2, xmax: 3.2, ymin: -3, ymax: 7, aspect: 1.23, equal: false, pad: 0,
   }));
 
   const FS = {
@@ -494,9 +494,9 @@ defineWidget('convexity', node => {
    4. Quadratic forms, the Hessian, and definiteness
    ============================================================ */
 defineWidget('quadratic-form', node => {
-  const { right, canvas } = split(node, { aspect: 1.2, wide: true, hint: 'Drag x around the circle' });
+  const { right, canvas } = split(node, { aspect: 1.05, wide: true, hint: 'Drag x around the circle' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -2.6, xmax: 2.6, ymin: -2.6, ymax: 2.6, aspect: 1.2, pad: 0,
+    xmin: -2.6, xmax: 2.6, ymin: -2.6, ymax: 2.6, aspect: 1.05, pad: 0,
   }));
 
   let A = [[2, 1], [1, 3]];
@@ -615,9 +615,9 @@ defineWidget('quadratic-form', node => {
    5. Chain rule as a computation graph
    ============================================================ */
 defineWidget('chain-rule', node => {
-  const { right, canvas } = split(node, { aspect: 2.1 });
+  const { right, canvas } = split(node, { aspect: 1.72 });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 10, ymin: 0, ymax: 4.6, aspect: 2.1, equal: false, pad: 0,
+    xmin: 0, xmax: 10, ymin: 0, ymax: 4.6, aspect: 1.72, equal: false, pad: 0,
   }));
 
   let x = 1.5;
@@ -697,9 +697,9 @@ defineWidget('chain-rule', node => {
    6. Big-O — how cost scales
    ============================================================ */
 defineWidget('bigo', node => {
-  const { right, canvas } = split(node, { aspect: 1.55, wide: true });
+  const { right, canvas } = split(node, { aspect: 1.27, wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 500, ymin: 0, ymax: 1, aspect: 1.55, equal: false, pad: 0,
+    xmin: 0, xmax: 500, ymin: 0, ymax: 1, aspect: 1.27, equal: false, pad: 0,
   }));
 
   let n = 200, logScale = true;

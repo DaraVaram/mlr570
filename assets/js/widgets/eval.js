@@ -79,7 +79,7 @@ defineWidget('data-split', node => {
   const st = status('');
   right.append(trCtl.root, vaCtl.root, out.root, st.root);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 100, ymin: 0, ymax: 26, aspect: 2.6, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 100, ymin: 0, ymax: 26, aspect: 2.13, equal: false, pad: 0 }));
 
   function refresh() {
     const test = 100 - train - val;
@@ -138,7 +138,7 @@ defineWidget('data-split', node => {
 defineWidget('overfitting', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.3, xmax: 1.3, ymin: -1.9, ymax: 1.9, aspect: 1.35, equal: false, pad: 0,
+    xmin: -.3, xmax: 1.3, ymin: -1.9, ymax: 1.9, aspect: 1.11, equal: false, pad: 0,
   }));
 
   let degree = 3, noise = .22, nTrain = 14;
@@ -289,7 +289,7 @@ defineWidget('kfold', node => {
   const st = status('');
   right.append(kCtl.root, acts, out.root, st.root);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 10, aspect: 1.5, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 10, aspect: 1.23, equal: false, pad: 0 }));
 
   let timer = null;
   function step() {
@@ -407,7 +407,7 @@ defineWidget('confusion-matrix', node => {
     refresh();
   }
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 8.6, aspect: 1.35, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 8.6, aspect: 1.11, equal: false, pad: 0 }));
 
   let m = null;
   function refresh() {
@@ -672,7 +672,7 @@ defineWidget('threshold-roc', node => {
 defineWidget('fbeta', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 4.1, ymin: 0, ymax: 1.05, aspect: 1.6, equal: false, pad: 0,
+    xmin: 0, xmax: 4.1, ymin: 0, ymax: 1.05, aspect: 1.31, equal: false, pad: 0,
   }));
 
   let P = .9, R = .5294, beta = 1;
@@ -769,7 +769,7 @@ defineWidget('fbeta', node => {
 defineWidget('mse-mae', node => {
   const { right, canvas } = split(node, { hint: 'Drag any point', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.5, xmax: 5.5, ymin: -1.75, ymax: 15.5, aspect: 1.4, equal: false, pad: 0,
+    xmin: -.5, xmax: 5.5, ymin: -1.75, ymax: 15.5, aspect: 1.15, equal: false, pad: 0,
   }));
 
   const truth = [3, 0.5, 2, 7, 4];

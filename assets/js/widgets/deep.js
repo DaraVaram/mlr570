@@ -78,7 +78,7 @@ defineWidget('conv-demo', node => {
   right.append(out.root, st.root);
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 34, ymin: 0, ymax: 20, aspect: 1.7, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 34, ymin: 0, ymax: 20, aspect: 1.39, equal: false, pad: 0 }));
 
   let padded = [], outMap = [], H2 = 0;
   const F = 3;
@@ -189,7 +189,7 @@ defineWidget('conv-demo', node => {
 defineWidget('conv-arith', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 12, ymin: 0, ymax: 8, aspect: 1.7, equal: false, pad: 0,
+    xmin: 0, xmax: 12, ymin: 0, ymax: 8, aspect: 1.39, equal: false, pad: 0,
   }));
 
   let H = 32, F = 3, S = 1, P = 1, Cin = 3, Cout = 16;
@@ -271,7 +271,7 @@ defineWidget('conv-arith', node => {
 defineWidget('pooling', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 22, ymin: 0, ymax: 12, aspect: 1.8, equal: false, pad: 0,
+    xmin: 0, xmax: 22, ymin: 0, ymax: 12, aspect: 1.48, equal: false, pad: 0,
   }));
 
   const N = 8;
@@ -375,7 +375,7 @@ defineWidget('pooling', node => {
 defineWidget('receptive-field', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 40, ymin: 0, ymax: 14, aspect: 1.7, equal: false, pad: 0,
+    xmin: 0, xmax: 40, ymin: 0, ymax: 14, aspect: 1.39, equal: false, pad: 0,
   }));
 
   let layers = [{ F: 3, S: 1 }, { F: 3, S: 1 }];
@@ -496,7 +496,7 @@ defineWidget('rnn-unroll', node => {
   right.append(out.root, st.root);
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 20, ymin: 0, ymax: 11, aspect: 1.7, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 20, ymin: 0, ymax: 11, aspect: 1.39, equal: false, pad: 0 }));
 
   const mv = (M, v) => M.map(row => row.reduce((s, w, j) => s + w * v[j], 0));
   const softmax = z => { const m = Math.max(...z); const e = z.map(v => Math.exp(v - m)); const s = e.reduce((a, b) => a + b, 0); return e.map(v => v / s); };
@@ -606,7 +606,7 @@ defineWidget('rnn-unroll', node => {
 defineWidget('vanishing-gradient', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 21, ymin: -9, ymax: 0.6, aspect: 1.6, equal: false, pad: 0,
+    xmin: 0, xmax: 21, ymin: -9, ymax: 0.6, aspect: 1.31, equal: false, pad: 0,
   }));
 
   let w = 0.8, alpha = 0.25, z = 0.10, r = 0, wh = 1.0, T = 10;
@@ -693,7 +693,7 @@ defineWidget('vanishing-gradient', node => {
 defineWidget('gru-gates', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 21, ymin: -1.35, ymax: 1.35, aspect: 1.7, equal: false, pad: 0,
+    xmin: 0, xmax: 21, ymin: -1.35, ymax: 1.35, aspect: 1.39, equal: false, pad: 0,
   }));
 
   let z = 0.15, r = 0.5, T = 20;
@@ -789,8 +789,8 @@ defineWidget('positional-encoding', node => {
   const st = status('');
   wrap.append(grid, el('div', { class: 'pg-controls', style: 'margin-top:1rem' }, dCtl.root, tCtl.root, pCtl.root, pairCtl.root, out.root, st.root));
 
-  const plot = trackPlot(new Plot(cvHeat, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.2, equal: false, pad: 0 }));
-  const plot2 = trackPlot(new Plot(cvSim, { xmin: 0, xmax: 1, ymin: -1.1, ymax: 1.1, aspect: 1.2, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cvHeat, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.05, equal: false, pad: 0 }));
+  const plot2 = trackPlot(new Plot(cvSim, { xmin: 0, xmax: 1, ymin: -1.1, ymax: 1.1, aspect: 1.05, equal: false, pad: 0 }));
 
   const PE = (p, i) => {
     const k = Math.floor(i / 2);
@@ -911,7 +911,7 @@ defineWidget('attention', node => {
   right.append(out.root, st.root);
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 14, ymin: 0, ymax: 10, aspect: 1.45, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 14, ymin: 0, ymax: 10, aspect: 1.19, equal: false, pad: 0 }));
 
   const mv = (M, v) => M.map(row => row.reduce((s, w, j) => s + w * v[j], 0));
   const proj = (E, W) => E.map(e => W.map(row => row.reduce((s, w, j) => s + w * e[j], 0)));
@@ -1015,7 +1015,7 @@ defineWidget('attention', node => {
 defineWidget('attention-scaling', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.6, equal: false, pad: 0,
+    xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.31, equal: false, pad: 0,
   }));
 
   let dk = 64, scaled = true, T = 12;
@@ -1105,7 +1105,7 @@ defineWidget('attention-scaling', node => {
    ============================================================ */
 defineWidget('image-numbers', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.23, equal: true, pad: 0 }));
 
   const N = 16;
   /* A small grayscale glyph, drawn analytically so it needs no asset. */
@@ -1214,7 +1214,7 @@ defineWidget('image-numbers', node => {
    ============================================================ */
 defineWidget('padding-modes', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.7, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.39, equal: true, pad: 0 }));
 
   let H = 7, F = 3, mode = 'same', layers = 1;
   const hCtl = slider('input size H', { min: 5, max: 12, step: 1, value: 7, format: v => `${v}×${v}`, onInput: v => { H = v; refresh(); } });
@@ -1481,7 +1481,7 @@ defineWidget('feature-hierarchy', node => {
    ============================================================ */
 defineWidget('arch-evolution', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.55, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.27, equal: false, pad: 0 }));
 
   /* Every number here is from the chapter's own summary table, plus the
      published ImageNet top-5 errors for the winning entries. */
@@ -1582,7 +1582,7 @@ defineWidget('arch-evolution', node => {
    ============================================================ */
 defineWidget('seq-types', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.7, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.39, equal: false, pad: 0 }));
 
   const PATTERNS = {
     o2m: { label: 'One-to-many', task: 'Image captioning', ins: 1, outs: 5,
@@ -1705,7 +1705,7 @@ defineWidget('seq-types', node => {
    ============================================================ */
 defineWidget('rnn-sharing', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.7, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.39, equal: false, pad: 0 }));
 
   let view = 'unrolled', T = 4, hi = null, inside = false;
   const vCtl = segmented([{ label: 'Rolled', value: 'rolled' }, { label: 'Unrolled', value: 'unrolled' }],
@@ -1848,7 +1848,7 @@ defineWidget('rnn-sharing', node => {
    ============================================================ */
 defineWidget('gate-cell', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.23, equal: false, pad: 0 }));
 
   let kind = 'lstm', f = .9, i = .4, o = .7, z = .3, r = .8, cPrev = .6, cand = .5;
   const kCtl = segmented([{ label: 'LSTM', value: 'lstm' }, { label: 'GRU', value: 'gru' }],
@@ -2251,7 +2251,7 @@ defineWidget('qkv-build', node => {
    ============================================================ */
 defineWidget('mha-heads', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.55, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.27, equal: false, pad: 0 }));
 
   let dModel = 64, h = 8, showHead = 0;
   const dCtl = slider('d_model', { min: 16, max: 256, step: 16, value: 64, format: v => String(v), onInput: v => { dModel = v; refresh(); } });

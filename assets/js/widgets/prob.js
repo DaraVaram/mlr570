@@ -119,9 +119,9 @@ defineWidget('distributions', node => {
   let key = 'binomial';
   let P = {};
 
-  const { right, canvas } = split(node, { aspect: 1.55, wide: true });
+  const { right, canvas } = split(node, { aspect: 1.27, wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -1, xmax: 13, ymin: 0, ymax: 1, aspect: 1.55, equal: false, pad: 0,
+    xmin: -1, xmax: 13, ymin: 0, ymax: 1, aspect: 1.27, equal: false, pad: 0,
   }));
 
   const pick = segmented(
@@ -197,7 +197,8 @@ defineWidget('distributions', node => {
       // mean marker
       const m = d.mean(P);
       p.line([m, 0], [m, 1], { color: C.c4, lw: 1.6, dash: [5, 4] });
-      p.badge([m, .97], `E[X] = ${fmt(m, 2)}`, { color: C.c4, align: 'center', dy: 14 });
+      // sits on the mean's rule, clear of the y tick column at the left
+      p.badge([m, .97], `E[X] = ${fmt(m, 2)}`, { color: C.c4, align: 'center', dy: 26 });
     } else {
       const [lo, hi] = d.range(P);
       let mx = 1e-9;
@@ -251,9 +252,9 @@ defineWidget('distributions', node => {
    2. Central Limit Theorem
    ============================================================ */
 defineWidget('clt', node => {
-  const { right, canvas } = split(node, { aspect: 1.5, wide: true });
+  const { right, canvas } = split(node, { aspect: 1.23, wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -1, xmax: 1, ymin: 0, ymax: 1.12, aspect: 1.5, equal: false, pad: 0,
+    xmin: -1, xmax: 1, ymin: 0, ymax: 1.12, aspect: 1.23, equal: false, pad: 0,
   }));
 
   const parents = {
@@ -388,9 +389,9 @@ defineWidget('clt', node => {
    3. Law of Large Numbers
    ============================================================ */
 defineWidget('lln', node => {
-  const { right, canvas } = split(node, { aspect: 1.9 });
+  const { right, canvas } = split(node, { aspect: 1.56 });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 500, ymin: 0, ymax: 1, aspect: 1.9, equal: false, pad: 0,
+    xmin: 0, xmax: 500, ymin: 0, ymax: 1, aspect: 1.56, equal: false, pad: 0,
   }));
 
   let p0 = .5, N = 500, eps = .08;
@@ -498,7 +499,7 @@ defineWidget('bayes', node => {
   const st = status('');
   right.append(prevCtl.root, sensCtl.root, fprCtl.root, out.root, st.root);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 40, ymin: 0, ymax: 25, aspect: 1.6, pad: 6 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 40, ymin: 0, ymax: 25, aspect: 1.31, pad: 6 }));
 
   function stats() {
     const pPos = sens * prev + fpr * (1 - prev);
@@ -613,7 +614,7 @@ defineWidget('joint-table', node => {
     c.addEventListener('focus', () => { selRow = i; selCol = j; refresh(); });
   }));
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 3, ymin: 0, ymax: 2, aspect: 1.55, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 3, ymin: 0, ymax: 2, aspect: 1.27, pad: 0 }));
 
   const marginX = () => J.map(r => r.reduce((a, b) => a + b, 0));
   const marginY = () => J[0].map((_, j) => J.reduce((a, r) => a + r[j], 0));
@@ -704,9 +705,9 @@ defineWidget('joint-table', node => {
    6. Covariance and correlation
    ============================================================ */
 defineWidget('covariance', node => {
-  const { right, canvas } = split(node, { aspect: 1.25 });
+  const { right, canvas } = split(node, { aspect: 1.05 });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.4, xmax: 3.4, ymin: -3.4, ymax: 3.4, aspect: 1.25, pad: 6,
+    xmin: -3.4, xmax: 3.4, ymin: -3.4, ymax: 3.4, aspect: 1.05, pad: 6,
   }));
 
   let rho = .7, sx = 1, sy = 1, n = 320;

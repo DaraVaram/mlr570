@@ -83,7 +83,7 @@ defineWidget('kmeans-lab', node => {
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
   wrap.appendChild(tableHost);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 12, aspect: 1.25, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 12, aspect: 1.05, equal: true, pad: 0 }));
 
   function rebuild() {
     frames = CL.lloydTrace(X, SEEDS[seedKey].z);
@@ -173,7 +173,7 @@ defineWidget('kmeans-lab', node => {
    ============================================================ */
 defineWidget('kmeans-anova', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.6, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.31, equal: false, pad: 0 }));
 
   const DATA = {
     notes: { label: "Notes' 10 points", pts: [[1, 1], [1.5, 2], [3, 4], [5, 7], [3.5, 5], [4.5, 5], [3.5, 4.5], [2, 2], [8, 8], [9, 11]] },
@@ -265,7 +265,7 @@ defineWidget('kmeans-anova', node => {
    ============================================================ */
 defineWidget('kmeans-init', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.23, equal: true, pad: 0 }));
 
   const pts = ML.blobs({ n: 201, spread: .42, seed: 8 }).points;
   let mode = 'random', seed = 1, k = 3;
@@ -335,7 +335,7 @@ defineWidget('kmeans-init', node => {
    ============================================================ */
 defineWidget('kmeans-limits', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.23, equal: true, pad: 0 }));
 
   const SETS = {
     moons: { label: 'Two moons', k: 2, make: () => CL.moons({ n: 160 }) },
@@ -429,7 +429,7 @@ defineWidget('kmeans-limits', node => {
    ============================================================ */
 defineWidget('kmedoids-demo', node => {
   const { right, canvas } = split(node, { hint: 'Drag the orange point', wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: -6, xmax: 14, ymin: -5, ymax: 11, aspect: 1.4, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: -6, xmax: 14, ymin: -5, ymax: 11, aspect: 1.15, equal: true, pad: 0 }));
 
   const base = [];
   const r = ML.rng(17);
@@ -533,7 +533,7 @@ defineWidget('kmedoids-demo', node => {
    ============================================================ */
 defineWidget('kernel-kmeans', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.5, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.23, equal: true, pad: 0 }));
 
   const SETS = {
     circles: { label: 'Concentric circles', make: () => CL.circles({ n: 110 }) },
@@ -656,7 +656,7 @@ defineWidget('dbscan-toy', node => {
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
   wrap.appendChild(tableHost);
 
-  const plot = trackPlot(new Plot(cv, { xmin: -2, xmax: 14, ymin: -2, ymax: 12, aspect: 1.35, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: -2, xmax: 14, ymin: -2, ymax: 12, aspect: 1.11, equal: true, pad: 0 }));
 
   let res = null;
   function refresh() {
@@ -774,8 +774,8 @@ defineWidget('dbscan-lab', node => {
   const st = status('');
   wrap.append(grid, el('div', { class: 'pg-controls', style: 'margin-top:1rem' }, eCtl.root, mCtl.root, acts, out.root, st.root));
 
-  const plot = trackPlot(new Plot(cv1, { xmin: -4, xmax: 4, ymin: -3, ymax: 3, aspect: 1.25, equal: true, pad: 0 }));
-  const plot2 = trackPlot(new Plot(cv2, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.25, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv1, { xmin: -4, xmax: 4, ymin: -3, ymax: 3, aspect: 1.05, equal: true, pad: 0 }));
+  const plot2 = trackPlot(new Plot(cv2, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.05, equal: false, pad: 0 }));
 
   let res = null, kd = [], sorted = [], knee = 0;
   function refresh() {
@@ -895,7 +895,7 @@ defineWidget('gmm-em', node => {
   right.append(out.root, st.root);
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
 
-  const plot = trackPlot(new Plot(cv, { xmin: -4, xmax: 4, ymin: -3, ymax: 3, aspect: 1.35, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: -4, xmax: 4, ymin: -3, ymax: 3, aspect: 1.11, equal: true, pad: 0 }));
 
   function rebuild() {
     frames = CL.gmmEM(pts, k, { seed: 6, tied: cov === 'full' ? null : cov });
@@ -989,7 +989,7 @@ defineWidget('gmm-em', node => {
    ============================================================ */
 defineWidget('ae-pca', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: -3, xmax: 3, ymin: -2, ymax: 2, aspect: 1.5, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: -3, xmax: 3, ymin: -2, ymax: 2, aspect: 1.23, equal: true, pad: 0 }));
 
   const data = CL.curveData({ n: 110, bend: 0, noise: .28, seed: 12 });
   let net = CL.makeAE(2, 3, 1, { seed: 4, linear: true });
@@ -1088,7 +1088,7 @@ defineWidget('ae-pca', node => {
    ============================================================ */
 defineWidget('ae-nonlinear', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: -3, xmax: 3, ymin: -2, ymax: 2, aspect: 1.5, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: -3, xmax: 3, ymin: -2, ymax: 2, aspect: 1.23, equal: true, pad: 0 }));
 
   let bend = 1, linear = false, epoch = 0, running = false, raf = null;
   let data = CL.curveData({ n: 110, bend, noise: .05, seed: 12 });
@@ -1192,7 +1192,7 @@ defineWidget('ae-nonlinear', node => {
    ============================================================ */
 defineWidget('sparse-kl', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.6, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: 0, xmax: 1, ymin: 0, ymax: 1, aspect: 1.31, equal: false, pad: 0 }));
 
   let rho = .05, beta = 3, rhoHat = .3;
   const rCtl = slider('target sparsity ρ', { min: .01, max: .5, step: .01, value: .05, onInput: v => { rho = v; refresh(); } });
@@ -1269,7 +1269,7 @@ defineWidget('sparse-kl', node => {
    ============================================================ */
 defineWidget('vae-latent', node => {
   const { right, canvas } = split(node, { wide: true });
-  const plot = trackPlot(new Plot(canvas, { xmin: -3.4, xmax: 3.4, ymin: -2.6, ymax: 2.6, aspect: 1.4, equal: true, pad: 0 }));
+  const plot = trackPlot(new Plot(canvas, { xmin: -3.4, xmax: 3.4, ymin: -2.6, ymax: 2.6, aspect: 1.15, equal: true, pad: 0 }));
 
   let sigma = .55, spread = 1.9, showPrior = true;
   const sCtl = slider('encoder σ (per-point spread)', { min: .05, max: 1.5, step: .01, value: .55, onInput: v => { sigma = v; refresh(); } });

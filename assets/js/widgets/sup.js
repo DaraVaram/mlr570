@@ -176,7 +176,7 @@ function hexRgb(h) {
 defineWidget('linear-separability', node => {
   const { right, canvas } = split(node, { hint: 'Drag the line handles', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -4.5, xmax: 4.5, ymin: -4.5, ymax: 3.5, aspect: 1.3, pad: 8,
+    xmin: -4.5, xmax: 4.5, ymin: -4.5, ymax: 3.5, aspect: 1.07, pad: 8,
   }));
 
   const DATA = [
@@ -282,7 +282,7 @@ defineWidget('linear-separability', node => {
 defineWidget('perceptron', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -4.5, xmax: 4.5, ymin: -4.5, ymax: 3.5, aspect: 1.3, pad: 8,
+    xmin: -4.5, xmax: 4.5, ymin: -4.5, ymax: 3.5, aspect: 1.07, pad: 8,
   }));
 
   const NOTES_DATA = [
@@ -406,7 +406,7 @@ defineWidget('perceptron', node => {
 defineWidget('svm-margin', node => {
   const { right, canvas } = split(node, { hint: 'Drag any point', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.4, xmax: 4.2, ymin: -3, ymax: 3.6, aspect: 1.3, pad: 8,
+    xmin: -3.4, xmax: 4.2, ymin: -3, ymax: 3.6, aspect: 1.07, pad: 8,
   }));
 
   const NOTES_POS = [[2.0, 2.0], [3.0, 1.6], [2.6, 2.6], [3.0, 2.6], [2.0, 3.0]];
@@ -517,7 +517,7 @@ defineWidget('svm-margin', node => {
 defineWidget('ols-wls', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.3, xmax: 10.3, ymin: -4, ymax: 22, aspect: 1.45, equal: false, pad: 0,
+    xmin: -.3, xmax: 10.3, ymin: -4, ymax: 22, aspect: 1.19, equal: false, pad: 0,
   }));
 
   let hetero = 1.0, showWLS = true, showResid = false;
@@ -621,7 +621,7 @@ defineWidget('ols-wls', node => {
 defineWidget('ridge', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.2, xmax: 1.45, ymin: -2, ymax: 3, aspect: 1.5, equal: false, pad: 0,
+    xmin: -3.2, xmax: 1.45, ymin: -2, ymax: 3, aspect: 1.23, equal: false, pad: 0,
   }));
 
   // the notes' worked example
@@ -721,7 +721,7 @@ defineWidget('ridge', node => {
 defineWidget('feature-lift', node => {
   const { right, canvas } = split(node, { hint: 'Drag to orbit', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -2.8, xmax: 2.8, ymin: -2.2, ymax: 2.2, aspect: 1.4, pad: 6,
+    xmin: -2.8, xmax: 2.8, ymin: -2.2, ymax: 2.2, aspect: 1.15, pad: 6,
   }));
 
   const { pts, y } = DATASETS.circle();
@@ -975,7 +975,7 @@ defineWidget('kernel-expansion', node => {
 defineWidget('kernel-regression', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.4, xmax: 6.7, ymin: -2.2, ymax: 2.2, aspect: 1.5, equal: false, pad: 0,
+    xmin: -.4, xmax: 6.7, ymin: -2.2, ymax: 2.2, aspect: 1.23, equal: false, pad: 0,
   }));
 
   let kKey = 'rbf', gamma = 1.4, logLam = -2, noise = .18;

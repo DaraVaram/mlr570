@@ -26,7 +26,7 @@ const note = html => el('div', { class: 'pg-note', html });
 defineWidget('vector-add', node => {
   const { right, canvas } = split(node, { hint: 'Drag the arrow tips' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -6, xmax: 6, ymin: -4.2, ymax: 4.2, aspect: 1.45, pad: 8,
+    xmin: -6, xmax: 6, ymin: -4.2, ymax: 4.2, aspect: 1.19, pad: 8,
   }));
 
   const S = { a: [3, 1], b: [1, 2.4], mode: 'add' };
@@ -169,9 +169,9 @@ defineWidget('matmul', node => {
    3. Linear systems — two lines, three outcomes
    ============================================================ */
 defineWidget('linsys', node => {
-  const { right, canvas } = split(node, { aspect: 1.35, hint: 'Drag either line' });
+  const { right, canvas } = split(node, { aspect: 1.11, hint: 'Drag either line' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -6, xmax: 6, ymin: -5, ymax: 5, aspect: 1.35, pad: 8,
+    xmin: -6, xmax: 6, ymin: -5, ymax: 5, aspect: 1.11, pad: 8,
   }));
 
   const S = { a1: 1, b1: 1, c1: 3, a2: 2, b2: -1, c2: 0 };
@@ -289,9 +289,9 @@ defineWidget('linsys', node => {
       det, rank, eigenvectors, invertibility in one picture
    ============================================================ */
 defineWidget('transform2d', node => {
-  const { right, canvas } = split(node, { aspect: 1.15, wide: true, hint: 'Drag the coloured basis arrows' });
+  const { right, canvas } = split(node, { aspect: 1.05, wide: true, hint: 'Drag the coloured basis arrows' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -4.2, xmax: 4.2, ymin: -4.2, ymax: 4.2, aspect: 1.15, pad: 8,
+    xmin: -4.2, xmax: 4.2, ymin: -4.2, ymax: 4.2, aspect: 1.05, pad: 8,
   }));
 
   // A = [[a,b],[c,d]]; columns are the images of e1 and e2
@@ -433,9 +433,9 @@ defineWidget('transform2d', node => {
    5. Eigenvector hunt — drag v until Av lines up with it
    ============================================================ */
 defineWidget('eigen-explore', node => {
-  const { right, canvas } = split(node, { aspect: 1.25, hint: 'Drag the blue arrow around' });
+  const { right, canvas } = split(node, { aspect: 1.05, hint: 'Drag the blue arrow around' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -4, xmax: 4, ymin: -3.4, ymax: 3.4, aspect: 1.25, pad: 8,
+    xmin: -4, xmax: 4, ymin: -3.4, ymax: 3.4, aspect: 1.05, pad: 8,
   }));
 
   let A = [4, 1, 2, 3];               // the notes' example: λ = 5, 2
@@ -540,9 +540,9 @@ defineWidget('eigen-explore', node => {
    6. Rank in 3D — watch a cube collapse
    ============================================================ */
 defineWidget('rank3d', node => {
-  const { right, canvas } = split(node, { aspect: 1.4, hint: 'Drag to orbit' });
+  const { right, canvas } = split(node, { aspect: 1.15, hint: 'Drag to orbit' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -2.6, xmax: 2.6, ymin: -2.1, ymax: 2.1, aspect: 1.4, pad: 6,
+    xmin: -2.6, xmax: 2.6, ymin: -2.1, ymax: 2.1, aspect: 1.15, pad: 6,
   }));
 
   let yaw = 0.72, pitch = 0.42;
@@ -657,9 +657,9 @@ defineWidget('rank3d', node => {
    7. SVD geometry — rotate, stretch, rotate
    ============================================================ */
 defineWidget('svd-geometry', node => {
-  const { right, canvas } = split(node, { aspect: 1.3 });
+  const { right, canvas } = split(node, { aspect: 1.07 });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -3.4, xmax: 3.4, ymin: -2.6, ymax: 2.6, aspect: 1.3, pad: 8,
+    xmin: -3.4, xmax: 3.4, ymin: -2.6, ymax: 2.6, aspect: 1.07, pad: 8,
   }));
 
   let A = [1.6, 1.1, 0.4, 1.3];
@@ -999,9 +999,9 @@ defineWidget('norms', node => {
    10. Orthogonal projection
    ============================================================ */
 defineWidget('projection', node => {
-  const { right, canvas } = split(node, { aspect: 1.35, hint: 'Drag either arrow' });
+  const { right, canvas } = split(node, { aspect: 1.11, hint: 'Drag either arrow' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -1.5, xmax: 6, ymin: -1.5, ymax: 5, aspect: 1.35, pad: 8,
+    xmin: -1.5, xmax: 6, ymin: -1.5, ymax: 5, aspect: 1.11, pad: 8,
   }));
 
   let a = [1, 2], b = [3, 4];
@@ -1225,9 +1225,9 @@ defineWidget('pixel-matrix', node => {
    12. Null space — which vectors get sent to zero
    ============================================================ */
 defineWidget('nullspace', node => {
-  const { right, canvas } = split(node, { aspect: 1.3, hint: 'Drag x' });
+  const { right, canvas } = split(node, { aspect: 1.07, hint: 'Drag x' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -4, xmax: 4, ymin: -3.2, ymax: 3.2, aspect: 1.3, pad: 8,
+    xmin: -4, xmax: 4, ymin: -3.2, ymax: 3.2, aspect: 1.07, pad: 8,
   }));
 
   let A = [[1, 2], [2, 4]];

@@ -265,13 +265,13 @@
 :root[data-theme="dark"] .playground__badge { color: var(--amber-300); }
 .playground__badge svg { width: 12px; height: 12px; }
 
-.playground__body { padding: 1.15rem 1.25rem 1.3rem; }
+.playground__body { padding: 1.5rem 1.6rem 1.7rem; }
 
 /* Canvas + controls split */
 .pg-split {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(210px, 268px);
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 290px);
+  gap: 1.75rem;
   /* Controls are usually taller than the figure. Stretch both columns and
      centre the visual one so the leftover height reads as deliberate margin
      rather than as a gap hanging under the figure. */
@@ -285,7 +285,7 @@
   min-width: 0;
 }
 .pg-split--even { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.pg-split--wide-ctrl { grid-template-columns: minmax(0,1fr) minmax(240px, 320px); }
+.pg-split--wide-ctrl { grid-template-columns: minmax(0,1fr) minmax(260px, 340px); }
 @media (max-width: 720px) {
   .pg-split, .pg-split--wide-ctrl { grid-template-columns: minmax(0, 1fr); }
 }
@@ -702,7 +702,7 @@ pre:hover .code-copy, .code-copy:focus-visible { opacity: 1; }
 
 /* Reserve space for a widget before it mounts, so lazy mounting
    does not shove the page around under the reader. */
-[data-widget]:not([data-mounted]) { min-height: 430px; }
+[data-widget]:not([data-mounted]) { min-height: 520px; }
 .playground__body[data-widget]:not([data-mounted]) {
   display: grid; place-items: center;
 }

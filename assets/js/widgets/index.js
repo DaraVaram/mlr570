@@ -23,7 +23,7 @@ defineWidget('hero-demo', node => {
   node.appendChild(wrap);
 
   const plot = trackPlot(new Plot(cv, {
-    xmin: -3.1, xmax: 3.1, ymin: -2.5, ymax: 2.5, aspect: 1.25, pad: 0,
+    xmin: -3.1, xmax: 3.1, ymin: -2.5, ymax: 2.5, aspect: 1.05, pad: 0,
   }));
 
   let t = 0;

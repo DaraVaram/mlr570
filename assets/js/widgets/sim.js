@@ -26,7 +26,7 @@ const ICON_WARN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 defineWidget('pearson-explore', node => {
   const { right, canvas } = split(node, { hint: 'Drag any point', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -6, xmax: 6, ymin: -6, ymax: 6, aspect: 1.2, pad: 8,
+    xmin: -6, xmax: 6, ymin: -6, ymax: 6, aspect: 1.05, pad: 8,
   }));
 
   const PRESETS = {
@@ -133,7 +133,7 @@ defineWidget('pearson-explore', node => {
 defineWidget('distance-metrics', node => {
   const { right, canvas } = split(node, { hint: 'Drag either point', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -.6, xmax: 8.6, ymin: -.6, ymax: 6.6, aspect: 1.35, pad: 8,
+    xmin: -.6, xmax: 8.6, ymin: -.6, ymax: 6.6, aspect: 1.11, pad: 8,
   }));
 
   let A = [1, 1], B = [7, 5];
@@ -228,7 +228,7 @@ defineWidget('distance-metrics', node => {
 defineWidget('cosine-sim', node => {
   const { right, canvas } = split(node, { hint: 'Drag either arrow', wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -5.5, xmax: 5.5, ymin: -4, ymax: 4.9, aspect: 1.3, pad: 8,
+    xmin: -5.5, xmax: 5.5, ymin: -4, ymax: 4.9, aspect: 1.07, pad: 8,
   }));
 
   let A = [3, 1], B = [1.4, 2.8];
@@ -396,7 +396,7 @@ defineWidget('jaccard', node => {
   const st = status('');
   right.append(chipRow, presets, out.root, st.root);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 6.4, aspect: 1.5, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 10, ymin: 0, ymax: 6.4, aspect: 1.23, pad: 0 }));
 
   function rebuild() {
     chipRow.innerHTML = '';
@@ -476,7 +476,7 @@ defineWidget('jaccard', node => {
 defineWidget('curse-dimensionality', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 3.1, ymin: 0, ymax: 1.05, aspect: 1.6, equal: false, pad: 0,
+    xmin: 0, xmax: 3.1, ymin: 0, ymax: 1.05, aspect: 1.31, equal: false, pad: 0,
   }));
 
   let nPoints = 500, showL1 = true, showL2 = true;

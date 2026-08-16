@@ -26,7 +26,7 @@ const ICON_WARN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 defineWidget('scaling-demo', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -4, xmax: 4, ymin: -3, ymax: 3, aspect: 1.35, equal: false, pad: 0,
+    xmin: -4, xmax: 4, ymin: -3, ymax: 3, aspect: 1.11, equal: false, pad: 0,
   }));
 
   let spreadExp = 2;            // feature 1 is 10^spreadExp times feature 2
@@ -122,7 +122,7 @@ defineWidget('scaling-demo', node => {
 defineWidget('rolling-agg', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 120, ymin: 0, ymax: 40, aspect: 1.7, equal: false, pad: 0,
+    xmin: 0, xmax: 120, ymin: 0, ymax: 40, aspect: 1.39, equal: false, pad: 0,
   }));
 
   let w = 10, spikes = 0, showMean = true, showMedian = true, showEwma = false, lambda = .8;
@@ -233,7 +233,7 @@ defineWidget('rolling-agg', node => {
 defineWidget('sampling', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 10, ymin: 0, ymax: 6, aspect: 1.6, equal: false, pad: 0,
+    xmin: 0, xmax: 10, ymin: 0, ymax: 6, aspect: 1.31, equal: false, pad: 0,
   }));
 
   const N = 900;
@@ -348,7 +348,7 @@ defineWidget('normalization', node => {
   const st = status('');
   right.append(kindCtl.root, out.root, st.root);
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 4, ymin: -1, ymax: 1, aspect: 1.5, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 4, ymin: -1, ymax: 1, aspect: 1.23, equal: false, pad: 0 }));
 
   let data = rows;
   function refresh() {
@@ -505,7 +505,7 @@ defineWidget('encoding', node => {
 defineWidget('discretization', node => {
   const { right, canvas } = split(node, { wide: true });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: 0, xmax: 100, ymin: 0, ymax: 1, aspect: 1.7, equal: false, pad: 0,
+    xmin: 0, xmax: 100, ymin: 0, ymax: 1, aspect: 1.39, equal: false, pad: 0,
   }));
 
   const SCORES = [15, 22, 35, 41, 46, 53, 67, 72, 85, 93];
@@ -629,7 +629,7 @@ defineWidget('discretization', node => {
 defineWidget('pca-explorer', node => {
   const { right, canvas } = split(node, { hint: 'Drag any point' });
   const plot = trackPlot(new Plot(canvas, {
-    xmin: -5, xmax: 5, ymin: -4, ymax: 4, aspect: 1.35, pad: 8,
+    xmin: -5, xmax: 5, ymin: -4, ymax: 4, aspect: 1.11, pad: 8,
   }));
 
   const r = ML.rng(21);
@@ -752,8 +752,8 @@ defineWidget('pca-scree', node => {
   const controls = el('div', { class: 'pg-controls', style: 'margin-top:1.1rem' }, stdCtl.root, kCtl.root, out.root, st.root);
   wrap.append(grid, controls);
 
-  const screePlot = trackPlot(new Plot(cvScree, { xmin: 0, xmax: 4, ymin: 0, ymax: 1.1, aspect: 1.15, equal: false, pad: 0 }));
-  const projPlot = trackPlot(new Plot(cvProj, { xmin: -4, xmax: 4, ymin: -4, ymax: 4, aspect: 1.15, pad: 6 }));
+  const screePlot = trackPlot(new Plot(cvScree, { xmin: 0, xmax: 4, ymin: 0, ymax: 1.1, aspect: 1.05, equal: false, pad: 0 }));
+  const projPlot = trackPlot(new Plot(cvProj, { xmin: -4, xmax: 4, ymin: -4, ymax: 4, aspect: 1.05, pad: 6 }));
 
   let model = null;
   function refresh() {
@@ -854,7 +854,7 @@ defineWidget('feature-selection', node => {
   right.appendChild(st.root);
   wrap.appendChild(el('div', { class: 'pg-split pg-split--wide-ctrl' }, left, right));
 
-  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 1, ymin: 0, ymax: 5, aspect: 1.5, equal: false, pad: 0 }));
+  const plot = trackPlot(new Plot(cv, { xmin: 0, xmax: 1, ymin: 0, ymax: 5, aspect: 1.23, equal: false, pad: 0 }));
 
   let scores = [];
   function refresh() {
