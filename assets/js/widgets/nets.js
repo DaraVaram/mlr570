@@ -639,7 +639,8 @@ defineWidget('continuous-split', node => {
     const pts = [];
     for (let t = 19.6; t <= 22.4; t += .01) pts.push([t, gainAt(t).gain]);
     pl.path(pts, { color: C.c2, lw: 2.4 });
-    pl.text({ px: 12, py: 16 }, 'information gain as θ sweeps', { color: C.c2, size: 11, weight: 650 });
+    pl.text({ px: 12, py: 10 }, 'information gain as θ sweeps',
+      { color: C.c2, size: 11, weight: 650, halo: true, haloWidth: 4, baseline: 'top' });
 
     // candidate midpoints
     for (let i = 0; i < DATA.length - 1; i++) {
@@ -651,16 +652,18 @@ defineWidget('continuous-split', node => {
       });
       pl.text([mid, 1.09], valid ? `θ=${fmt(mid, 2)} ✓` : 'skip', {
         align: 'center', size: 9.5, color: valid ? C.c3 : C.muted, weight: valid ? 700 : 500,
+        halo: true, haloWidth: 3.5,
       });
     }
 
     pl.line([thr, -.15], [thr, 1.05], { color: C.c4, lw: 2.4 });
     DATA.forEach(d => {
       pl.dot([d.t, -.08], { r: 7, color: d.y === 'Yes' ? C.c3 : C.c4, ring: true, ringLw: 2 });
-      pl.text([d.t, -.15], fmt(d.t, 1), { align: 'center', size: 9.5, color: C.muted });
+      pl.text([d.t, -.145], fmt(d.t, 1),
+        { align: 'center', size: 9.5, color: C.muted, baseline: 'top', halo: true, haloWidth: 3.5 });
     });
     pl.axes();
-    pl.text({ px: pl.w / 2, py: pl.h - 5 }, 'Temperature (°C)', { align: 'center', size: 10.5, color: C.muted });
+    pl.xlabel('Temperature (°C)');
   });
   refresh();
 

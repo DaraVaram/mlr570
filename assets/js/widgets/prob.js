@@ -451,7 +451,7 @@ defineWidget('lln', node => {
 
     p.axes(); p.ticks(.25);
     p.badge([N * .02, p0], `p = ${fmt(p0, 2)}`, { color: C.c4 });
-    p.text({ px: 12, py: 16 }, 'running average of coin tosses', { color: C.muted, size: 11 });
+    p.text({ px: 12, py: 11 }, 'running average of coin tosses', { color: C.muted, size: 11 });
   });
 
   regen();
@@ -753,7 +753,7 @@ defineWidget('covariance', node => {
     [1, 2].forEach(k => {
       drawEllipse(p, e, k, k === 1 ? C.c2 : C.c4, k === 1 ? .95 : .5);
     });
-    p.text({ px: 12, py: 16 }, '1σ and 2σ covariance ellipses', { color: C.muted, size: 11 });
+    p.text({ px: 12, py: 11 }, '1σ and 2σ covariance ellipses', { color: C.muted, size: 11 });
   });
 
   function mat2eig([a, b, c, d]) {

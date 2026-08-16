@@ -675,8 +675,8 @@ defineWidget('chain-rule', node => {
       p.text([n.x, 2.1], fmt(n.val, 2), { align: 'center', size: 10.5, color: C.muted, mono: true });
     });
 
-    p.text({ px: 12, py: 16 }, 'forward: values', { color: C.c1, size: 11, weight: 650 });
-    p.text({ px: 12, py: p.h - 12 }, 'backward: local derivatives, multiplied', { color: C.c4, size: 11, weight: 650 });
+    p.text({ px: 12, py: 11 }, 'forward: values', { color: C.c1, size: 11, weight: 650 });
+    p.text({ px: 12, py: p.h - 6 }, 'backward: local derivatives, multiplied', { color: C.c4, size: 11, weight: 650, baseline: 'bottom' });
     p.text([5, .5],
       `dz/dx = ${fmt(dzdv(), 2)} × ${fmt(dvdu(), 2)} × ${fmt(dudx(), 2)} = ${fmt(dzdv() * dvdu() * dudx(), 3)}`,
       { align: 'center', size: 13, weight: 700, color: C.ink });
@@ -762,7 +762,7 @@ defineWidget('bigo', node => {
     });
 
     p.line([n, 0], [n, 1.08], { color: C.c2, lw: 1.8, dash: [5, 4] });
-    p.badge([n, 1.03], `n = ${n}`, { color: C.c2, align: 'center' });
+    p.badge([n, 1.03], `n = ${n}`, { color: C.c2, align: 'center', dy: -12 });
 
     p.axes(); p.ticks(N / 5);
     p.text({ px: 12, py: 16 },

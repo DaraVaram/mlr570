@@ -383,7 +383,7 @@ defineWidget('perceptron', node => {
       const a = [-s.w[0] * s.b / (n * n), -s.w[1] * s.b / (n * n)];
       p.arrow(a, [a[0] + s.w[0] / n * 1.5, a[1] + s.w[1] / n * 1.5], { color: C.c3, lw: 2.4 });
     }
-    p.text({ px: 12, py: 16 }, `w = (${fmt(s.w[0], 2)}, ${fmt(s.w[1], 2)}),  b = ${fmt(s.b, 2)}`,
+    p.text({ px: 12, py: 11 }, `w = (${fmt(s.w[0], 2)}, ${fmt(s.w[1], 2)}),  b = ${fmt(s.b, 2)}`,
       { color: C.ink, size: 12, weight: 700, mono: true });
   });
 
@@ -496,7 +496,7 @@ defineWidget('svm-margin', node => {
         p.ctx.beginPath(); p.ctx.arc(sx, sy, 13, 0, Math.PI * 2); p.ctx.stroke();
       }
     });
-    p.text({ px: 12, py: 16 }, 'solid: boundary · dashed: ±1 margins · orange rings: support vectors',
+    p.text({ px: 12, py: 11 }, 'solid: boundary · dashed: ±1 margins · orange rings: support vectors',
       { color: C.muted, size: 10.5 });
   });
 
@@ -687,15 +687,16 @@ defineWidget('ridge', node => {
     paths.forEach((pa, k) => {
       p.path(pa, { color: cols[k], lw: 2.6 });
       const last = pa[0];
-      p.text([last[0], last[1]], `β${['₁', '₂', '₃'][k]}`, { color: cols[k], size: 11, weight: 700, dx: 4, dy: -8 });
+      // the path ends at the right edge, so anchor the label inside it
+      p.text({ px: Math.min(p.X(last[0]) + 4, p.w - 16), py: clamp(p.Y(last[1]) - 8, 10, p.h - 10) },
+        `β${['₁', '₂', '₃'][k]}`, { color: cols[k], size: 11, weight: 700 });
     });
     p.line([logLam, -2], [logLam, 3], { color: C.c4, lw: 1.8, dash: [5, 4] });
     beta.forEach((b, k) => p.dot([logLam, b], { r: 5, color: cols[k], ring: true }));
     p.line([-3.2, 0], [1.1, 0], { color: C.axis, lw: 1.2 });
     p.axes(); p.ticks(1);
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'log₁₀ λ  (left = no regularisation)',
-      { align: 'center', size: 10.5, color: C.muted });
-    p.text({ px: 10, py: 14 }, 'coefficient value', { size: 10.5, color: C.muted });
+    p.xlabel('log₁₀ λ  (left = no regularisation)', { size: 10.5 });
+    p.text({ px: 10, py: 11 }, 'coefficient value', { size: 10.5, color: C.muted });
   });
 
   refresh();
@@ -799,7 +800,7 @@ defineWidget('feature-lift', node => {
       });
     }
     pts.forEach((q, i) => p.dot(put(q), { r: 4, color: y[i] > 0 ? C.c1 : C.c4, alpha: .92 }));
-    p.text({ px: 12, py: 16 }, 'φ(x) = [x₁, x₂, x₁² + x₂²]', { color: C.ink, size: 12, weight: 700 });
+    p.text({ px: 12, py: 11 }, 'φ(x) = [x₁, x₂, x₁² + x₂²]', { color: C.ink, size: 12, weight: 700 });
   });
 
   sync();
@@ -1043,7 +1044,7 @@ defineWidget('kernel-regression', node => {
     train.forEach(t => p.dot(t, { r: 4.2, color: C.c5, ring: true, ringLw: 1.6 }));
     p.fn(predict, { color: C.c1, lw: 3, from: -.3, to: 6.6, samples: 420 });
     p.axes({ ticks: 1 });
-    p.text({ px: 12, py: 16 }, 'dashed: true sin(x) · violet: kernel fit · faint: held-out test points',
+    p.text({ px: 12, py: 11 }, 'dashed: true sin(x) · violet: kernel fit · faint: held-out test points',
       { color: C.muted, size: 10.5 });
   });
 

@@ -4,7 +4,10 @@
     {
       "name": "mlr570",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8765"],
+      "runtimeArgs": [
+        "_serve.py",
+        "8765"
+      ],
       "port": 8765
     }
   ]

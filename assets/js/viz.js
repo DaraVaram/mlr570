@@ -129,6 +129,10 @@ export class Plot {
   resize() {
     const host = this.canvas.parentElement || this.canvas;
     const cssW = Math.max(1, host.clientWidth);
+    // Height follows the aspect ratio only. Stretching a canvas to fill a tall
+    // controls column distorts every figure drawn with equal: false, so the
+    // dead space is absorbed by centring the canvas in its column (see
+    // .pg-split in components.css) rather than by resizing it.
     const cssH = Math.max(1, Math.round(cssW / this.o.aspect));
     this.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     this.canvas.style.height = cssH + 'px';
@@ -230,24 +234,108 @@ export class Plot {
     if (opts.ticks) this.ticks(opts.ticks === true ? 1 : opts.ticks, opts);
   }
 
+  /**
+   * Axis tick labels.
+   *
+   * Labels are anchored to the axis, but the axis is often flush with the
+   * canvas edge (any plot built with pad: 0 whose range starts at 0), which
+   * would push the labels off-canvas entirely. Every label is therefore kept
+   * inside the drawing area: it flips to the opposite side of the axis when
+   * there is no room, and is clamped along its own axis so the first and last
+   * are never half-cut.
+   */
   ticks(step = 1, opts = {}) {
     const { ctx, o } = this;
+    // x and y often need different spacing (a bar chart's value axis has
+    // nothing to do with its category axis), so each may be overridden
+    const stepX = opts.stepX ?? step;
+    const stepY = opts.stepY ?? step;
+    if (!(stepX > 0) || !Number.isFinite(stepX) || !(stepY > 0) || !Number.isFinite(stepY)) return;
+    const size = opts.size || 11;
     ctx.save();
     ctx.fillStyle = opts.color || C.muted;
-    ctx.font = `500 ${opts.size || 11}px ${css('--font-sans')}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = `500 ${size}px ${css('--font-sans')}`;
+    // Tick labels are chrome and frequently land on grid lines, curves or a
+    // shaded region. A halo in the panel colour keeps them readable without
+    // hiding anything underneath.
+    ctx.strokeStyle = C.bg;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    const put = (t, x, y) => { ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };
+    const M = 3;                                   // keep this far from the edge
+    // space claimed by a bottom caption, so ticks never sit on top of it
+    const B = opts.bottom ?? this.reserveBottom ?? 0;
+
+    // ---- x labels, normally below the horizontal axis ----
+    ctx.textAlign = 'center';
+    let lastX = -Infinity, lastY = -Infinity;
     const yBase = clamp(0, o.ymin, o.ymax);
-    for (let x = Math.ceil(o.xmin / step) * step; x <= o.xmax + 1e-9; x += step) {
+    const axisY = this.Y(yBase);
+    const below = axisY + 5 + size <= this.h - M - B;
+    ctx.textBaseline = below ? 'top' : 'bottom';
+    // flipping above the axis must still clear the caption band, otherwise
+    // an axis flush with the bottom edge puts labels straight onto the caption
+    const ly = below
+      ? Math.min(axisY + 5, this.h - M - B - size)
+      : clamp(Math.min(axisY - 5, this.h - B - 4), M + size, this.h - M);
+    for (let x = Math.ceil(o.xmin / stepX) * stepX; x <= o.xmax + 1e-9; x += stepX) {
       if (Math.abs(x) < 1e-9) continue;
-      ctx.fillText(fmt(x, 2), this.X(x), this.Y(yBase) + 5);
+      const label = fmt(x, 2);
+      const nat = this.X(x);
+      if (nat < -1 || nat > this.w + 1) continue;      // off the plot entirely: drop it
+      const half = ctx.measureText(label).width / 2;
+      const cx = clamp(nat, M + half, this.w - M - half);
+      // never let labels pile up: a step suited to one axis can be far too
+      // fine for the other, which would stack hundreds of labels on a pixel
+      if (cx - half < lastX + 6) continue;
+      lastX = cx + half;
+      put(label, cx, ly);
     }
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+
+    // ---- y labels, normally left of the vertical axis ----
     const xBase = clamp(0, o.xmin, o.xmax);
-    for (let y = Math.ceil(o.ymin / step) * step; y <= o.ymax + 1e-9; y += step) {
+    const axisX = this.X(xBase);
+    let widest = 0;
+    for (let y = Math.ceil(o.ymin / stepY) * stepY; y <= o.ymax + 1e-9; y += stepY) {
       if (Math.abs(y) < 1e-9) continue;
-      ctx.fillText(fmt(y, 2), this.X(xBase) - 6, this.Y(y));
+      const ny = this.Y(y);
+      if (ny < -1 || ny > this.h + 1) continue;
+      widest = Math.max(widest, ctx.measureText(fmt(y, 2)).width);
+    }
+    const leftFits = axisX - 6 - widest >= M;
+    ctx.textAlign = leftFits ? 'right' : 'left';
+    ctx.textBaseline = 'middle';
+    const lx = leftFits ? Math.max(axisX - 6, M + widest) : Math.min(axisX + 6, this.w - M - widest);
+    for (let y = Math.ceil(o.ymin / stepY) * stepY; y <= o.ymax + 1e-9; y += stepY) {
+      if (Math.abs(y) < 1e-9) continue;
+      const nat = this.Y(y);
+      if (nat < -1 || nat > this.h + 1) continue;      // off the plot entirely: drop it
+      const cy = clamp(nat, M + size / 2, this.h - M - size / 2);
+      if (Math.abs(cy - lastY) < size + 2) continue;
+      // When there is no gutter the labels sit inside the plot, where the
+      // top-left corner is conventionally used for the figure's caption.
+      // Dropping one tick there beats printing two strings on top of each other.
+      if (!leftFits && cy < (opts.topCaption ?? 30)) continue;
+      lastY = cy;
+      put(fmt(y, 2), lx, cy);
     }
     ctx.restore();
+  }
+
+  /**
+   * Caption centred along the bottom edge, always fully inside the canvas.
+   * Use instead of hand-positioning text at `py: h - 4`, which clips descenders.
+   */
+  xlabel(str, opts = {}) {
+    const need = (opts.size || 10.5) + 6;
+    // ticks() runs before this on the same frame, so the very first paint would
+    // not yet know to leave room. Claim the space and repaint once.
+    if (!this.reserveBottom || this.reserveBottom < need) {
+      this.reserveBottom = need;
+      this.render();
+    }
+    this.text({ px: this.w / 2, py: this.h - 3 }, str,
+      { align: 'center', baseline: 'bottom', size: 10.5, color: C.muted, weight: 500, ...opts });
   }
 
   line(a, b, opts = {}) {
@@ -486,6 +574,12 @@ export class Plot {
     if (opts.align === 'center') bx = x - w / 2 - padX;
     else if (opts.align === 'right') bx = x - w - padX * 2;
     const bw = w + padX * 2;
+    // A badge anchored to a data point drifts off-canvas as that point moves.
+    // Keep the whole pill inside so the label is never half-cut.
+    if (opts.clamp !== false) {
+      bx = clamp(bx, 2, Math.max(2, this.w - bw - 2));
+      by = clamp(by, 2, Math.max(2, this.h - h - 2));
+    }
     const r = 5;
     ctx.beginPath();
     ctx.moveTo(bx + r, by);

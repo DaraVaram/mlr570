@@ -100,9 +100,9 @@ defineWidget('scaling-demo', node => {
       p.dot(c, { r: 8, color: cols[i], ring: true, ringLw: 3 });
       p.dot(c, { r: 2.5, color: C.raised });
     });
-    p.text({ px: 12, py: 16 }, 'colour = cluster assigned by k-means · rings = cluster centres',
+    p.text({ px: 12, py: 11 }, 'colour = cluster assigned by k-means · rings = cluster centres',
       { color: C.muted, size: 11 });
-    p.text({ px: 12, py: p.h - 10 }, 'feature 1 →', { color: C.muted, size: 11 });
+    p.text({ px: 12, py: p.h - 5 }, 'feature 1 →', { color: C.muted, size: 11, baseline: 'bottom' });
   });
 
   refresh();
@@ -308,7 +308,7 @@ defineWidget('sampling', node => {
     };
     draw(maj, 0, .7, C.c1, `Class 1 · ${maj}`, dropped ? `${dropped} dropped` : 'majority');
     draw(min, dupes, 5.6, C.c2, `Class 2 · ${min}`, dupes ? `${dupes} synthetic (hollow)` : 'minority');
-    p.text({ px: 12, py: p.h - 12 }, `each dot = ${perDot} samples`, { color: C.muted, size: 10.5 });
+    p.text({ px: 12, py: p.h - 5 }, `each dot = ${perDot} samples`, { color: C.muted, size: 10.5, baseline: 'bottom' });
   });
 
   refresh();
@@ -789,7 +789,7 @@ defineWidget('pca-scree', node => {
     p.line([0, .95], [4, .95], { color: C.c3, lw: 1.2, dash: [3, 4], alpha: .8 });
     p.text([3.9, .97], '95%', { align: 'right', size: 10, color: C.c3 });
     p.axes(); p.ticks(1);
-    p.text({ px: 10, py: 14 }, 'bars = individual · line = cumulative', { color: C.muted, size: 10 });
+    p.text({ px: 10, py: 11 }, 'bars = individual · line = cumulative', { color: C.muted, size: 10 });
   });
 
   projPlot.onDraw(p => {
@@ -802,7 +802,7 @@ defineWidget('pca-scree', node => {
     p.grid(mx / 4, { color: C.grid });
     p.axes();
     sc.forEach(s => p.dot([s[0], s[1]], { r: 3, color: C.c1, alpha: .6 }));
-    p.text({ px: 10, py: 14 }, 'PC1 →', { color: C.muted, size: 10.5 });
+    p.text({ px: 10, py: 11 }, 'PC1 →', { color: C.muted, size: 10.5 });
     p.text({ px: 10, py: 28 }, '↑ PC2', { color: C.muted, size: 10.5 });
   });
 
@@ -889,14 +889,15 @@ defineWidget('feature-selection', node => {
       const yTop = p.Y(yy + .32), yBot = p.Y(yy - .32);
       p.ctx.fillRect(x0, yTop, x1 - x0, yBot - yTop);
       p.ctx.globalAlpha = 1;
-      p.text([0, yy + .44], names[i], { size: 11, weight: 620, color: C.ink, dx: 2 });
+      p.text({ px: Math.max(4, p.X(0) + 2), py: p.Y(yy + .44) }, names[i],
+        { size: 11, weight: 620, color: C.ink, halo: true, haloWidth: 3.5 });
       p.text([s, yy], fmt(s, 3), { size: 11, dx: 8, color: C.muted, mono: true });
     });
-    p.text({ px: 10, py: p.h - 8 },
+    p.text({ px: 10, py: p.h - 4 },
       criterion === 'variance' ? 'variance (ignores the label)'
       : criterion === 'corr' ? '|Pearson correlation| with the label'
       : 'mutual information with the label (bits)',
-      { color: C.muted, size: 10.5 });
+      { color: C.muted, size: 10.5, baseline: 'bottom' });
   });
 
   refresh();

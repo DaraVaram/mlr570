@@ -113,7 +113,7 @@ defineWidget('pearson-explore', node => {
     });
     p.dot([mx, my], { r: 5, color: C.c3, ring: true });
     p.badge([mx, my], 'mean', { color: C.c3, align: 'center', dy: 18 });
-    p.text({ px: 12, py: 16 }, 'violet: (x−x̄)(y−ȳ) > 0   ·   red: < 0', { color: C.muted, size: 10.5 });
+    p.text({ px: 12, py: 11 }, 'violet: (x−x̄)(y−ȳ) > 0   ·   red: < 0', { color: C.muted, size: 10.5 });
   });
 
   refresh();
@@ -316,7 +316,8 @@ defineWidget('cosine-sim', node => {
     p.badge(b, 'B', { color: C.c3, align: 'center', dy: -17 });
     p.handle(A, { color: C.c1, r: 6 });
     p.handle(b, { color: C.c3, r: 6 });
-    p.text({ px: 12, py: 16 }, 'dashed red: Euclidean gap · dashed teal: B’s direction', { color: C.muted, size: 10.5 });
+    p.text({ px: 12, py: 11 }, 'dashed red: Euclidean gap · dashed teal: B’s direction',
+      { color: C.muted, size: 10.5, halo: true, haloWidth: 4 });
   });
 
   refresh();
@@ -528,7 +529,9 @@ defineWidget('curse-dimensionality', node => {
   plot.onDraw(p => {
     p.grid(.25, { color: C.grid });
     p.line([0, 1], [3.1, 1], { color: C.c4, lw: 1.4, dash: [5, 4], alpha: .8 });
-    p.text([3.05, .965], 'everything equidistant', { align: 'right', size: 10.5, color: C.c4 });
+    // sits on the ratio = 1 rule, at the left where the curves are low
+    p.text([0.06, 1], 'everything equidistant',
+      { align: 'left', size: 10.5, color: C.c4, dy: -9, halo: true, haloWidth: 4 });
 
     if (showL2) {
       p.path(series.l2, { color: C.c1, lw: 2.8 });
@@ -547,19 +550,17 @@ defineWidget('curse-dimensionality', node => {
     p.ctx.stroke();
     [1, 10, 100, 1000].forEach(d => {
       const x = Math.log10(d);
-      p.text([x, 0], String(d), { align: 'center', dy: 14, size: 11, color: C.muted });
+      p.text({ px: p.X(x), py: p.h - (p.reserveBottom || 16) - 3 }, String(d),
+        { align: 'center', baseline: 'bottom', size: 11, color: C.muted, weight: 500 });
     });
     [0, .25, .5, .75, 1].forEach(v => {
-      p.text([0, v], fmt(v, 2), { align: 'right', dx: -6, size: 11, color: C.muted });
+      p.text({ px: 30, py: p.Y(v) }, fmt(v, 2),
+        { align: 'right', size: 11, color: C.muted, halo: true, haloWidth: 3.5 });
     });
-    p.text({ px: p.w / 2, py: p.h - 4 }, 'dimension d (log scale)', { align: 'center', size: 11, color: C.muted });
-    p.text({ px: 12, py: 16 }, 'nearest / farthest distance ratio', { size: 11, color: C.muted });
-    const key = [[C.c1, 'Euclidean'], [C.c2, 'Manhattan']];
-    key.forEach(([col, lbl], i) => {
-      p.ctx.strokeStyle = col; p.ctx.lineWidth = 2.6;
-      p.ctx.beginPath(); p.ctx.moveTo(p.w - 108, 18 + i * 16); p.ctx.lineTo(p.w - 88, 18 + i * 16); p.ctx.stroke();
-      p.text({ px: p.w - 82, py: 18 + i * 16 }, lbl, { size: 10.5, color: C.muted, weight: 600 });
-    });
+    p.xlabel('dimension d (log scale)', { size: 11 });
+    // the curves climb to the top-right, so the key goes bottom-right
+    p.legend([[C.c1, 'Euclidean'], [C.c2, 'Manhattan', [6, 4]]],
+      { corner: 'br', margin: 30, title: 'nearest / farthest distance ratio' });
   });
 
   compute();

@@ -671,8 +671,8 @@ defineWidget('vanishing-gradient', node => {
     // exploding curves occupy the top-left, vanishing ones the bottom-left
     p.legend(
       [[C.c4, `vanilla RNN  (w·α = ${fmt(van, 3)})`], [C.c3, `GRU  (g = ${fmt(g, 3)})`, [6, 4]]],
-      { corner: van > 1 ? 'bl' : 'tl', title: 'log₁₀ gradient, relative to the final step' });
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'time step t', { align: 'center', size: 10.5, color: C.muted });
+      { corner: van > 1 ? 'bl' : 'br', title: 'log₁₀ gradient, relative to the final step' });
+    p.xlabel('time step t', { size: 10.5 });
   });
 
   refresh();
@@ -817,18 +817,25 @@ defineWidget('positional-encoding', node => {
   }
 
   plot.onDraw(p => {
-    p.o.xmin = 0; p.o.xmax = dModel; p.o.ymin = 0; p.o.ymax = T;
+    // Rows read downwards, as a matrix is written: position 0 on top. The
+    // bands above and below the matrix hold the two labels so neither is
+    // drawn over the colours.
+    const padTop = Math.max(1.5, T * .07), padBot = Math.max(1.8, T * .085);
+    p.o.xmin = 0; p.o.xmax = dModel; p.o.ymin = -padBot; p.o.ymax = T + padTop;
     p._computeScale();
+    const rowY = pos => T - pos;                      // top edge of row `pos`
     const cw = p.px(1), ch = p.px(1);
     for (let pos = 0; pos < T; pos++) for (let i = 0; i < dModel; i++) {
       const v = PE(pos, i);
       p.ctx.fillStyle = v >= 0 ? withA(C.c1, .1 + Math.abs(v) * .8) : withA(C.c4, .1 + Math.abs(v) * .8);
-      p.ctx.fillRect(p.X(i), p.Y(pos + 1), cw + 1, ch + 1);
+      p.ctx.fillRect(p.X(i), p.Y(rowY(pos)), cw + 1, ch + 1);
     }
     p.ctx.strokeStyle = C.c2; p.ctx.lineWidth = 2.4;
-    p.ctx.strokeRect(p.X(0), p.Y(posA + 1), p.px(dModel), ch);
-    p.text({ px: 8, py: 12 }, `p = ${posA}`, { color: C.c2, size: 11, weight: 700 });
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'channel i →', { align: 'center', size: 10, color: C.muted });
+    p.ctx.strokeRect(p.X(0), p.Y(rowY(posA)), p.px(dModel), ch);
+    p.text([0, T + padTop * .5], `p = ${posA}`, { color: C.c2, size: 11, weight: 700, dx: 2 });
+    p.text([dModel, T + padTop * .5], 'position 0 at the top',
+      { color: C.muted, size: 9.5, align: 'right', dx: -2 });
+    p.xlabel('channel i →', { size: 10 });
   });
 
   plot2.onDraw(p => {
@@ -847,11 +854,12 @@ defineWidget('positional-encoding', node => {
       p.path(pts, { color: C.c1, lw: 2.6 });
       pts.forEach(q => p.dot(q, { r: 2.6, color: C.c1, alpha: .8 }));
       p.line([posA, -1.15], [posA, 1.15], { color: C.c2, lw: 1.8, dash: [5, 4] });
-      p.badge([posA, 1.05], `p = ${posA}`, { color: C.c2, align: 'center' });
+      p.badge([posA, 1.05], `p = ${posA}`, { color: C.c2, align: 'center', dy: 16 });
     }
     p.axes(); p.ticks(Math.max(5, Math.round(T / 8)));
-    p.text({ px: 8, py: 12 }, 'cosine similarity between PE(p) and PE(q)', { color: C.muted, size: 10 });
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'position q', { align: 'center', size: 10, color: C.muted });
+    p.text({ px: 8, py: 13 }, 'cosine similarity between PE(p) and PE(q)',
+      { color: C.muted, size: 10, halo: true, haloWidth: 4 });
+    p.xlabel('position q', { size: 10 });
   });
 
   refresh();
@@ -1052,22 +1060,32 @@ defineWidget('attention-scaling', node => {
   }
 
   plot.onDraw(p => {
-    p.o.xmin = -.6; p.o.xmax = T; p.o.ymin = 0; p.o.ymax = 1.12;
+    // Scale to the data rather than pinning the axis at 1: with a healthy
+    // distribution every weight is under 0.2 and a fixed 0–1 axis crushes the
+    // bars into a sliver. The band below zero holds the tick labels so they
+    // never sit on top of the bars.
+    const top = Math.max(1 / T * 1.9, Math.max(...weights) * 1.28, .12);
+    const yTop = Math.min(1.1, top);
+    p.o.xmin = -.6; p.o.xmax = T; p.o.ymin = -yTop * .2; p.o.ymax = yTop * 1.16;
     p._computeScale();
-    p.grid(.25, { color: C.grid });
+    p.grid(yTop / 4, { color: C.grid });
     const bw = p.px(.72);
     weights.forEach((w, i) => {
       const x = p.X(i + .14);
       p.ctx.fillStyle = C.c1; p.ctx.globalAlpha = .88;
-      p.ctx.fillRect(x, p.Y(w), bw, p.Y(0) - p.Y(w));
+      p.ctx.fillRect(x, p.Y(Math.min(w, yTop)), bw, p.Y(0) - p.Y(Math.min(w, yTop)));
       p.ctx.globalAlpha = 1;
-      if (w > .03) p.text([i + .5, w], fmt(w, 2), { align: 'center', dy: -9, size: 9.5, color: C.muted });
+      if (w > yTop * .06) {
+        p.text([i + .5, Math.min(w, yTop)], fmt(w, 2),
+          { align: 'center', dy: -9, size: 9.5, color: C.muted, halo: true, haloWidth: 3 });
+      }
     });
     p.line([-.6, 1 / T], [T, 1 / T], { color: C.c3, lw: 1.6, dash: [5, 4] });
-    p.badge([T - .2, 1 / T], `uniform = ${fmt(1 / T, 3)}`, { color: C.c3, align: 'right', dy: -12 });
-    p.axes(); p.ticks(2);
-    p.text({ px: 12, py: 16 }, 'softmax weights over 12 keys', { color: C.muted, size: 10.5 });
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'key index', { align: 'center', size: 10.5, color: C.muted });
+    p.axes();
+    p.ticks(1, { stepX: 2, stepY: yTop / 2, bottom: 17 });
+    p.legend([[C.c3, `uniform = ${fmt(1 / T, 3)}`, [5, 4]]],
+      { corner: 'tr', title: `softmax weights over ${T} keys` });
+    p.xlabel('key index', { size: 10.5 });
   });
 
   refresh();
@@ -1530,17 +1548,18 @@ defineWidget('arch-evolution', node => {
     if (axis === 'year') p.ticks(5);
     else {
       p.ticks(5);
-      // decade ticks on the log axis
+      // decade labels on the log axis — placed just above the caption band so
+      // they stay inside the canvas (Y(0) is the bottom edge here)
+      const band = (p.reserveBottom || 16) + 3;
       for (const v of [1, 10, 100, 1000]) {
         const lx = Math.log10(v);
         if (lx < p.o.xmin || lx > p.o.xmax) continue;
-        p.text([lx, 0], String(v), { align: 'center', dy: 15, size: 10.5, color: C.muted });
+        p.text({ px: p.X(lx), py: p.h - band }, String(v),
+          { align: 'center', baseline: 'bottom', size: 10.5, color: C.muted, weight: 500 });
       }
     }
-    p.text({ px: p.w / 2, py: p.h - 4 },
-      axis === 'depth' ? 'layers with learnable parameters (log scale)'
-        : axis === 'params' ? 'parameters, millions (log scale)' : 'year',
-      { align: 'center', size: 10.5, color: C.muted });
+    p.xlabel(axis === 'depth' ? 'layers with learnable parameters (log scale)'
+      : axis === 'params' ? 'parameters, millions (log scale)' : 'year');
     p.legend([[C.c4, 'pre-deep-learning'], [C.c1, 'deep CNN'], [C.c3, 'below 5% error']],
       { corner: 'tr', title: 'top-5 ImageNet error (%)' });
   });
@@ -1597,7 +1616,7 @@ defineWidget('seq-types', node => {
   plot.onDraw(p => {
     const P = PATTERNS[key];
     const T = Math.max(P.ins, P.outs);
-    p.o.xmin = -.9; p.o.xmax = T + .4; p.o.ymin = -1.5; p.o.ymax = 3.1;
+    p.o.xmin = -.9; p.o.xmax = T + .4; p.o.ymin = -1.6; p.o.ymax = 4.35;
     p._computeScale();
     p.clear(null);
     const box = (x, y, label, col, filled) => {
@@ -1769,7 +1788,7 @@ defineWidget('rnn-sharing', node => {
     const lwFor = k => (hi === k ? 3.4 : 1.8);
 
     if (view === 'rolled') {
-      p.o.xmin = -1.6; p.o.xmax = 1.6; p.o.ymin = -1.5; p.o.ymax = 1.7;
+      p.o.xmin = -1.6; p.o.xmax = 1.6; p.o.ymin = -1.6; p.o.ymax = 2.75;
       p._computeScale();
       drawBox(0, 0, 1.1, .7, inside ? '' : 'sₜ', C.c1, true, hi === 'W' ? 3.4 : 2);
       if (inside) {
@@ -1792,7 +1811,7 @@ defineWidget('rnn-sharing', node => {
       p.ctx.fillStyle = colFor('W');
       p.ctx.fillText('W', c[0] + rr * 1.75, c[1]);
     } else {
-      p.o.xmin = -1.1; p.o.xmax = T + .3; p.o.ymin = -1.5; p.o.ymax = 1.7;
+      p.o.xmin = -1.1; p.o.xmax = T + .3; p.o.ymin = -1.6; p.o.ymax = 2.75;
       p._computeScale();
       const sub = '₀₁₂₃₄₅₆₇₈₉';
       drawBox(-.62, 0, .55, .5, 's₀', C.muted, false);

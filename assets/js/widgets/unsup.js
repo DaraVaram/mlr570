@@ -217,7 +217,9 @@ defineWidget('kmeans-anova', node => {
   }
 
   plot.onDraw(p => {
-    p.o.xmin = .3; p.o.xmax = kMax + .7; p.o.ymin = 0; p.o.ymax = curve[0].TSS * 1.12;
+    // band below zero for the k labels, band above for the TSS rule and legend
+    p.o.xmin = .3; p.o.xmax = kMax + .7;
+    p.o.ymin = -curve[0].TSS * .13; p.o.ymax = curve[0].TSS * 1.30;
     p._computeScale();
     p.grid(curve[0].TSS / 6, { color: C.grid });
     const bw = .62;
@@ -235,13 +237,15 @@ defineWidget('kmeans-anova', node => {
         p.ctx.strokeStyle = C.ink; p.ctx.lineWidth = 1.6;
         p.ctx.strokeRect(x0, p.Y(c.TSS), w, p.Y(0) - p.Y(c.TSS));
       }
-      p.text([c.k, 0], String(c.k), { align: 'center', dy: 14, size: 11, color: c.k === kSel ? C.ink : C.muted, weight: c.k === kSel ? 700 : 500 });
+      p.text({ px: p.X(c.k), py: p.h - (p.reserveBottom || 16) - 4 }, String(c.k),
+        { align: 'center', baseline: 'bottom', size: 11,
+          color: c.k === kSel ? C.ink : C.muted, weight: c.k === kSel ? 700 : 500 });
     });
     p.line([.3, curve[0].TSS], [kMax + .7, curve[0].TSS], { color: C.ink, lw: 1.6, dash: [6, 4] });
     p.badge([kMax + .6, curve[0].TSS], `TSS = ${fmt(curve[0].TSS, 1)}`, { color: C.ink, align: 'right', dy: -14 });
     p.axes(); p.ticks(curve[0].TSS / 4);
-    p.legend([[C.c4, 'WCSS — within clusters'], [C.c3, 'BCSS — between clusters']], { corner: 'tr' });
-    p.text({ px: p.w / 2, py: p.h - 4 }, 'number of clusters k', { align: 'center', size: 10.5, color: C.muted });
+    p.legend([[C.c4, 'WCSS — within clusters'], [C.c3, 'BCSS — between clusters']], { corner: 'tl' });
+    p.xlabel('number of clusters k', { size: 10.5 });
   });
 
   refresh();
@@ -489,7 +493,7 @@ defineWidget('kmedoids-demo', node => {
     });
     p.axes(); p.ticks(2);
     p.legend([[C.c1, '× = mean (k-means)'], [C.c2, '○ = medoid (k-medoids)']],
-      { corner: 'tl', title: 'the orange point is the outlier' });
+      { corner: 'br', title: 'the orange point is the outlier' });
   });
 
   // dragging the outlier
@@ -845,8 +849,7 @@ defineWidget('dbscan-lab', node => {
     p.line([-2, knee], [sorted.length + 2, knee], { color: C.c3, lw: 1.6, dash: [3, 4] });
     p.badge([2, knee], `knee ≈ ${fmt(knee, 2)}`, { color: C.c3, dy: 14 });
     p.axes(); p.ticks(p.o.ymax / 4);
-    p.text({ px: p.w / 2, py: p.h - 4 }, 'points, sorted by distance to their k-th neighbour',
-      { align: 'center', size: 10, color: C.muted });
+    p.xlabel('points, sorted by distance to their k-th neighbour', { size: 10 });
   });
 
   refresh();
@@ -1247,7 +1250,7 @@ defineWidget('sparse-kl', node => {
     p.badge([rhoHat, y], `β·KL = ${fmt(beta * CL.klBernoulli(rho, rhoHat), 3)}`, { color: C.c2, align: 'center', dy: -16 });
     p.axes(); p.ticks(ymax / 4);
     p.legend([[C.c3, 'ρ = 0.05'], [C.c5, 'ρ = 0.10'], [C.c4, 'ρ = 0.50']], { corner: 'tr', title: 'penalty shape' });
-    p.text({ px: p.w / 2, py: p.h - 4 }, 'average activation ρ̂ of a latent neuron', { align: 'center', size: 10.5, color: C.muted });
+    p.xlabel('average activation ρ̂ of a latent neuron', { size: 10.5 });
   });
 
   refresh();
@@ -1329,7 +1332,7 @@ defineWidget('vae-latent', node => {
         p.ctx.strokeStyle = withA(C.ink, lv === 1 ? .5 : .28);
         p.ctx.lineWidth = 1.8; p.ctx.setLineDash([6, 5]); p.ctx.stroke(); p.ctx.setLineDash([]);
       });
-      p.badge([0, 2], 'prior N(0, I)', { color: C.ink, align: 'center', dy: -8 });
+      p.badge([0, 2], 'prior N(0, I)', { color: C.ink, align: 'center', dy: -13 });
     }
     mus.forEach(m => {
       const [sx, sy] = p.toScreen(m);

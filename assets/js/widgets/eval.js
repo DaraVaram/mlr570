@@ -118,7 +118,7 @@ defineWidget('data-split', node => {
       }
       x += s.w;
     });
-    p.text({ px: 12, py: 14 }, `${N} samples`, { color: C.muted, size: 11 });
+    p.text({ px: 12, py: 11 }, `${N} samples`, { color: C.muted, size: 11 });
   });
 
   refresh();
@@ -244,7 +244,7 @@ defineWidget('overfitting', node => {
     p.text({ px: ix + 8, py: iy + ih - 5 }, 'train', { size: 9.5, color: C.c2 });
     p.text({ px: ix + 46, py: iy + ih - 5 }, 'validation', { size: 9.5, color: C.c4 });
 
-    p.text({ px: 12, py: 16 }, 'dashed grey: true function · orange: training points · teal: validation points',
+    p.text({ px: 12, py: 11 }, 'dashed grey: true function · orange: training points · teal: validation points',
       { color: C.muted, size: 10.5 });
   });
 
@@ -323,11 +323,11 @@ defineWidget('kfold', node => {
 
   plot.onDraw(p => {
     const rows = K;
-    const rowH = 9.2 / rows;
+    const rowH = 7.5 / rows;          // band reserved above and below for the captions
     const boxW = 9.2 / K;
     for (let round = 0; round < rows; round++) {
       if (activeFold >= 0 && round !== activeFold) p.ctx.globalAlpha = .22;
-      const y = 9.5 - round * rowH;
+      const y = 8.9 - round * rowH;
       for (let f = 0; f < K; f++) {
         const isVal = f === round;
         const x = .5 + f * boxW;
@@ -349,10 +349,10 @@ defineWidget('kfold', node => {
       }
       p.ctx.globalAlpha = 1;
     }
-    p.text({ px: 12, py: 12 },
+    p.text({ px: 12, py: 13 },
       activeFold >= 0 ? `round ${activeFold + 1} of ${K}` : `all ${K} rounds — the validation block rotates`,
-      { color: C.muted, size: 11 });
-    p.text({ px: 12, py: p.h - 8 }, 'final score = average across all rounds', { color: C.muted, size: 10.5 });
+      { color: C.muted, size: 11, baseline: 'middle' });
+    p.text({ px: 12, py: p.h - 5 }, 'final score = average across all rounds', { color: C.muted, size: 10.5, baseline: 'bottom' });
   });
 
   refresh();
@@ -623,7 +623,7 @@ defineWidget('threshold-roc', node => {
     p.axes(); p.ticks(.25);
     p.text({ px: 8, py: 12 }, 'negatives', { color: C.c5, size: 10, weight: 650 });
     p.text({ px: 8, py: 25 }, 'positives', { color: C.c2, size: 10, weight: 650 });
-    p.text({ px: p.w - 8, py: p.h - 6 }, 'flagged →', { color: C.muted, size: 10, align: 'right' });
+    p.text({ px: p.w - 8, py: p.h - 4 }, 'flagged →', { color: C.muted, size: 10, align: 'right', baseline: 'bottom' });
   });
 
   pRoc.onDraw(p => {
@@ -636,7 +636,7 @@ defineWidget('threshold-roc', node => {
     p.dot([fpr, tpr], { r: 6, color: C.c4, ring: true });
     p.axes(); p.ticks(.5);
     p.text({ px: 8, py: 12 }, `AUC = ${fmt(auc, 3)}`, { color: C.c1, size: 11, weight: 700 });
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'false positive rate', { align: 'center', size: 10, color: C.muted });
+    p.xlabel('false positive rate', { size: 10 });
   });
 
   pPr.onDraw(p => {
@@ -649,7 +649,7 @@ defineWidget('threshold-roc', node => {
     const prec = c.TP + c.FP ? c.TP / (c.TP + c.FP) : 1;
     p.dot([rec, prec], { r: 6, color: C.c4, ring: true });
     p.axes(); p.ticks(.5);
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'recall', { align: 'center', size: 10, color: C.muted });
+    p.xlabel('recall', { size: 10 });
     p.text({ px: 8, py: 12 }, 'precision ↑', { size: 10, color: C.muted });
   });
 
@@ -735,7 +735,10 @@ defineWidget('fbeta', node => {
 
     const f1 = fb(P, R, 1);
     p.dot([1, f1], { r: 5, color: C.muted, ring: true });
-    p.badge([1, f1], `F₁ = ${fmt(f1, 3)}`, { color: C.muted, align: 'center', dy: -18 });
+    // when beta is at 1 the live badge below sits here too, so only draw one
+    if (Math.abs(beta - 1) > .06) {
+      p.badge([1, f1], `F₁ = ${fmt(f1, 3)}`, { color: C.muted, align: 'center', dy: -18 });
+    }
 
     const v = fb(P, R, beta);
     p.line([beta, 0], [beta, v], { color: C.c4, lw: 1.6, dash: [4, 4] });
@@ -743,9 +746,8 @@ defineWidget('fbeta', node => {
     p.badge([beta, v], `F_${fmt(beta, 2)} = ${fmt(v, 3)}`, { color: C.c4, align: 'center', dy: -20 });
 
     p.axes(); p.ticks(1);
-    p.text({ px: p.w / 2, py: p.h - 5 }, 'β  (β<1 favours precision · β>1 favours recall)',
-      { align: 'center', size: 10.5, color: C.muted });
-    p.text({ px: 10, py: 14 }, 'F_β', { size: 11, color: C.c1, weight: 700 });
+    p.xlabel('β  (β<1 favours precision · β>1 favours recall)', { size: 10.5 });
+    p.text({ px: 10, py: 30 }, 'Fβ', { size: 11, color: C.c1, weight: 700 });
   });
 
   refresh();
@@ -832,9 +834,10 @@ defineWidget('mse-mae', node => {
       p.line([i, t], [i, pred[i]], { color: C.c4, lw: 2, dash: [4, 3] });
       p.dot([i, t], { r: 5.5, color: C.c3, ring: true });
       p.handle([i, pred[i]], { color: C.c1, r: 6 });
-      p.text([i, -.55], `e=${fmt(pred[i] - t, 2)}`, { align: 'center', size: 10, color: C.muted, mono: true });
+      p.text([i, -.62], `e=${fmt(pred[i] - t, 2)}`,
+        { align: 'center', size: 10, color: C.muted, mono: true, halo: true, haloWidth: 3.5 });
     });
-    p.text({ px: 12, py: 16 }, 'teal = actual · violet = prediction (drag) · shaded square = squared error',
+    p.text({ px: 12, py: 11 }, 'teal = actual · violet = prediction (drag) · shaded square = squared error',
       { color: C.muted, size: 10.5 });
   });
 

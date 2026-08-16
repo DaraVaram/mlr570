@@ -640,7 +640,7 @@ defineWidget('rank3d', node => {
     });
     pts.forEach(v => p.dot(project(v.map(c => c * k)), { r: 3.2, color: C.c2 }));
 
-    p.text({ px: 12, py: 16 }, 'original', { color: C.muted, size: 11 });
+    p.text({ px: 12, py: 11 }, 'original', { color: C.muted, size: 11 });
     p.text({ px: 12, py: 32 }, 'image under A', { color: C.c1, size: 11 });
   });
   sync();
@@ -866,7 +866,7 @@ defineWidget('svd-compress', node => {
     const cum = dec.s.map((v, i) => { acc += v * v; return [i + 1, acc / total]; });
     p.path([[0, 0], ...cum], { color: C.c2, lw: 2.2 });
     p.line([k, 0], [k, 1.06], { color: C.c4, lw: 1.6, dash: [5, 4] });
-    p.text({ px: 8, py: 14 }, 'σᵢ (bars) · cumulative energy (line)', { color: C.muted, size: 10.5 });
+    p.text({ px: 8, py: 11 }, 'σᵢ (bars) · cumulative energy (line)', { color: C.muted, size: 10.5 });
   });
 
   redraw();

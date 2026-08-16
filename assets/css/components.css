@@ -272,7 +272,17 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(210px, 268px);
   gap: 1.25rem;
-  align-items: start;
+  /* Controls are usually taller than the figure. Stretch both columns and
+     centre the visual one so the leftover height reads as deliberate margin
+     rather than as a gap hanging under the figure. */
+  align-items: stretch;
+}
+.pg-split > :first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .6rem;
+  min-width: 0;
 }
 .pg-split--even { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 .pg-split--wide-ctrl { grid-template-columns: minmax(0,1fr) minmax(240px, 320px); }
