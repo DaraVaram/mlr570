@@ -219,12 +219,16 @@ defineWidget('hero-demo', node => {
         while (steps-- > 0) trainStep(LR, MU);
       }
 
-      // hold the finished boundary for a beat, then learn it again from scratch
-      held = acc > .995 ? held + dt : 0;
-      if (held > 2600 || epoch > 1500) { reset(3 + ((epoch * 7919) % 997)); held = 0; }
+      // hold the finished boundary for a beat, then learn it again from scratch.
+      // never under reduced motion: that path trains once, so a restart would
+      // re-initialise a network that never trains again and strand a blank field
+      if (!reduce) {
+        held = acc > .995 ? held + dt : 0;
+        if (held > 2600 || epoch > 1500) { reset(3 + ((epoch * 7919) % 997)); held = 0; }
 
-      sincePaint += dt;
-      if (sincePaint >= REPAINT_MS) { paintField(); sincePaint = 0; }
+        sincePaint += dt;
+        if (sincePaint >= REPAINT_MS) { paintField(); sincePaint = 0; }
+      }
       plot.renderNow();
     }
     raf = requestAnimationFrame(tick);
