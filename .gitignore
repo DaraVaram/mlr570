@@ -2,3 +2,6 @@ Thumbs.db
 .DS_Store
 desktop.ini
 *.log
+
+# dev-server captures (POST /_shot)
+_shot/
